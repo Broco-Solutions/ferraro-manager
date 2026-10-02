@@ -1,0 +1,21 @@
+import { describe, expect, it } from "vitest";
+
+import { getNavigationForRole } from "@/modules/identity/application/navigation";
+import { hasRole, isUserRole } from "@/modules/identity/domain/roles";
+
+describe("roles and navigation", () => {
+  it("recognizes only the two contractual roles", () => {
+    expect(isUserRole("ADMIN")).toBe(true);
+    expect(isUserRole("STAFF")).toBe(true);
+    expect(isUserRole("OWNER")).toBe(false);
+  });
+
+  it("keeps ADMIN-only navigation away from STAFF", () => {
+    const staffLabels = getNavigationForRole("STAFF").map((item) => item.label);
+    const adminLabels = getNavigationForRole("ADMIN").map((item) => item.label);
+
+    expect(staffLabels).not.toContain("Administración");
+    expect(adminLabels).toContain("Administración");
+    expect(hasRole("STAFF", ["ADMIN"])).toBe(false);
+  });
+});
