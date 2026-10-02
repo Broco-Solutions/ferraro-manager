@@ -11,14 +11,14 @@ export default function AppHomePage() {
       <header className="page-header">
         <div>
           <p className="eyebrow">Base operativa</p>
-          <h1>Todo listo para construir con criterio.</h1>
+          <h1>La operación empieza por conocer cada auto.</h1>
           <p className="page-description">
-            La foundation de {brandConfig.businessName} está activa. Los módulos
-            operativos se incorporarán únicamente en sus BUILDs aprobados.
+            La base de {brandConfig.businessName} está activa y la gestión de
+            clientes y vehículos ya está disponible.
           </p>
         </div>
         <span className="status-pill">
-          <span aria-hidden="true" /> Foundation activa
+          <span aria-hidden="true" /> Clientes activos
         </span>
       </header>
 
@@ -35,9 +35,9 @@ export default function AppHomePage() {
           <p>Moneda única definida por contrato.</p>
         </article>
         <article className="foundation-card">
-          <p className="card-kicker">Próxima etapa</p>
-          <h2>Clientes y vehículos</h2>
-          <p>Sólo después del gate humano de BUILD 0.</p>
+          <p className="card-kicker">En construcción</p>
+          <h2>Catálogo de servicios</h2>
+          <p>La próxima capa del circuito operativo.</p>
         </article>
       </section>
 
@@ -47,8 +47,8 @@ export default function AppHomePage() {
           <h2>Sin funciones simuladas</h2>
         </div>
         <p>
-          Agenda, clientes, trabajos y finanzas aparecen como destinos futuros,
-          pero no se presentan como funciones disponibles antes de tiempo.
+          Sólo clientes y vehículos están habilitados por ahora. Los demás
+          destinos se activarán al completar sus respectivos BUILDs.
         </p>
       </section>
     </div>

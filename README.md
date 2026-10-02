@@ -14,7 +14,7 @@ No se usa `prisma db push`: todo cambio de esquema debe producir una migración 
 
 1. Copiar `.env.example` a `.env` y completar valores locales. Nunca reutilizar secretos entre ambientes.
 2. Instalar dependencias con `pnpm install`.
-3. Levantar un PostgreSQL local. Sin Docker puede usarse `pnpm db:dev --name ferraro-manager`; copiar su URL a `DATABASE_URL`.
+3. Levantar un PostgreSQL local. Sin Docker puede usarse `pnpm db:dev --name ferraro-manager`; copiar sus URLs principal y shadow a `DATABASE_URL` y `SHADOW_DATABASE_URL`.
 4. Generar el cliente con `pnpm db:generate`.
 5. Aplicar migraciones con `pnpm db:migrate:deploy`.
 6. Definir las variables `BOOTSTRAP_ADMIN_*` y ejecutar `pnpm admin:bootstrap` para crear o rotar de forma idempotente el ADMIN inicial.

@@ -24,8 +24,8 @@ const navigation: readonly NavigationItem[] = [
   {
     label: "Clientes",
     shortLabel: "Clientes",
+    href: "/app/clients",
     roles: ["ADMIN", "STAFF"],
-    upcoming: true,
   },
   {
     label: "Trabajos",

@@ -22,7 +22,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "BETTER_AUTH_URL=http://localhost:3001 pnpm exec next dev -p 3001",
+    command:
+      "BETTER_AUTH_URL=http://localhost:3001 pnpm exec next start -p 3001",
     url: "http://localhost:3001/login",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

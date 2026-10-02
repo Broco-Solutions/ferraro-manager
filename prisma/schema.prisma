@@ -13,22 +13,83 @@ enum UserRole {
 }
 
 model User {
-  id            String           @id @default(uuid()) @db.Uuid
-  name          String
-  email         String           @unique
-  emailVerified Boolean          @default(false)
-  image         String?
-  role          UserRole         @default(STAFF)
-  active        Boolean          @default(true)
-  lastLoginAt   DateTime?
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
-  sessions      Session[]
-  accounts      Account[]
-  idempotency   IdempotencyKey[]
+  id              String           @id @default(uuid()) @db.Uuid
+  name            String
+  email           String           @unique
+  emailVerified   Boolean          @default(false)
+  image           String?
+  role            UserRole         @default(STAFF)
+  active          Boolean          @default(true)
+  lastLoginAt     DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  sessions        Session[]
+  accounts        Account[]
+  idempotency     IdempotencyKey[]
+  clientsCreated  Client[]         @relation("ClientCreatedBy")
+  clientsUpdated  Client[]         @relation("ClientUpdatedBy")
+  vehiclesCreated Vehicle[]        @relation("VehicleCreatedBy")
+  vehiclesUpdated Vehicle[]        @relation("VehicleUpdatedBy")
 
   @@index([active])
   @@map("users")
+}
+
+model Client {
+  id              String    @id @default(uuid()) @db.Uuid
+  displayName     String
+  firstName       String?
+  lastName        String?
+  phone           String?
+  normalizedPhone String?
+  whatsapp        String?
+  email           String?
+  instagram       String?
+  notes           String?
+  active          Boolean   @default(true)
+  archivedAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  createdById     String?   @db.Uuid
+  updatedById     String?   @db.Uuid
+  createdBy       User?     @relation("ClientCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy       User?     @relation("ClientUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  vehicles        Vehicle[]
+
+  @@index([displayName])
+  @@index([normalizedPhone])
+  @@index([email])
+  @@index([active, createdAt])
+  @@index([createdById])
+  @@index([updatedById])
+  @@map("clients")
+}
+
+model Vehicle {
+  id             String    @id @default(uuid()) @db.Uuid
+  clientId       String    @db.Uuid
+  brand          String
+  model          String
+  version        String?
+  year           Int?
+  color          String?
+  notes          String?
+  coverObjectKey String?
+  active         Boolean   @default(true)
+  archivedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  createdById    String?   @db.Uuid
+  updatedById    String?   @db.Uuid
+  client         Client    @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  createdBy      User?     @relation("VehicleCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy      User?     @relation("VehicleUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@index([clientId, active])
+  @@index([brand, model])
+  @@index([createdById])
+  @@index([updatedById])
+  @@map("vehicles")
 }
 
 model Session {
