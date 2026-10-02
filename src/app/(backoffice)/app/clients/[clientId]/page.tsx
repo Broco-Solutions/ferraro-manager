@@ -8,6 +8,8 @@ import {
 } from "@/modules/clients/application/actions";
 import { getClientDetail } from "@/modules/clients/application/client-service";
 import { VehicleForm } from "@/modules/clients/ui/vehicle-form";
+import { listClientJobHistory } from "@/modules/jobs/application/job-service";
+import { formatBusinessDate } from "@/shared/date-time/business-time";
 
 export const metadata: Metadata = { title: "Ficha de cliente" };
 
@@ -27,7 +29,10 @@ export default async function ClientDetailPage({
 }: PageProps) {
   const { clientId } = await params;
   const notices = await searchParams;
-  const client = await getClientDetail(clientId);
+  const [client, jobs] = await Promise.all([
+    getClientDetail(clientId),
+    listClientJobHistory(clientId),
+  ]);
   if (!client) notFound();
 
   return (
@@ -176,13 +181,36 @@ export default async function ClientDetailPage({
         </div>
       </details>
 
-      <section className="timeline-placeholder">
+      <section className="section-stack">
         <p className="eyebrow">Historial</p>
-        <h2>Listo para crecer con el cliente</h2>
-        <p>
-          Turnos, trabajos y fotos aparecerán acá cuando se incorporen en sus
-          BUILDs.
-        </p>
+        <h2>Trabajos realizados</h2>
+        {jobs.length ? (
+          <div className="timeline-list">
+            {jobs.map((job) => (
+              <Link
+                href={`/app/jobs/${job.id}`}
+                key={job.id}
+                className="timeline-item"
+              >
+                <span>{formatBusinessDate(job.performedAt)}</span>
+                <strong>
+                  {job.serviceCase.vehicle.brand}{" "}
+                  {job.serviceCase.vehicle.model}
+                </strong>
+                <small>
+                  {job.services.map((item) => item.nameSnapshot).join(" · ") ||
+                    "Sin servicios detallados"}
+                </small>
+                {job.voidedAt ? <em>Anulado</em> : null}
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="inline-empty">
+            <strong>Sin trabajos todavía</strong>
+            <p>El historial real aparecerá cuando se complete el primero.</p>
+          </div>
+        )}
       </section>
     </div>
   );

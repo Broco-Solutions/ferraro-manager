@@ -34,9 +34,9 @@ const navigation: readonly NavigationItem[] = [
   {
     label: "Trabajos",
     shortLabel: "Trabajos",
+    href: "/app/jobs",
     roles: ["ADMIN", "STAFF"],
     mobile: true,
-    upcoming: true,
   },
   {
     label: "Inventario",

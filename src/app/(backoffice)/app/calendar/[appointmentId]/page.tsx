@@ -58,15 +58,30 @@ export default async function AppointmentPage({
           </p>
         </div>
         {appointment.status === "CONFIRMED" ? (
-          <form action={cancelAppointmentAction}>
-            <input type="hidden" name="id" value={appointment.id} />
-            <ConfirmButton
-              className="ghost-button"
-              message="¿Cancelar este turno? El cliente y el caso se conservarán."
+          <div className="header-actions">
+            <Link
+              href={`/app/calendar/${appointment.id}/complete`}
+              className="primary-button button-link"
             >
-              Cancelar turno
-            </ConfirmButton>
-          </form>
+              Marcar realizado
+            </Link>
+            <form action={cancelAppointmentAction}>
+              <input type="hidden" name="id" value={appointment.id} />
+              <ConfirmButton
+                className="ghost-button"
+                message="¿Cancelar este turno? El cliente y el caso se conservarán."
+              >
+                Cancelar turno
+              </ConfirmButton>
+            </form>
+          </div>
+        ) : appointment.job ? (
+          <Link
+            href={`/app/jobs/${appointment.job.id}`}
+            className="ghost-button button-link"
+          >
+            Ver trabajo
+          </Link>
         ) : null}
       </header>
       {appointment.status === "CONFIRMED" ? (
@@ -95,8 +110,9 @@ export default async function AppointmentPage({
             <h2>Este turno ya no se edita</h2>
           </div>
           <p>
-            Se conserva para trazabilidad. Un turno cancelado nunca se convierte
-            en trabajo.
+            {appointment.status === "CANCELLED"
+              ? "Se conserva para trazabilidad. Un turno cancelado nunca se convierte en trabajo."
+              : "El trabajo realizado tiene su propio detalle e historial."}
           </p>
         </section>
       )}

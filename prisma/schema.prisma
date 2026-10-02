@@ -66,6 +66,9 @@ model User {
   appointmentAssignments   AppointmentEmployee[]
   calendarBlocksCreated    CalendarBlock[]       @relation("CalendarBlockCreatedBy")
   calendarBlocksUpdated    CalendarBlock[]       @relation("CalendarBlockUpdatedBy")
+  jobsCreated              Job[]                 @relation("JobCreatedBy")
+  jobsUpdated              Job[]                 @relation("JobUpdatedBy")
+  jobAssignments           JobEmployee[]
 
   @@index([active])
   @@map("users")
@@ -167,6 +170,7 @@ model Service {
   category                 ServiceCategory      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   variants                 ServiceVariant[]
   appointmentServices      AppointmentService[]
+  jobServices              JobService[]
   createdBy                User?                @relation("ServiceCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   updatedBy                User?                @relation("ServiceUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
 
@@ -213,6 +217,7 @@ model ServiceCase {
   vehicle         Vehicle           @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
   createdBy       User?             @relation("ServiceCaseCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   appointments    Appointment[]
+  jobs            Job[]
 
   @@index([clientId, vehicleId])
   @@index([createdById])
@@ -238,6 +243,7 @@ model Appointment {
   employees       AppointmentEmployee[]
   createdBy       User?                 @relation("AppointmentCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   updatedBy       User?                 @relation("AppointmentUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  job             Job?
 
   @@index([startAt, endAt, status])
   @@index([serviceCaseId])
@@ -289,6 +295,57 @@ model CalendarBlock {
 
   @@index([startAt, endAt, active])
   @@map("calendar_blocks")
+}
+
+model Job {
+  id                  String        @id @default(uuid()) @db.Uuid
+  serviceCaseId       String        @db.Uuid
+  originAppointmentId String?       @unique @db.Uuid
+  performedAt         DateTime      @db.Timestamptz(3)
+  notes               String?
+  voidedAt            DateTime?     @db.Timestamptz(3)
+  voidReason          String?
+  createdAt           DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt           DateTime      @updatedAt @db.Timestamptz(3)
+  createdById         String?       @db.Uuid
+  updatedById         String?       @db.Uuid
+  serviceCase         ServiceCase   @relation(fields: [serviceCaseId], references: [id], onDelete: Restrict)
+  originAppointment   Appointment?  @relation(fields: [originAppointmentId], references: [id], onDelete: Restrict)
+  services            JobService[]
+  employees           JobEmployee[]
+  createdBy           User?         @relation("JobCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy           User?         @relation("JobUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@index([performedAt])
+  @@index([serviceCaseId, performedAt])
+  @@index([voidedAt])
+  @@map("jobs")
+}
+
+model JobService {
+  id                  String   @id @default(uuid()) @db.Uuid
+  jobId               String   @db.Uuid
+  serviceId           String?  @db.Uuid
+  nameSnapshot        String
+  descriptionSnapshot String?
+  sortOrder           Int      @default(0)
+  job                 Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  service             Service? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+
+  @@index([jobId, sortOrder])
+  @@index([serviceId])
+  @@map("job_services")
+}
+
+model JobEmployee {
+  jobId  String @db.Uuid
+  userId String @db.Uuid
+  job    Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@id([jobId, userId])
+  @@index([userId])
+  @@map("job_employees")
 }
 
 model Session {

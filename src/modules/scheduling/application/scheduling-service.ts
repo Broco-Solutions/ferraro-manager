@@ -326,6 +326,7 @@ export async function getAppointmentDetail(id: string) {
     where: { id },
     include: {
       serviceCase: { include: { client: true, vehicle: true } },
+      job: { select: { id: true, voidedAt: true } },
       services: { orderBy: { sortOrder: "asc" } },
       employees: { include: { user: { select: { id: true, name: true } } } },
     },
