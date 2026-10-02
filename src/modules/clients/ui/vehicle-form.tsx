@@ -16,6 +16,7 @@ interface VehicleValues {
   version?: string | null;
   year?: number | null;
   color?: string | null;
+  vehicleClass?: "SEDAN" | "SUV" | "PICKUP" | "OTHER" | null;
   notes?: string | null;
 }
 
@@ -87,6 +88,16 @@ export function VehicleForm({
             defaultValue={values.color ?? ""}
             maxLength={60}
           />
+        </label>
+        <label className="field-group">
+          <span>Segmento</span>
+          <select name="vehicleClass" defaultValue={values.vehicleClass ?? ""}>
+            <option value="">Sin definir</option>
+            <option value="SEDAN">Sedan</option>
+            <option value="SUV">SUV</option>
+            <option value="PICKUP">Pickup</option>
+            <option value="OTHER">Otro</option>
+          </select>
         </label>
         <label className="field-group field-span-2">
           <span>Observaciones</span>

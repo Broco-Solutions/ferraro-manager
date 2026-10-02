@@ -497,6 +497,107 @@ summary {
   height: 5.25rem;
 }
 
+.inline-create-form {
+  display: grid;
+  grid-template-columns: minmax(15rem, 28rem) auto;
+  align-items: end;
+  gap: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  padding: var(--space-4);
+}
+
+.inline-create-form .form-error {
+  grid-column: 1 / -1;
+}
+
+.catalog-stack,
+.catalog-category,
+.service-list,
+.variant-list {
+  display: grid;
+}
+
+.catalog-stack {
+  gap: var(--space-6);
+}
+
+.catalog-category {
+  gap: var(--space-3);
+}
+
+.catalog-category > header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-border-strong);
+  padding-bottom: var(--space-3);
+}
+
+.catalog-category h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.catalog-category > header > span {
+  color: var(--color-ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.service-list,
+.variant-list {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.service-row,
+.variant-row {
+  display: grid;
+  align-items: center;
+  gap: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-4);
+}
+
+.service-row {
+  grid-template-columns: minmax(12rem, 1fr) auto auto auto;
+}
+
+.variant-row {
+  grid-template-columns: minmax(12rem, 1fr) auto auto;
+}
+
+.service-row:last-child,
+.variant-row:last-child {
+  border-bottom: 0;
+}
+
+.service-row.is-archived,
+.variant-row.is-archived {
+  opacity: 0.6;
+}
+
+.service-row > div,
+.variant-row > div {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.service-row small,
+.variant-row small,
+.variant-count {
+  color: var(--color-ink-soft);
+  font-size: 0.8rem;
+}
+
+.variant-row b {
+  color: var(--color-accent-strong);
+  font-variant-numeric: tabular-nums;
+}
+
 @keyframes skeleton-pulse {
   to {
     background-position: -200% 0;
@@ -1156,6 +1257,14 @@ a.nav-link:hover {
   .vehicle-grid {
     grid-template-columns: 1fr;
   }
+
+  .service-row {
+    grid-template-columns: minmax(10rem, 1fr) auto auto;
+  }
+
+  .variant-count {
+    display: none;
+  }
 }
 
 @media (max-width: 47.99rem) {
@@ -1350,6 +1459,30 @@ a.nav-link:hover {
 
   .vehicle-card {
     grid-template-columns: 4.5rem minmax(0, 1fr);
+  }
+
+  .inline-create-form {
+    grid-template-columns: 1fr;
+  }
+
+  .inline-create-form .ghost-button {
+    width: 100%;
+  }
+
+  .service-row,
+  .variant-row {
+    grid-template-columns: 1fr auto;
+  }
+
+  .service-row > .text-link,
+  .variant-row > b {
+    grid-column: 1;
+  }
+
+  .service-row > form,
+  .variant-row > form {
+    grid-column: 2;
+    grid-row: 2;
   }
 
   .vehicle-visual {

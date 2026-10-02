@@ -5,6 +5,7 @@ export interface NavigationItem {
   href?: string;
   shortLabel: string;
   roles: readonly UserRole[];
+  mobile?: boolean;
   upcoming?: boolean;
 }
 
@@ -14,11 +15,13 @@ const navigation: readonly NavigationItem[] = [
     shortLabel: "Inicio",
     href: "/app",
     roles: ["ADMIN", "STAFF"],
+    mobile: true,
   },
   {
     label: "Agenda",
     shortLabel: "Agenda",
     roles: ["ADMIN", "STAFF"],
+    mobile: true,
     upcoming: true,
   },
   {
@@ -26,18 +29,27 @@ const navigation: readonly NavigationItem[] = [
     shortLabel: "Clientes",
     href: "/app/clients",
     roles: ["ADMIN", "STAFF"],
+    mobile: true,
   },
   {
     label: "Trabajos",
     shortLabel: "Trabajos",
     roles: ["ADMIN", "STAFF"],
+    mobile: true,
     upcoming: true,
   },
   {
     label: "Inventario",
     shortLabel: "Stock",
     roles: ["ADMIN", "STAFF"],
+    mobile: true,
     upcoming: true,
+  },
+  {
+    label: "Servicios",
+    shortLabel: "Servicios",
+    href: "/app/services",
+    roles: ["ADMIN"],
   },
   {
     label: "Administración",

@@ -95,6 +95,7 @@ export async function saveVehicleAction(
     version: stringValue(formData, "version"),
     year: stringValue(formData, "year"),
     color: stringValue(formData, "color"),
+    vehicleClass: stringValue(formData, "vehicleClass"),
     notes: stringValue(formData, "notes"),
   });
   if (!clientId)

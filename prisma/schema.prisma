@@ -12,24 +12,42 @@ enum UserRole {
   STAFF
 }
 
+enum VehicleClass {
+  SEDAN
+  SUV
+  PICKUP
+  OTHER
+}
+
+enum ServiceVariantType {
+  VEHICLE_CLASS
+  MODEL_EXCEPTION
+}
+
 model User {
-  id              String           @id @default(uuid()) @db.Uuid
-  name            String
-  email           String           @unique
-  emailVerified   Boolean          @default(false)
-  image           String?
-  role            UserRole         @default(STAFF)
-  active          Boolean          @default(true)
-  lastLoginAt     DateTime?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  sessions        Session[]
-  accounts        Account[]
-  idempotency     IdempotencyKey[]
-  clientsCreated  Client[]         @relation("ClientCreatedBy")
-  clientsUpdated  Client[]         @relation("ClientUpdatedBy")
-  vehiclesCreated Vehicle[]        @relation("VehicleCreatedBy")
-  vehiclesUpdated Vehicle[]        @relation("VehicleUpdatedBy")
+  id                       String            @id @default(uuid()) @db.Uuid
+  name                     String
+  email                    String            @unique
+  emailVerified            Boolean           @default(false)
+  image                    String?
+  role                     UserRole          @default(STAFF)
+  active                   Boolean           @default(true)
+  lastLoginAt              DateTime?
+  createdAt                DateTime          @default(now())
+  updatedAt                DateTime          @updatedAt
+  sessions                 Session[]
+  accounts                 Account[]
+  idempotency              IdempotencyKey[]
+  clientsCreated           Client[]          @relation("ClientCreatedBy")
+  clientsUpdated           Client[]          @relation("ClientUpdatedBy")
+  vehiclesCreated          Vehicle[]         @relation("VehicleCreatedBy")
+  vehiclesUpdated          Vehicle[]         @relation("VehicleUpdatedBy")
+  serviceCategoriesCreated ServiceCategory[] @relation("ServiceCategoryCreatedBy")
+  serviceCategoriesUpdated ServiceCategory[] @relation("ServiceCategoryUpdatedBy")
+  servicesCreated          Service[]         @relation("ServiceCreatedBy")
+  servicesUpdated          Service[]         @relation("ServiceUpdatedBy")
+  serviceVariantsCreated   ServiceVariant[]  @relation("ServiceVariantCreatedBy")
+  serviceVariantsUpdated   ServiceVariant[]  @relation("ServiceVariantUpdatedBy")
 
   @@index([active])
   @@map("users")
@@ -66,30 +84,99 @@ model Client {
 }
 
 model Vehicle {
-  id             String    @id @default(uuid()) @db.Uuid
-  clientId       String    @db.Uuid
+  id             String        @id @default(uuid()) @db.Uuid
+  clientId       String        @db.Uuid
   brand          String
   model          String
   version        String?
   year           Int?
   color          String?
+  vehicleClass   VehicleClass?
   notes          String?
   coverObjectKey String?
-  active         Boolean   @default(true)
+  active         Boolean       @default(true)
   archivedAt     DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  createdById    String?   @db.Uuid
-  updatedById    String?   @db.Uuid
-  client         Client    @relation(fields: [clientId], references: [id], onDelete: Restrict)
-  createdBy      User?     @relation("VehicleCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
-  updatedBy      User?     @relation("VehicleUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  createdById    String?       @db.Uuid
+  updatedById    String?       @db.Uuid
+  client         Client        @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  createdBy      User?         @relation("VehicleCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy      User?         @relation("VehicleUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
 
   @@index([clientId, active])
   @@index([brand, model])
   @@index([createdById])
   @@index([updatedById])
   @@map("vehicles")
+}
+
+model ServiceCategory {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String
+  sortOrder   Int       @default(0)
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  createdById String?   @db.Uuid
+  updatedById String?   @db.Uuid
+  createdBy   User?     @relation("ServiceCategoryCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy   User?     @relation("ServiceCategoryUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  services    Service[]
+
+  @@unique([name])
+  @@index([active, sortOrder])
+  @@map("service_categories")
+}
+
+model Service {
+  id                       String           @id @default(uuid()) @db.Uuid
+  categoryId               String           @db.Uuid
+  name                     String
+  internalDescription      String?
+  commercialDescription    String?
+  basePriceUsd             Decimal?         @db.Decimal(19, 2)
+  estimatedDurationMinutes Int?
+  imageObjectKey           String?
+  sortOrder                Int              @default(0)
+  active                   Boolean          @default(true)
+  createdAt                DateTime         @default(now())
+  updatedAt                DateTime         @updatedAt
+  createdById              String?          @db.Uuid
+  updatedById              String?          @db.Uuid
+  category                 ServiceCategory  @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  variants                 ServiceVariant[]
+  createdBy                User?            @relation("ServiceCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy                User?            @relation("ServiceUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@unique([categoryId, name])
+  @@index([active, sortOrder])
+  @@index([categoryId, active])
+  @@map("services")
+}
+
+model ServiceVariant {
+  id                       String             @id @default(uuid()) @db.Uuid
+  serviceId                String             @db.Uuid
+  type                     ServiceVariantType
+  label                    String
+  vehicleClass             VehicleClass?
+  matchBrand               String?
+  matchModel               String?
+  priceUsd                 Decimal            @db.Decimal(19, 2)
+  estimatedDurationMinutes Int?
+  priority                 Int                @default(0)
+  active                   Boolean            @default(true)
+  createdAt                DateTime           @default(now())
+  updatedAt                DateTime           @updatedAt
+  createdById              String?            @db.Uuid
+  updatedById              String?            @db.Uuid
+  service                  Service            @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  createdBy                User?              @relation("ServiceVariantCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy                User?              @relation("ServiceVariantUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@index([serviceId, active, type, priority])
+  @@map("service_variants")
 }
 
 model Session {

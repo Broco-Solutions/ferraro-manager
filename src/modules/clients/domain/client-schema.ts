@@ -38,6 +38,10 @@ export const vehicleInputSchema = z.object({
     .transform((value) => (value === "" ? undefined : value))
     .optional(),
   color: optionalText(60),
+  vehicleClass: z
+    .union([z.enum(["SEDAN", "SUV", "PICKUP", "OTHER"]), z.literal("")])
+    .transform((value) => value || undefined)
+    .optional(),
   notes: optionalText(2_000),
 });
 

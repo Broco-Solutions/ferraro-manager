@@ -41,7 +41,7 @@ function Navigation({ user }: { user: AuthenticatedUser }) {
 
 export function AppShell({ children, user }: AppShellProps) {
   const mobileItems = getNavigationForRole(user.role).filter(
-    (item) => item.href,
+    (item) => item.href && item.mobile,
   );
 
   return (
