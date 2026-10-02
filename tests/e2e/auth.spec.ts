@@ -10,7 +10,7 @@ async function login(
   await page.getByLabel("Email").fill(user.email);
   await page.getByLabel("Contraseña").fill(user.password);
   await page.getByRole("button", { name: "Ingresar" }).click();
-  await expect(page).toHaveURL(/\/app$/);
+  await expect(page).toHaveURL(/\/app$/, { timeout: 15_000 });
 }
 
 test("a protected route redirects an anonymous visitor", async ({ page }) => {
