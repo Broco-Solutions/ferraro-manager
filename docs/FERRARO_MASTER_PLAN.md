@@ -1,6 +1,6 @@
 # Ferraro Management System — Master Plan
 
-> **Contrato maestro del proyecto.** Este documento es la fuente de verdad funcional y técnica de FERRARO. Cada BUILD se planifica, implementa y acepta contra este contenido. Cualquier desviación estructural, cambio de alcance, invariante o decisión arquitectónica posterior debe explicarse y registrarse; nunca se modifica silenciosamente. Cuando exista la primera decisión posterior de ese tipo se creará `docs/DECISIONS.md` y se enlazará desde aquí.
+> **Contrato maestro del proyecto.** Este documento es la fuente de verdad funcional y técnica de FERRARO. Cada BUILD se planifica, implementa y acepta contra este contenido. Cualquier desviación estructural, cambio de alcance, invariante o decisión arquitectónica posterior debe explicarse y registrarse; nunca se modifica silenciosamente. Las decisiones posteriores se registran en [`docs/DECISIONS.md`](./DECISIONS.md).
 
 - **Estado:** planificación consolidada, lista para aprobación.
 - **Ubicación del negocio:** Rosario, Santa Fe, Argentina.
@@ -341,7 +341,7 @@ No se exige DDD ceremonial. La separación existe para impedir que UI y handlers
 | ORM | Prisma + migraciones versionadas | Tipado, productividad y transacciones | SQL/Drizzle da más control, con mayor superficie manual |
 | Validation | Zod en fronteras | Contratos compartibles y mensajes consistentes | Validación ad hoc se dispersa |
 | Forms | React Hook Form sólo en formularios complejos | Estado y errores sin rerenders excesivos | Form actions nativas para formularios simples |
-| Auth | Auth.js con sesiones de base, usuarios provisionados y Argon2id | Sin proveedor externo obligatorio; control suficiente | Servicio administrado reduce auth propia, agrega costo/dependencia |
+| Auth | Better Auth con sesiones de base, usuarios provisionados y Argon2id (DEC-001) | Credenciales sin signup público y sesiones opacas persistidas, sin proveedor externo | Auth.js Credentials exige JWT; un servicio administrado agrega costo/dependencia |
 | UI | Componentes accesibles headless + CSS/Tailwind y tokens propios | Comportamiento robusto sin estética de plantilla | Librería visual cerrada acelera pero homogeneiza marca |
 | Calendar | Biblioteca madura de calendario evaluada en BUILD 3, envuelta por adaptador | DnD/layout complejo ya resuelto | Construirlo completo es costoso y riesgoso |
 | PDF | `@react-pdf/renderer`, fuentes embebidas, artifact al emitir | Determinista, server-friendly, template versionable | Chromium ofrece CSS web completo, pesa y complica runtime |
@@ -966,7 +966,7 @@ Cada BUILD termina en gate de revisión y no habilita automáticamente el siguie
 - **Tests:** unit de config/guards; integración auth/roles; E2E login/logout/ruta protegida.
 - **Acceptance Criteria:** entorno nuevo inicia desde README; ADMIN entra; STAFF no accede a ruta ADMIN; CI verde.
 - **Quality Gate:** versiones fijadas, migración revisada, sin `any` injustificado ni secretos.
-- **Risks:** compatibilidad Auth.js/Next/Prisma y provisioning de DB; resolver antes de negocio.
+- **Risks:** compatibilidad Better Auth/Next/Prisma y provisioning de DB; resolver antes de negocio.
 
 ### BUILD 1 — Clients & Vehicles
 
@@ -1336,4 +1336,4 @@ No queda ninguna pregunta funcional que impida iniciar BUILD 0 después de aprob
 | Productos separados | Ferraro primero y aislamiento real | SaaS multi-tenant | Branding configurable, sin tenantId |
 | Portal por token privado | Baja fricción para clientes | Cuentas/password tradicionales | Seguridad y scoping dedicados |
 
-Este log refleja decisiones fundacionales del contrato. La primera decisión estructural posterior se documentará en `docs/DECISIONS.md` con fecha, contexto, alternativas, consecuencias y builds afectados.
+Este log refleja decisiones fundacionales del contrato. Las decisiones estructurales posteriores se documentan en [`docs/DECISIONS.md`](./DECISIONS.md) con fecha, contexto, alternativas, consecuencias y builds afectados.
