@@ -1,0 +1,11 @@
+allowBuilds:
+  "@prisma/engines": true
+  argon2: true
+  esbuild: true
+  prisma: true
+  unrs-resolver: true
+minimumReleaseAgeExclude:
+  - "@types/node@26.6.4"
+overrides:
+  deepmerge-ts: 8.0.2
+  mysql2: 3.24.5

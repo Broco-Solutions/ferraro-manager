@@ -1,19 +1,45 @@
 # Ferraro Manager
 
-Sistema de gestión interno para Ferraro Detail.
+Sistema interno de gestión para Ferraro Detail, Rosario. El contrato funcional y técnico es [`docs/FERRARO_MASTER_PLAN.md`](./docs/FERRARO_MASTER_PLAN.md); las decisiones posteriores se registran en [`docs/DECISIONS.md`](./docs/DECISIONS.md).
 
-## Estado
+## Requisitos
 
-Proyecto en etapa de planificación/foundation.
+- Node.js 24 LTS
+- pnpm 11.9.0
+- PostgreSQL 17 o un PostgreSQL administrado compatible
 
-La fuente de verdad funcional y técnica del proyecto será:
+No se usa `prisma db push`: todo cambio de esquema debe producir una migración versionada.
 
-`docs/FERRARO_MASTER_PLAN.md`
+## Inicio local
 
-La implementación se realizará incrementalmente por BUILDs aprobados.
+1. Copiar `.env.example` a `.env` y completar valores locales. Nunca reutilizar secretos entre ambientes.
+2. Instalar dependencias con `pnpm install`.
+3. Levantar un PostgreSQL local. Sin Docker puede usarse `pnpm db:dev --name ferraro-manager`; copiar su URL a `DATABASE_URL`.
+4. Generar el cliente con `pnpm db:generate`.
+5. Aplicar migraciones con `pnpm db:migrate:deploy`.
+6. Definir las variables `BOOTSTRAP_ADMIN_*` y ejecutar `pnpm admin:bootstrap` para crear o rotar de forma idempotente el ADMIN inicial.
+7. Iniciar con `pnpm dev` y abrir `http://localhost:3000`.
 
-## Producto relacionado
+El signup público está cerrado. Usuarios posteriores deberán ser provisionados por ADMIN cuando esa función sea incorporada en su BUILD.
 
-En una etapa posterior se creará `ppfhouse-manager` como producto independiente basado en la misma base funcional, con identidad visual, repositorio, base de datos y deployment propios.
+## Calidad
 
-No se utiliza arquitectura multi-tenant.
+```bash
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm test:e2e
+pnpm format:check
+git diff --check
+```
+
+Los E2E requieren Chromium (`pnpm exec playwright install chromium`) y una base migrada. Los fixtures de prueba son identificables, se crean antes de la suite y se eliminan al finalizar.
+
+## Ambientes
+
+Desarrollo, preview y producción deben usar bases y secretos separados. Producción aplica migraciones con `pnpm db:migrate:deploy`; nunca con `db push`. `America/Argentina/Buenos_Aires` es la zona IANA del negocio y `USD` su única moneda.
+
+## Alcance actual
+
+BUILD 0 establece foundation, autenticación interna, autorización, shell responsive, migración inicial, pruebas y CI. No contiene módulos de negocio ni implementación de PPF HOUSE o multi-tenancy.

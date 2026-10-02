@@ -13,6 +13,7 @@ out/
 
 # logs
 *.log
+*.tsbuildinfo
 npm-debug.log*
 pnpm-debug.log*
 
@@ -30,3 +31,7 @@ Thumbs.db
 # local tooling
 .vercel/
 .turbo/
+.prisma/
+
+# generated database client
+src/generated/prisma/
