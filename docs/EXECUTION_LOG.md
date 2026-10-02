@@ -19,3 +19,12 @@ Registro resumido de la ejecución autónoma de V1. El contrato funcional contin
 - **Migrations:** `20261002221400_clients_vehicles`; schema y migraciones sin drift.
 - **Decisions:** ninguna.
 - **Known issues:** ninguno.
+
+## BUILD 2
+
+- **Status:** COMPLETE
+- **Commits:** `ebab05c` — `feat(services): complete build 2 service catalog`
+- **Tests:** 13 unit, 7 integración y 5 E2E verdes; lint, typecheck, format, build, migraciones y diff verdes. ADMIN/STAFF y proyección sin precios verificados. Revisión visual/a11y desktop, tablet y mobile sin overflow.
+- **Migrations:** `20261002223027_service_catalog`, `20261002223140_service_catalog_constraints`; schema y migraciones sin drift.
+- **Decisions:** ninguna.
+- **Known issues:** ninguno.
