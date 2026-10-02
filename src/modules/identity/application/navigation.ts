@@ -20,9 +20,9 @@ const navigation: readonly NavigationItem[] = [
   {
     label: "Agenda",
     shortLabel: "Agenda",
+    href: "/app/calendar",
     roles: ["ADMIN", "STAFF"],
     mobile: true,
-    upcoming: true,
   },
   {
     label: "Clientes",

@@ -24,6 +24,15 @@ export function createTestPrisma() {
   return new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
 }
 
+export async function resetE2EAuthRateLimit() {
+  const prisma = createTestPrisma();
+  try {
+    await prisma.rateLimit.deleteMany();
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
 export async function upsertE2EUsers() {
   const prisma = createTestPrisma();
 

@@ -1,11 +1,12 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { e2eUsers } from "./auth.fixtures";
+import { e2eUsers, resetE2EAuthRateLimit } from "./auth.fixtures";
 
 async function login(
   page: Page,
   user: (typeof e2eUsers)[keyof typeof e2eUsers],
 ) {
+  await resetE2EAuthRateLimit();
   await page.goto("/login");
   await page.getByLabel("Email").fill(user.email);
   await page.getByLabel("Contraseña").fill(user.password);

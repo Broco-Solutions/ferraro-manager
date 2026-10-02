@@ -1,6 +1,10 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { createTestPrisma, e2eUsers } from "./auth.fixtures";
+import {
+  createTestPrisma,
+  e2eUsers,
+  resetE2EAuthRateLimit,
+} from "./auth.fixtures";
 
 const categoryName = "Protección E2E";
 const serviceName = "Cerámico E2E";
@@ -9,6 +13,7 @@ async function login(
   page: Page,
   user: (typeof e2eUsers)[keyof typeof e2eUsers],
 ) {
+  await resetE2EAuthRateLimit();
   await page.goto("/login");
   await page.getByLabel("Email").fill(user.email);
   await page.getByLabel("Contraseña").fill(user.password);
