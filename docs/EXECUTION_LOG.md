@@ -37,3 +37,12 @@ Registro resumido de la ejecución autónoma de V1. El contrato funcional contin
 - **Migrations:** `20261002224645_service_cases_calendar`, `20261002224830_calendar_constraints`; schema y migraciones sin drift.
 - **Decisions:** calendario propio server-rendered para V1; DnD/resize diferidos hasta justificar una dependencia madura.
 - **Known issues:** ninguno.
+
+## BUILD 4
+
+- **Status:** COMPLETE
+- **Commits:** `9c4f5f9` — `feat(jobs): complete build 4 work history`
+- **Tests:** 17 unit, 13 integración y 7 E2E verdes; lint, typecheck, format, build, migraciones y diff verdes. Flujo turno→trabajo y carga directa verificados; desktop, tablet y mobile revisados sin overflow ni errores de consola.
+- **Migrations:** `20261002230859_jobs`, `20261002231010_job_constraints`.
+- **Decisions:** ninguna.
+- **Known issues:** ninguno.
