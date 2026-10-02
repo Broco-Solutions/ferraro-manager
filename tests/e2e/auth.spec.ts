@@ -17,6 +17,8 @@ test("a protected route redirects an anonymous visitor", async ({ page }) => {
   await page.goto("/app");
   await expect(page).toHaveURL(/\/login\?from=%2Fapp$/);
   await expect(page.getByRole("heading", { name: "Bienvenido" })).toBeVisible();
+  await expect(page.getByLabel("Email")).toBeEnabled();
+  await page.keyboard.press("Tab");
   await expect(page.getByLabel("Email")).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(page.getByLabel("Contraseña")).toBeFocused();

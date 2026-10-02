@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 
 import { authClient } from "@/infrastructure/auth/client";
@@ -8,8 +8,17 @@ import { authClient } from "@/infrastructure/auth/client";
 const genericError =
   "No pudimos iniciar sesión. Revisá tus datos e intentá nuevamente.";
 
+const subscribeToHydration = () => () => undefined;
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
+
 export function LoginForm() {
   const router = useRouter();
+  const isHydrated = useSyncExternalStore(
+    subscribeToHydration,
+    getClientSnapshot,
+    getServerSnapshot,
+  );
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -55,7 +64,7 @@ export function LoginForm() {
           inputMode="email"
           required
           autoFocus
-          disabled={isSubmitting}
+          disabled={!isHydrated || isSubmitting}
         />
       </div>
 
@@ -68,7 +77,7 @@ export function LoginForm() {
           autoComplete="current-password"
           minLength={12}
           required
-          disabled={isSubmitting}
+          disabled={!isHydrated || isSubmitting}
         />
       </div>
 
@@ -78,7 +87,11 @@ export function LoginForm() {
         </p>
       ) : null}
 
-      <button className="primary-button" type="submit" disabled={isSubmitting}>
+      <button
+        className="primary-button"
+        type="submit"
+        disabled={!isHydrated || isSubmitting}
+      >
         {isSubmitting ? "Ingresando…" : "Ingresar"}
       </button>
     </form>

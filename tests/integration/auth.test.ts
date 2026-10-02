@@ -40,6 +40,7 @@ function authRequest(path: string, body: Record<string, unknown>) {
 
 describe("authentication integration", () => {
   beforeAll(async () => {
+    await prisma.rateLimit.deleteMany();
     await prisma.user.deleteMany({
       where: { email: { in: [activeEmail, inactiveEmail] } },
     });
@@ -51,6 +52,7 @@ describe("authentication integration", () => {
     await prisma.user.deleteMany({
       where: { email: { in: [activeEmail, inactiveEmail] } },
     });
+    await prisma.rateLimit.deleteMany();
     await prisma.$disconnect();
   });
 

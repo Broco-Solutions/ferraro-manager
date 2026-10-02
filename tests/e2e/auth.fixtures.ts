@@ -28,6 +28,8 @@ export async function upsertE2EUsers() {
   const prisma = createTestPrisma();
 
   try {
+    await prisma.rateLimit.deleteMany();
+
     for (const fixture of Object.values(e2eUsers)) {
       const password = await hashPassword(fixture.password);
       const user = await prisma.user.upsert({
@@ -76,6 +78,7 @@ export async function removeE2EUsers() {
         email: { in: Object.values(e2eUsers).map((user) => user.email) },
       },
     });
+    await prisma.rateLimit.deleteMany();
   } finally {
     await prisma.$disconnect();
   }
