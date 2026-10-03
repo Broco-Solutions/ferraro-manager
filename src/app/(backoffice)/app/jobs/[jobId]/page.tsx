@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -12,6 +13,18 @@ import {
 import { voidJobAction } from "@/modules/jobs/application/actions";
 import { getJobDetail } from "@/modules/jobs/application/job-service";
 import { requireRole } from "@/modules/identity/application/authorization";
+import {
+  deletePhotoAction,
+  movePhotoAction,
+  setCoverPhotoAction,
+  togglePhotoVisibilityAction,
+  updatePhotoStageAction,
+} from "@/modules/photos/application/actions";
+import {
+  photoStageLabels,
+  photoStages,
+} from "@/modules/photos/domain/photo-schema";
+import { PhotoUploader } from "@/modules/photos/ui/photo-uploader";
 import { formatBusinessDateTime } from "@/shared/date-time/business-time";
 
 export const metadata: Metadata = { title: "Detalle de trabajo" };
@@ -253,6 +266,136 @@ export default async function JobDetailPage({
           <div className="inline-empty">
             <strong>Sin materiales registrados</strong>
             <p>Agregalos cuando el trabajo haya consumido stock real.</p>
+          </div>
+        )}
+      </section>
+      <section className="section-stack">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Registro visual</p>
+            <h2>Fotos del trabajo</h2>
+          </div>
+          <span>{job.photos.length}</span>
+        </div>
+        {!job.voidedAt ? (
+          <details className="form-disclosure" open={!job.photos.length}>
+            <summary>Subir fotos</summary>
+            <div className="form-disclosure-body">
+              <PhotoUploader jobId={job.id} />
+            </div>
+          </details>
+        ) : null}
+        {job.photos.length ? (
+          <div className="job-photo-grid">
+            {job.photos.map((photo, index) => (
+              <article key={photo.id}>
+                <a
+                  href={`/api/photos/${photo.id}/preview`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="job-photo-frame"
+                >
+                  <Image
+                    src={`/api/photos/${photo.id}/thumbnail`}
+                    alt={`Foto ${index + 1} del trabajo`}
+                    width={480}
+                    height={480}
+                    unoptimized
+                    loading={index === 0 ? "eager" : "lazy"}
+                  />
+                  {photo.isCover ? <span>Portada</span> : null}
+                </a>
+                <div className="job-photo-meta">
+                  <form action={updatePhotoStageAction}>
+                    <input type="hidden" name="jobId" value={job.id} />
+                    <input type="hidden" name="photoId" value={photo.id} />
+                    <label className="field-group">
+                      <span>Etapa</span>
+                      <select name="stage" defaultValue={photo.stage ?? ""}>
+                        <option value="">Sin clasificar</option>
+                        {photoStages.map((stage) => (
+                          <option value={stage} key={stage}>
+                            {photoStageLabels[stage]}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <button className="text-button">Aplicar</button>
+                  </form>
+                  <div className="photo-quick-actions">
+                    <form action={togglePhotoVisibilityAction}>
+                      <input type="hidden" name="jobId" value={job.id} />
+                      <input type="hidden" name="photoId" value={photo.id} />
+                      <input
+                        type="hidden"
+                        name="visibleToClient"
+                        value={photo.visibleToClient ? "false" : "true"}
+                      />
+                      <button className="text-button">
+                        {photo.visibleToClient
+                          ? "Ocultar al cliente"
+                          : "Publicar al cliente"}
+                      </button>
+                    </form>
+                    {!photo.isCover ? (
+                      <form action={setCoverPhotoAction}>
+                        <input type="hidden" name="jobId" value={job.id} />
+                        <input type="hidden" name="photoId" value={photo.id} />
+                        <button className="text-button">
+                          Usar como portada
+                        </button>
+                      </form>
+                    ) : null}
+                  </div>
+                  <div
+                    className="photo-order-actions"
+                    aria-label="Orden de foto"
+                  >
+                    <form action={movePhotoAction}>
+                      <input type="hidden" name="jobId" value={job.id} />
+                      <input type="hidden" name="photoId" value={photo.id} />
+                      <input type="hidden" name="direction" value="UP" />
+                      <button
+                        className="icon-button"
+                        aria-label="Mover foto antes"
+                        disabled={index === 0}
+                      >
+                        ↑
+                      </button>
+                    </form>
+                    <form action={movePhotoAction}>
+                      <input type="hidden" name="jobId" value={job.id} />
+                      <input type="hidden" name="photoId" value={photo.id} />
+                      <input type="hidden" name="direction" value="DOWN" />
+                      <button
+                        className="icon-button"
+                        aria-label="Mover foto después"
+                        disabled={index === job.photos.length - 1}
+                      >
+                        ↓
+                      </button>
+                    </form>
+                    <form action={deletePhotoAction}>
+                      <input type="hidden" name="jobId" value={job.id} />
+                      <input type="hidden" name="photoId" value={photo.id} />
+                      <ConfirmButton
+                        className="text-button danger-text-button"
+                        message="¿Eliminar esta foto del trabajo?"
+                      >
+                        Eliminar
+                      </ConfirmButton>
+                    </form>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="inline-empty">
+            <strong>Sin fotos todavía</strong>
+            <p>
+              Las imágenes son privadas hasta que se publiquen explícitamente.
+            </p>
           </div>
         )}
       </section>

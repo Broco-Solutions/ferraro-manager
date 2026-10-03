@@ -11,6 +11,16 @@ const serverEnvSchema = z.object({
     .literal("America/Argentina/Buenos_Aires")
     .default("America/Argentina/Buenos_Aires"),
   BUSINESS_CURRENCY: z.literal("USD").default("USD"),
+  STORAGE_DRIVER: z.enum(["local", "s3"]).default("local"),
+  STORAGE_S3_ENDPOINT: z.string().url().optional(),
+  STORAGE_S3_REGION: z.string().min(1).default("auto"),
+  STORAGE_S3_BUCKET: z.string().min(1).optional(),
+  STORAGE_S3_ACCESS_KEY_ID: z.string().min(1).optional(),
+  STORAGE_S3_SECRET_ACCESS_KEY: z.string().min(1).optional(),
+  STORAGE_S3_FORCE_PATH_STYLE: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((value) => value === "true"),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;

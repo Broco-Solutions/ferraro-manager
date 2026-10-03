@@ -22,6 +22,8 @@ No se usa `prisma db push`: todo cambio de esquema debe producir una migración 
 
 El signup público está cerrado. Usuarios posteriores deberán ser provisionados por ADMIN cuando esa función sea incorporada en su BUILD.
 
+Para fotos, `STORAGE_DRIVER=local` guarda objetos privados en `.data/private` únicamente durante desarrollo y tests. Preview y producción deben usar `STORAGE_DRIVER=s3`, un bucket privado S3-compatible y CORS limitado al origen de la aplicación para cargas `PUT`; ninguna URL del bucket se expone como lectura pública.
+
 ## Calidad
 
 ```bash
@@ -42,4 +44,4 @@ Desarrollo, preview y producción deben usar bases y secretos separados. Producc
 
 ## Alcance actual
 
-BUILD 0 establece foundation, autenticación interna, autorización, shell responsive, migración inicial, pruebas y CI. No contiene módulos de negocio ni implementación de PPF HOUSE o multi-tenancy.
+La branch de integración V1 avanza BUILD por BUILD según el Master Plan. El estado verificable de cada gate está en [`docs/EXECUTION_LOG.md`](./docs/EXECUTION_LOG.md). PPF HOUSE y multi-tenancy permanecen fuera de alcance.

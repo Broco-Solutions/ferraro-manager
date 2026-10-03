@@ -3042,6 +3042,171 @@ a.nav-link:hover {
   margin-top: var(--space-4);
 }
 
+.photo-uploader {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.photo-picker {
+  display: grid;
+  min-height: 8rem;
+  place-content: center;
+  gap: var(--space-2);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-canvas);
+  cursor: pointer;
+  padding: var(--space-5);
+  text-align: center;
+}
+
+.photo-picker span {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 750;
+}
+
+.photo-picker small,
+.upload-queue small,
+.upload-status {
+  color: var(--color-ink-soft);
+  font-size: 0.78rem;
+}
+
+.photo-picker input {
+  width: min(100%, 22rem);
+  margin-top: var(--space-2);
+}
+
+.upload-queue {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.upload-queue article {
+  display: grid;
+  grid-template-columns: 6rem minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: center;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: var(--space-3);
+}
+
+.upload-queue img {
+  width: 6rem;
+  height: 6rem;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
+.upload-queue article > div {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.upload-queue progress {
+  width: 100%;
+  accent-color: var(--color-accent);
+}
+
+.upload-done {
+  color: var(--color-success);
+}
+
+.upload-error {
+  color: var(--color-danger);
+}
+
+.job-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.job-photo-grid > article {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.job-photo-frame {
+  position: relative;
+  display: block;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: var(--color-dark-soft);
+}
+
+.job-photo-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.job-photo-frame > span {
+  position: absolute;
+  top: var(--space-3);
+  left: var(--space-3);
+  border-radius: 999px;
+  background: rgb(21 23 20 / 88%);
+  color: var(--color-on-dark);
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.35rem 0.6rem;
+}
+
+.job-photo-meta {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-3);
+}
+
+.job-photo-meta > form,
+.photo-quick-actions,
+.photo-order-actions {
+  display: flex;
+  gap: var(--space-2);
+  align-items: end;
+  flex-wrap: wrap;
+}
+
+.job-photo-meta .field-group {
+  flex: 1 1 8rem;
+}
+
+.text-button,
+.icon-button {
+  min-height: 2.5rem;
+  border: 0;
+  background: transparent;
+  color: var(--color-accent-strong);
+  cursor: pointer;
+  font-weight: 750;
+}
+
+.icon-button {
+  min-width: 2.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.text-button:disabled,
+.icon-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.danger-text-button {
+  color: var(--color-danger);
+}
+
+@media (max-width: 900px) {
+  .job-photo-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 620px) {
   .consumption-actions {
     grid-template-columns: 1fr;
@@ -3049,6 +3214,19 @@ a.nav-link:hover {
 
   .consumption-summary {
     align-items: flex-start;
+  }
+
+  .job-photo-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .upload-queue article {
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+  }
+
+  .upload-queue img {
+    width: 4.5rem;
+    height: 4.5rem;
   }
 }
 

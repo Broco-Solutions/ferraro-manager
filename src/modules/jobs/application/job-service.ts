@@ -393,6 +393,19 @@ export async function getJobDetail(id: string) {
         },
         orderBy: { createdAt: "desc" },
       },
+      photos: {
+        where: { deletedAt: null },
+        select: {
+          id: true,
+          stage: true,
+          width: true,
+          height: true,
+          sortOrder: true,
+          isCover: true,
+          visibleToClient: true,
+        },
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+      },
     },
   });
 }

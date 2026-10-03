@@ -10,7 +10,13 @@ export function createPostgresAdapter(connectionString: string) {
   let statementCounter = 0;
 
   return new PrismaPg(
-    { connectionString },
+    {
+      connectionString,
+      // Prisma Dev exposes a deliberately small local connection budget.
+      // Keeping each pool bounded avoids exhausting it when the app and test
+      // clients coexist during E2E runs.
+      max: 2,
+    },
     {
       // Prisma Dev's PGlite proxy shares prepared-statement state between
       // logical connections. Unique names keep independent clients isolated.

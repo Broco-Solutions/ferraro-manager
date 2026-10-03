@@ -77,6 +77,12 @@ enum PurchaseStatus {
   VOIDED
 }
 
+enum PhotoStage {
+  BEFORE
+  PROCESS
+  AFTER
+}
+
 model User {
   id                          String                      @id @default(uuid()) @db.Uuid
   name                        String
@@ -126,6 +132,9 @@ model User {
   purchasesCreated            Purchase[]                  @relation("PurchaseCreatedBy")
   purchasesVoided             Purchase[]                  @relation("PurchaseVoidedBy")
   materialConsumptionsCreated JobMaterialConsumption[]    @relation("MaterialConsumptionCreatedBy")
+  photoUploadIntentsCreated   PhotoUploadIntent[]         @relation("PhotoUploadIntentCreatedBy")
+  jobPhotosCreated            JobPhoto[]                  @relation("JobPhotoCreatedBy")
+  jobPhotosUpdated            JobPhoto[]                  @relation("JobPhotoUpdatedBy")
 
   @@index([active])
   @@map("users")
@@ -670,6 +679,8 @@ model Job {
   services             JobService[]
   employees            JobEmployee[]
   materialConsumptions JobMaterialConsumption[]
+  photoUploadIntents   PhotoUploadIntent[]
+  photos               JobPhoto[]
   createdBy            User?                    @relation("JobCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   updatedBy            User?                    @relation("JobUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
 
@@ -725,6 +736,57 @@ model JobMaterialConsumption {
   @@index([jobId, createdAt])
   @@index([itemId, createdAt])
   @@map("job_material_consumptions")
+}
+
+model PhotoUploadIntent {
+  id              String    @id @default(uuid()) @db.Uuid
+  jobId           String    @db.Uuid
+  objectKey       String    @unique
+  expectedMime    String
+  expectedSize    Int
+  uploadTokenHash String
+  expiresAt       DateTime  @db.Timestamptz(3)
+  uploadedAt      DateTime? @db.Timestamptz(3)
+  confirmedAt     DateTime? @db.Timestamptz(3)
+  createdAt       DateTime  @default(now()) @db.Timestamptz(3)
+  createdById     String?   @db.Uuid
+  job             Job       @relation(fields: [jobId], references: [id], onDelete: Restrict)
+  photo           JobPhoto?
+  createdBy       User?     @relation("PhotoUploadIntentCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([jobId, expiresAt])
+  @@index([expiresAt, confirmedAt])
+  @@map("photo_upload_intents")
+}
+
+model JobPhoto {
+  id              String            @id @default(uuid()) @db.Uuid
+  jobId           String            @db.Uuid
+  uploadIntentId  String            @unique @db.Uuid
+  stage           PhotoStage?
+  originalKey     String            @unique
+  previewKey      String            @unique
+  thumbnailKey    String            @unique
+  mimeType        String
+  width           Int
+  height          Int
+  sizeBytes       Int
+  sortOrder       Int               @default(0)
+  isCover         Boolean           @default(false)
+  visibleToClient Boolean           @default(false)
+  deletedAt       DateTime?         @db.Timestamptz(3)
+  createdAt       DateTime          @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime          @updatedAt @db.Timestamptz(3)
+  createdById     String?           @db.Uuid
+  updatedById     String?           @db.Uuid
+  job             Job               @relation(fields: [jobId], references: [id], onDelete: Restrict)
+  uploadIntent    PhotoUploadIntent @relation(fields: [uploadIntentId], references: [id], onDelete: Restrict)
+  createdBy       User?             @relation("JobPhotoCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy       User?             @relation("JobPhotoUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@index([jobId, deletedAt, sortOrder])
+  @@index([jobId, visibleToClient, deletedAt])
+  @@map("job_photos")
 }
 
 model Session {

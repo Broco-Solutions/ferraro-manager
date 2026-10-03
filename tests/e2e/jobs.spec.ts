@@ -1,9 +1,13 @@
 import { expect, test, type Page } from "@playwright/test";
+import sharp from "sharp";
+
+import { deletePrivateObject } from "../../src/infrastructure/storage/private-storage";
 
 import {
   createTestPrisma,
   e2eUsers,
   resetE2EAuthRateLimit,
+  withTestPrisma,
 } from "./auth.fixtures";
 
 const clientName = "Trabajo E2E Cliente";
@@ -29,8 +33,7 @@ async function login(page: Page) {
 }
 
 async function cleanup() {
-  const prisma = createTestPrisma();
-  try {
+  await withTestPrisma(async (prisma) => {
     const clients = await prisma.client.findMany({
       where: { displayName: clientName },
       select: { id: true },
@@ -51,6 +54,24 @@ async function cleanup() {
       select: { id: true },
     });
     const jobIds = jobs.map((item) => item.id);
+    const photos = await prisma.jobPhoto.findMany({
+      where: { jobId: { in: jobIds } },
+      select: { originalKey: true, previewKey: true, thumbnailKey: true },
+    });
+    const photoIntents = await prisma.photoUploadIntent.findMany({
+      where: { jobId: { in: jobIds } },
+      select: { objectKey: true },
+    });
+    await Promise.all(
+      [
+        ...photos.flatMap((photo) => [
+          photo.originalKey,
+          photo.previewKey,
+          photo.thumbnailKey,
+        ]),
+        ...photoIntents.map((intent) => intent.objectKey),
+      ].map((key) => deletePrivateObject(key)),
+    );
     const inventoryItems = await prisma.inventoryItem.findMany({
       where: { name: inventoryItemName },
       select: { id: true },
@@ -69,6 +90,10 @@ async function cleanup() {
       where: { itemId: { in: inventoryItemIds } },
     });
     await prisma.jobMaterialConsumption.deleteMany({
+      where: { jobId: { in: jobIds } },
+    });
+    await prisma.jobPhoto.deleteMany({ where: { jobId: { in: jobIds } } });
+    await prisma.photoUploadIntent.deleteMany({
       where: { jobId: { in: jobIds } },
     });
     await prisma.jobEmployee.deleteMany({ where: { jobId: { in: jobIds } } });
@@ -102,9 +127,7 @@ async function cleanup() {
     });
     await prisma.vehicle.deleteMany({ where: { clientId: { in: clientIds } } });
     await prisma.client.deleteMany({ where: { id: { in: clientIds } } });
-  } finally {
-    await prisma.$disconnect();
-  }
+  });
 }
 
 test.beforeAll(async () => {
@@ -193,8 +216,9 @@ test("STAFF converts a confirmed appointment into a separate job", async ({
   await expect(page.getByRole("link", { name: "Ver trabajo" })).toBeVisible();
 });
 
-test("STAFF records and corrects an exact material consumption from the job", async ({
+test("STAFF records consumptions and private photos from the job", async ({
   page,
+  request,
 }) => {
   test.setTimeout(60_000);
   await login(page);
@@ -233,4 +257,41 @@ test("STAFF records and corrects an exact material consumption from the job", as
     ),
   ).toBeVisible();
   await expect(page.getByText("2.400 meter")).toBeVisible();
+  const image = await sharp({
+    create: {
+      width: 800,
+      height: 600,
+      channels: 3,
+      background: { r: 35, g: 35, b: 35 },
+    },
+  })
+    .jpeg()
+    .toBuffer();
+  await expect(
+    page.getByRole("heading", { name: "Fotos del trabajo" }),
+  ).toBeVisible();
+  const fileInput = page.locator('input[type="file"]');
+  if (!(await fileInput.isVisible()))
+    await page.locator("summary").filter({ hasText: "Subir fotos" }).click();
+  await fileInput.setInputFiles({
+    name: "amg-after.jpg",
+    mimeType: "image/jpeg",
+    buffer: image,
+  });
+  await page.getByLabel("Etapa opcional").selectOption("AFTER");
+  await page.getByRole("button", { name: "Subir fotos" }).click();
+  await expect(page.getByText("Cargada")).toBeVisible();
+  const thumbnail = page.getByAltText("Foto 1 del trabajo");
+  await expect(thumbnail).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Publicar al cliente" }),
+  ).toBeVisible();
+  const source = await thumbnail.getAttribute("src");
+  expect(source).toBeTruthy();
+  const anonymousResponse = await request.get(source!);
+  expect(anonymousResponse.status()).toBe(401);
+  await page.getByRole("button", { name: "Publicar al cliente" }).click();
+  await expect(
+    page.getByRole("button", { name: "Ocultar al cliente" }),
+  ).toBeVisible();
 });

@@ -23,13 +23,36 @@ export function createTestPrisma() {
   return new PrismaClient({ adapter: createPostgresAdapter(connectionString) });
 }
 
-export async function resetE2EAuthRateLimit() {
+function isTransientLocalDatabaseError(error: unknown) {
+  if (!(error instanceof Error)) return false;
+  return (
+    error.message.includes("Server has closed the connection") ||
+    error.message.includes("Connection terminated unexpectedly")
+  );
+}
+
+export async function withTestPrisma<T>(
+  operation: (prisma: PrismaClient) => Promise<T>,
+  attempt = 0,
+): Promise<T> {
   const prisma = createTestPrisma();
   try {
-    await prisma.rateLimit.deleteMany();
+    return await operation(prisma);
+  } catch (error) {
+    if (attempt < 5 && isTransientLocalDatabaseError(error)) {
+      await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
+      return withTestPrisma(operation, attempt + 1);
+    }
+    throw error;
   } finally {
-    await prisma.$disconnect();
+    await prisma.$disconnect().catch(() => undefined);
   }
+}
+
+export async function resetE2EAuthRateLimit() {
+  await withTestPrisma(async (prisma) => {
+    await prisma.rateLimit.deleteMany();
+  });
 }
 
 export async function upsertE2EUsers() {
@@ -78,16 +101,12 @@ export async function upsertE2EUsers() {
 }
 
 export async function removeE2EUsers() {
-  const prisma = createTestPrisma();
-
-  try {
+  await withTestPrisma(async (prisma) => {
     await prisma.user.deleteMany({
       where: {
         email: { in: Object.values(e2eUsers).map((user) => user.email) },
       },
     });
     await prisma.rateLimit.deleteMany();
-  } finally {
-    await prisma.$disconnect();
-  }
+  });
 }
