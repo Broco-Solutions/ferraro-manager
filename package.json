@@ -24,11 +24,13 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
-    "admin:bootstrap": "tsx scripts/bootstrap-admin.ts"
+    "admin:bootstrap": "tsx scripts/bootstrap-admin.ts",
+    "storage:cleanup": "tsx scripts/cleanup-photo-uploads.ts",
+    "domain:reconcile": "tsx scripts/reconcile-domain.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1146.0",
-    "@aws-sdk/s3-request-presigner": "3.1146.0",
+    "@aws-sdk/s3-presigned-post": "3.1146.0",
     "@prisma/adapter-pg": "7.10.0",
     "@prisma/client": "7.10.0",
     "@react-pdf/renderer": "4.9.0",

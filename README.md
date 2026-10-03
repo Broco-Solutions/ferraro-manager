@@ -20,9 +20,9 @@ No se usa `prisma db push`: todo cambio de esquema debe producir una migración 
 6. Definir las variables `BOOTSTRAP_ADMIN_*` y ejecutar `pnpm admin:bootstrap` para crear o rotar de forma idempotente el ADMIN inicial.
 7. Iniciar con `pnpm dev` y abrir `http://localhost:3000`.
 
-El signup público está cerrado. Usuarios posteriores deberán ser provisionados por ADMIN cuando esa función sea incorporada en su BUILD.
+El signup público está cerrado. Las cuentas internas se provisionan de forma controlada con el bootstrap idempotente; nunca desde un formulario público.
 
-Para fotos, `STORAGE_DRIVER=local` guarda objetos privados en `.data/private` únicamente durante desarrollo y tests. Preview y producción deben usar `STORAGE_DRIVER=s3`, un bucket privado S3-compatible y CORS limitado al origen de la aplicación para cargas `PUT`; ninguna URL del bucket se expone como lectura pública.
+Para fotos, `STORAGE_DRIVER=local` guarda objetos privados en `.data/private` únicamente durante desarrollo y tests. Preview y producción deben usar `STORAGE_DRIVER=s3`, un bucket privado S3-compatible y CORS limitado al origen de la aplicación para cargas `POST`; ninguna URL del bucket se expone como lectura pública.
 
 ## Calidad
 
@@ -33,6 +33,7 @@ pnpm test
 pnpm build
 pnpm test:e2e
 pnpm format:check
+pnpm domain:reconcile
 git diff --check
 ```
 
@@ -42,6 +43,8 @@ Los E2E requieren Chromium (`pnpm exec playwright install chromium`) y una base 
 
 Desarrollo, preview y producción deben usar bases y secretos separados. Producción aplica migraciones con `pnpm db:migrate:deploy`; nunca con `db push`. `America/Argentina/Buenos_Aires` es la zona IANA del negocio y `USD` su única moneda.
 
-## Alcance actual
+El runbook de health, cleanup, backup, restore, migración y rollback está en [`docs/OPERATIONS.md`](./docs/OPERATIONS.md). La aplicación no reemplaza los backups administrados del proveedor.
 
-La branch de integración V1 avanza BUILD por BUILD según el Master Plan. El estado verificable de cada gate está en [`docs/EXECUTION_LOG.md`](./docs/EXECUTION_LOG.md). PPF HOUSE y multi-tenancy permanecen fuera de alcance.
+## Ferraro Manager V1
+
+La branch de integración contiene los módulos V1 definidos por el Master Plan: clientes/vehículos, catálogo, agenda, trabajos, presupuestos/PDF, finanzas, inventario, compras, consumos, fotos, portal privado, dashboard y búsqueda. El estado verificable de cada gate está en [`docs/EXECUTION_LOG.md`](./docs/EXECUTION_LOG.md). PPF HOUSE y multi-tenancy permanecen fuera de alcance.

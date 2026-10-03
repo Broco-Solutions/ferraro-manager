@@ -6,6 +6,7 @@ import { getNavigationForRole } from "@/modules/identity/application/navigation"
 import type { AuthenticatedUser } from "@/modules/identity/application/session";
 import { LogoutButton } from "@/modules/identity/ui/logout-button";
 import { GlobalSearchBar } from "@/modules/search/ui/global-search-bar";
+import { MobileMenu } from "@/components/patterns/mobile-menu";
 
 interface AppShellProps {
   children: ReactNode;
@@ -79,13 +80,10 @@ export function AppShell({ children, user }: AppShellProps) {
               <small>Manager</small>
             </span>
           </Link>
-          <details className="mobile-menu">
-            <summary aria-label="Abrir menú">Menú</summary>
-            <div className="mobile-menu-panel">
-              <Navigation user={user} />
-              <LogoutButton />
-            </div>
-          </details>
+          <MobileMenu>
+            <Navigation user={user} />
+            <LogoutButton />
+          </MobileMenu>
         </header>
 
         <GlobalSearchBar />

@@ -27,19 +27,23 @@ interface IntentResponse {
   intentId: string;
   uploadToken: string;
   uploadUrl: string;
+  method: "POST" | "PUT";
+  fields: Record<string, string>;
   headers: Record<string, string>;
   error?: string;
 }
 
 function uploadFile(
   url: string,
+  method: "POST" | "PUT",
+  fields: Record<string, string>,
   headers: Record<string, string>,
   file: File,
   onProgress: (progress: number) => void,
 ) {
   return new Promise<void>((resolve, reject) => {
     const request = new XMLHttpRequest();
-    request.open("PUT", url);
+    request.open(method, url);
     Object.entries(headers).forEach(([name, value]) =>
       request.setRequestHeader(name, value),
     );
@@ -52,6 +56,15 @@ function uploadFile(
       else reject(new Error("UPLOAD_FAILED"));
     };
     request.onerror = () => reject(new Error("UPLOAD_FAILED"));
+    if (method === "POST") {
+      const body = new FormData();
+      Object.entries(fields).forEach(([name, value]) =>
+        body.append(name, value),
+      );
+      body.append("file", file);
+      request.send(body);
+      return;
+    }
     request.send(file);
   });
 }
@@ -129,6 +142,8 @@ export function PhotoUploader({ jobId }: { jobId: string }) {
         throw new Error(intent.error || "No pudimos preparar la carga.");
       await uploadFile(
         intent.uploadUrl,
+        intent.method,
+        intent.fields,
         intent.headers,
         item.file,
         (progress) => update(item.id, { progress }),

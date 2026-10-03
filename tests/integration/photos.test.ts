@@ -8,8 +8,10 @@ import { createPostgresAdapter } from "@/infrastructure/db/adapter";
 import {
   deletePrivateObject,
   getPrivateObject,
+  putPrivateObject,
 } from "@/infrastructure/storage/private-storage";
 import {
+  cleanupExpiredPhotoUploads,
   confirmPhotoUpload,
   createPhotoUploadIntent,
   deleteJobPhoto,
@@ -198,5 +200,56 @@ describe("private job photos", () => {
         where: { jobId, isCover: true, deletedAt: null },
       }),
     ).toBe(1);
+  });
+
+  it("cleans only abandoned uploads older than the retention cutoff", async () => {
+    const expiredId = randomUUID();
+    const recentId = randomUUID();
+    const expiredKey = `jobs/${jobId}/originals/${expiredId}.jpg`;
+    const recentKey = `jobs/${jobId}/originals/${recentId}.jpg`;
+    objectKeys.add(expiredKey);
+    objectKeys.add(recentKey);
+    await Promise.all([
+      putPrivateObject(expiredKey, Buffer.from("expired")),
+      putPrivateObject(recentKey, Buffer.from("recent")),
+    ]);
+    await prisma.photoUploadIntent.createMany({
+      data: [
+        {
+          id: expiredId,
+          jobId,
+          objectKey: expiredKey,
+          expectedMime: "image/jpeg",
+          expectedSize: 7,
+          uploadTokenHash: "a".repeat(64),
+          expiresAt: new Date(Date.now() - 2 * 60 * 60 * 1_000),
+        },
+        {
+          id: recentId,
+          jobId,
+          objectKey: recentKey,
+          expectedMime: "image/jpeg",
+          expectedSize: 6,
+          uploadTokenHash: "b".repeat(64),
+          expiresAt: new Date(),
+        },
+      ],
+    });
+
+    const result = await cleanupExpiredPhotoUploads(
+      new Date(Date.now() - 60 * 60 * 1_000),
+    );
+
+    expect(result).toMatchObject({ removed: 1, hasMore: false });
+    await expect(getPrivateObject(expiredKey)).rejects.toThrow();
+    await expect(getPrivateObject(recentKey)).resolves.toEqual(
+      Buffer.from("recent"),
+    );
+    expect(
+      await prisma.photoUploadIntent.findUnique({ where: { id: expiredId } }),
+    ).toBeNull();
+    expect(
+      await prisma.photoUploadIntent.findUnique({ where: { id: recentId } }),
+    ).not.toBeNull();
   });
 });

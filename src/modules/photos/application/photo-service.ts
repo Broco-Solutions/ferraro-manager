@@ -8,7 +8,8 @@ import {
 import { Prisma, type PhotoStage } from "@/generated/prisma/client";
 import { prisma } from "@/infrastructure/db/client";
 import {
-  createPrivateUploadUrl,
+  createPrivateUploadTarget,
+  deletePrivateObject,
   getPrivateObject,
   putPrivateObject,
   usesDirectPrivateUploads,
@@ -37,6 +38,9 @@ const mimeFormat: Record<(typeof allowedPhotoMimeTypes)[number], string> = {
   "image/png": "png",
   "image/webp": "webp",
 };
+
+const EXPIRED_UPLOAD_RETENTION_MS = 24 * 60 * 60 * 1_000;
+const CLEANUP_BATCH_LIMIT = 100;
 
 function tokenHash(token: string) {
   return createHash("sha256").update(token).digest("hex");
@@ -95,13 +99,18 @@ export async function createPhotoUploadIntent(input: unknown, actor: Actor) {
   });
 
   const direct = usesDirectPrivateUploads();
+  const directTarget = direct
+    ? await createPrivateUploadTarget(objectKey, data.mimeType, data.sizeBytes)
+    : null;
   return {
     intentId,
     uploadToken: token,
-    uploadUrl: direct
-      ? await createPrivateUploadUrl(objectKey, data.mimeType)
-      : `/api/photo-uploads/${intentId}?token=${encodeURIComponent(token)}`,
-    headers: { "Content-Type": data.mimeType },
+    uploadUrl:
+      directTarget?.url ??
+      `/api/photo-uploads/${intentId}?token=${encodeURIComponent(token)}`,
+    method: directTarget?.method ?? ("PUT" as const),
+    fields: directTarget?.fields ?? {},
+    headers: direct ? {} : { "Content-Type": data.mimeType },
   };
 }
 
@@ -376,4 +385,43 @@ export async function deleteJobPhoto(photoId: string, actor: Actor) {
         });
     }
   });
+}
+
+/**
+ * Removes abandoned upload objects after a grace period. Confirmed uploads and
+ * soft-deleted gallery photos are deliberately outside this cleanup policy.
+ */
+export async function cleanupExpiredPhotoUploads(
+  expiredBefore = new Date(Date.now() - EXPIRED_UPLOAD_RETENTION_MS),
+) {
+  const intents = await prisma.photoUploadIntent.findMany({
+    where: { confirmedAt: null, expiresAt: { lte: expiredBefore } },
+    select: { id: true, jobId: true, objectKey: true },
+    orderBy: { expiresAt: "asc" },
+    take: CLEANUP_BATCH_LIMIT,
+  });
+
+  let removed = 0;
+  for (const intent of intents) {
+    const keys = [
+      intent.objectKey,
+      `jobs/${intent.jobId}/previews/${intent.id}.jpg`,
+      `jobs/${intent.jobId}/thumbnails/${intent.id}.jpg`,
+    ];
+    await Promise.all(keys.map((key) => deletePrivateObject(key)));
+    const result = await prisma.photoUploadIntent.deleteMany({
+      where: {
+        id: intent.id,
+        confirmedAt: null,
+        expiresAt: { lte: expiredBefore },
+      },
+    });
+    removed += result.count;
+  }
+
+  return {
+    examined: intents.length,
+    removed,
+    hasMore: intents.length === CLEANUP_BATCH_LIMIT,
+  };
 }

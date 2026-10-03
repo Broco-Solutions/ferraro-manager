@@ -1,0 +1,62 @@
+# Ferraro Manager — Operations Runbook
+
+Este runbook cubre la preparación y recuperación operativa de Ferraro Manager V1. No autoriza un deploy: producción requiere el gate humano definido en el Master Plan.
+
+## Preflight de release
+
+1. Usar Node 24, pnpm 11 y `pnpm install --frozen-lockfile`.
+2. Validar variables con un build limpio; usar DB, bucket y secretos separados por ambiente.
+3. Ejecutar `pnpm db:migrate:deploy` en preview sobre una copia/restauración reciente antes de producción.
+4. Ejecutar `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm test:e2e`, `pnpm domain:reconcile` y `git diff --check`.
+5. Verificar login ADMIN/STAFF, portal aislado, PDF, upload privado y `/api/health`.
+6. Confirmar que el bucket no tenga acceso público y que CORS sólo acepte POST desde el origen de la app.
+
+## Health y observabilidad
+
+- `GET /api/health` comprueba conectividad de PostgreSQL y responde `200 {"status":"ok"}` o `503 {"status":"unavailable"}` sin revelar detalles.
+- Configurar uptime externo sobre ese endpoint cada 1–5 minutos y alertar después de dos fallos consecutivos.
+- Los eventos técnicos salen como JSON estructurado. No registrar contraseñas, tokens, URLs firmadas, contenido de fotos ni PII innecesaria.
+- Centralizar logs y error tracking en el proveedor elegido antes de producción; alertar por errores 5xx sostenidos, fallos de auth anómalos y fallos de cleanup/reconciliación.
+- Ejecutar `pnpm storage:cleanup` al menos diariamente. Sólo elimina intents no confirmados que llevan más de 24 horas expirados; nunca purga fotos confirmadas o borradas lógicamente.
+- Ejecutar `pnpm domain:reconcile` diariamente y después de incidentes. Un exit code distinto de cero bloquea releases y requiere investigar ledger/materializados.
+
+## Backups
+
+- PostgreSQL productivo debe ser administrado, con backups automáticos y point-in-time recovery. Default recomendado: retención mínima de 14 días.
+- El bucket privado debe usar redundancia administrada y, si el proveedor lo permite, versionado o retención suficiente para cubrir borrados operativos accidentales.
+- Backups de DB, storage y secretos son responsabilidades separadas. No guardar secretos dentro del backup de aplicación.
+- Revisar mensualmente que backups y políticas estén activos. Un backup no se considera probado hasta restaurarlo.
+
+## Restore drill
+
+Ejecutar antes del primer deploy y trimestralmente, siempre en un ambiente aislado:
+
+1. Crear una DB temporal vacía y restaurar el backup seleccionado según el proveedor.
+2. Apuntar una instancia efímera de la app a esa DB y a una copia/namespace aislado del bucket.
+3. Ejecutar `pnpm db:migrate:deploy`, `pnpm domain:reconcile` y `/api/health`.
+4. Verificar login ADMIN, cliente/vehículo, un presupuesto/PDF, un trabajo con consumo, balances y una foto privada/publicada.
+5. Registrar fecha, recovery point, duración, resultado y responsable; destruir el ambiente temporal de forma controlada.
+
+Objetivos iniciales razonables para un negocio pequeño: RPO ≤ 24 h y RTO ≤ 8 h. El proveedor contratado puede mejorar estos valores, pero no deben prometerse sin un restore drill real.
+
+## Migración y rollback
+
+- Las migraciones son versionadas y sólo se aplican con `prisma migrate deploy`; nunca con `db push`.
+- V1 usa cambios compatibles/expand-contract. Antes de migrar, confirmar backup recuperable y revisar el SQL.
+- Si falla el deploy de aplicación pero la migración compatible ya fue aplicada, volver al artifact anterior y diagnosticar; no revertir datos a ciegas.
+- Si una migración modifica datos de forma incorrecta, detener escrituras, preservar evidencia y restaurar en un ambiente aislado antes de decidir recuperación. No editar `_prisma_migrations` manualmente.
+- Revertir objetos/storage mediante su mecanismo administrado; no borrar movimientos financieros o de stock para “acomodar” un rollback.
+
+## Incidentes
+
+1. Contener: deshabilitar la operación afectada o retirar el release sin alterar históricos.
+2. Preservar: guardar logs, versión, timestamps y alcance sin copiar secretos.
+3. Evaluar integridad con `pnpm domain:reconcile` y consultas de sólo lectura.
+4. Recuperar usando compensaciones de dominio o restore validado; nunca modificar saldos silenciosamente.
+5. Documentar causa, impacto y corrección en `docs/DECISIONS.md` sólo si cambia arquitectura, seguridad o fuentes de verdad.
+
+## Rotación y acceso
+
+- Rotar `BETTER_AUTH_SECRET`, credenciales DB y storage mediante el proveedor y una ventana controlada; cambiar el secreto de auth invalida sesiones activas.
+- Usar credenciales de storage limitadas al bucket/prefijo de Ferraro y nunca compartirlas con PPF HOUSE.
+- Mantener producción, preview y desarrollo completamente separados. PPF HOUSE no comparte repo, DB, bucket ni deployment.

@@ -51,7 +51,7 @@ Usar un adapter de storage privado: filesystem sólo en desarrollo/test y S3-com
 
 ### Consecuencias
 
-- Se agregan AWS SDK S3/Presigner y Sharp como dependencias estructurales.
-- Producción requiere bucket privado, credenciales limitadas y CORS para `PUT` desde el origen permitido.
-- Los borrados de usuario son lógicos para conservar trazabilidad; un proceso de mantenimiento futuro podrá purgar objetos huérfanos o expirados con retención explícita.
+- Se agregan AWS SDK S3/Presigned Post y Sharp como dependencias estructurales. La política del POST prefirmado exige el MIME y tamaño declarados antes de aceptar el objeto; la firma real vuelve a validarse al confirmar.
+- Producción requiere bucket privado, credenciales limitadas y CORS para `POST` desde el origen permitido.
+- Los borrados de usuario son lógicos para conservar trazabilidad. El mantenimiento sólo purga uploads nunca confirmados después de 24 horas; una futura purga de fotos borradas requerirá una política de retención explícita.
 - El proveedor puede cambiar sin modificar el dominio mientras conserve el contrato S3-compatible.

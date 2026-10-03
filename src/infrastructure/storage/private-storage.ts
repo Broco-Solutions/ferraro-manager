@@ -4,7 +4,7 @@ import {
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 import { mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -84,19 +84,22 @@ export function usesDirectPrivateUploads() {
   return env.STORAGE_DRIVER === "s3";
 }
 
-export async function createPrivateUploadUrl(
+export async function createPrivateUploadTarget(
   key: string,
   contentType: string,
+  contentLength: number,
   expiresInSeconds = 300,
 ) {
   const { client, bucket } = s3Config();
-  return getSignedUrl(
-    client,
-    new PutObjectCommand({
-      Bucket: bucket,
-      Key: key,
-      ContentType: contentType,
-    }),
-    { expiresIn: expiresInSeconds },
-  );
+  const result = await createPresignedPost(client, {
+    Bucket: bucket,
+    Key: key,
+    Expires: expiresInSeconds,
+    Fields: { "Content-Type": contentType },
+    Conditions: [
+      ["eq", "$Content-Type", contentType],
+      ["content-length-range", contentLength, contentLength],
+    ],
+  });
+  return { method: "POST" as const, url: result.url, fields: result.fields };
 }

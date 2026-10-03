@@ -1,4 +1,5 @@
 import { getOptionalSession } from "@/modules/identity/application/session";
+import { logger } from "@/infrastructure/logging/logger";
 import { confirmPhotoUpload } from "@/modules/photos/application/photo-service";
 
 export const runtime = "nodejs";
@@ -23,6 +24,12 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "";
+    logger.warn("photo_confirmation_rejected", {
+      reason:
+        message === "PHOTO_SIGNATURE_MISMATCH"
+          ? "PHOTO_SIGNATURE_MISMATCH"
+          : "INVALID_UPLOAD",
+    });
     return Response.json(
       {
         error:

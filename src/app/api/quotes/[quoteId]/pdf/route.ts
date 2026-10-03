@@ -24,10 +24,9 @@ export async function GET(
         "X-Content-Type-Options": "nosniff",
       },
     });
-  } catch (error) {
+  } catch {
     logger.error("quote_pdf_failed", {
       quoteId,
-      error: error instanceof Error ? error.message : "UNKNOWN_ERROR",
     });
     return new Response("Presupuesto no encontrado", { status: 404 });
   }

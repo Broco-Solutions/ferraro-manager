@@ -1,4 +1,5 @@
 import { getOptionalSession } from "@/modules/identity/application/session";
+import { logger } from "@/infrastructure/logging/logger";
 import { storeLocalIntentUpload } from "@/modules/photos/application/photo-service";
 import { MAX_PHOTO_BYTES } from "@/modules/photos/domain/photo-schema";
 
@@ -25,6 +26,7 @@ export async function PUT(
     });
     return new Response(null, { status: 204 });
   } catch {
+    logger.warn("local_photo_upload_rejected", { intentId });
     return new Response("Carga rechazada", { status: 400 });
   }
 }
