@@ -82,3 +82,12 @@ Registro resumido de la ejecución autónoma de V1. El contrato funcional contin
 - **Migrations:** `20261003010430_suppliers_purchases`; schema y migraciones sin drift.
 - **Decisions:** ninguna nueva; V1 registra la compra como pagada al postear, según contrato.
 - **Known issues:** ninguno.
+
+## BUILD 9
+
+- **Status:** COMPLETE
+- **Commits:** `ab44ac0` — `feat(inventory): complete build 9 job consumptions`
+- **Tests:** 31 unit, 29 integración y 14 E2E verdes; lint, typecheck, format, build, migraciones y diff verdes. Consumo decimal, doble submit, stock insuficiente, concurrencia, corrección compensatoria y anulación de trabajo con restitución verificados. Revisión visual desktop 1280 px, tablet 768 px y mobile 390 px sin overflow.
+- **Migrations:** `20261003013500_job_consumptions`; ledger conciliado después de altas, correcciones, concurrencia y anulaciones.
+- **Decisions:** ninguna nueva; consumos y correcciones usan el ledger append-only definido en el Master Plan.
+- **Known issues:** ninguno.
