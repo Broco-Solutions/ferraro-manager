@@ -91,3 +91,12 @@ Registro resumido de la ejecución autónoma de V1. El contrato funcional contin
 - **Migrations:** `20261003013500_job_consumptions`; ledger conciliado después de altas, correcciones, concurrencia y anulaciones.
 - **Decisions:** ninguna nueva; consumos y correcciones usan el ledger append-only definido en el Master Plan.
 - **Known issues:** ninguno.
+
+## BUILD 10
+
+- **Status:** COMPLETE
+- **Commits:** `16dd751` — `feat(photos): complete build 10 private job gallery`
+- **Tests:** 33 unit, 32 integración y 14 E2E verdes; lint, typecheck, format, build, migraciones y diff verdes. Upload múltiple con progreso/retry, MIME falso, límites, privacidad por defecto, publicación explícita, portada, orden y borrado lógico verificados. Revisión visual desktop 1280 px, tablet 768 px y mobile 390 px sin overflow; variantes sin EXIF y acceso anónimo rechazado.
+- **Migrations:** `20261003021000_job_photos`; schema y migraciones sin drift.
+- **Decisions:** DEC-002 — adapter privado S3-compatible en producción, filesystem local sólo para desarrollo/test y variantes procesadas con Sharp.
+- **Known issues:** ninguno bloqueante; el cleanup físico de objetos expirados/eliminados queda como mantenimiento con política de retención, sin afectar privacidad ni trazabilidad V1.
