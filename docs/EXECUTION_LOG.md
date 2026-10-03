@@ -118,3 +118,12 @@ Registro resumido de la ejecución autónoma de V1. El contrato funcional contin
 - **Migrations:** ninguna; índices existentes cubren rangos operativos. Medición local en base de desarrollo: dashboard operativo 113.9 ms en cold run, dashboard ADMIN 15.2 ms y búsqueda 26.4 ms; `ILIKE contains` conserva scan simple apropiado al volumen V1, sin Elasticsearch/trigram prematuro.
 - **Decisions:** ninguna nueva.
 - **Known issues:** ninguno.
+
+## BUILD 13
+
+- **Status:** COMPLETE
+- **Commits:** `afc3460` — `feat(hardening): complete build 13 production readiness`
+- **Tests:** 35 unit, 42 integración y 17 E2E verdes; lint, typecheck, format, build y diff verdes. Auditoría de dependencias sin vulnerabilidades conocidas; health, cleanup y reconciliación ejecutados. Revisión visual desktop 1280×800, tablet 768×1024 y mobile 390×844 sin overflow ni errores de consola; menú mobile corregido y cubierto por E2E.
+- **Migrations:** ninguna nueva. Restore drill local aplicó desde cero las migraciones versionadas sobre un schema aislado y verificó 38 tablas; el procedimiento productivo exige DB/restauración aislada del proveedor.
+- **Decisions:** ninguna nueva. DEC-002 se precisó para usar POST prefirmado con política de MIME/tamaño exactos y cleanup de intents expirados.
+- **Known issues:** ningún issue crítico/alto de código. Antes de producción falta el gate humano y validar un restore real con los proveedores contratados de DB/storage.
