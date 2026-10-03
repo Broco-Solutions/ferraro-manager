@@ -1,10 +1,10 @@
 import "dotenv/config";
 
-import { PrismaPg } from "@prisma/adapter-pg";
 import { z } from "zod";
 
 import { PrismaClient, UserRole } from "../src/generated/prisma/client";
 import { hashPassword } from "../src/infrastructure/auth/password";
+import { createPostgresAdapter } from "../src/infrastructure/db/adapter";
 
 const bootstrapEnvSchema = z.object({
   DATABASE_URL: z.string().url().startsWith("postgres"),
@@ -19,7 +19,7 @@ const bootstrapEnvSchema = z.object({
 async function main() {
   const config = bootstrapEnvSchema.parse(process.env);
   const prisma = new PrismaClient({
-    adapter: new PrismaPg({ connectionString: config.DATABASE_URL }),
+    adapter: createPostgresAdapter(config.DATABASE_URL),
   });
 
   try {

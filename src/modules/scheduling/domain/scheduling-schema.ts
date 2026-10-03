@@ -40,6 +40,22 @@ export const calendarBlockInputSchema = z.object({
     .optional(),
 });
 
+export const quoteAppointmentInputSchema = z.object({
+  quoteId: z.string().uuid(),
+  startLocal: localDateTime,
+  endLocal: localDateTime,
+  employeeIds: z.array(z.string().uuid()).max(20).default([]),
+  internalNotes: z
+    .string()
+    .trim()
+    .max(3_000)
+    .transform((value) => value || undefined)
+    .optional(),
+  visibleToClient: z.boolean().default(true),
+  idempotencyKey: z.string().uuid(),
+});
+
 export type AppointmentInput = z.infer<typeof appointmentInputSchema>;
 export type AppointmentEditInput = z.infer<typeof appointmentEditSchema>;
 export type CalendarBlockInput = z.infer<typeof calendarBlockInputSchema>;
+export type QuoteAppointmentInput = z.infer<typeof quoteAppointmentInputSchema>;

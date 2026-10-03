@@ -46,6 +46,12 @@ const navigation: readonly NavigationItem[] = [
     upcoming: true,
   },
   {
+    label: "Presupuestos",
+    shortLabel: "Presupuestos",
+    href: "/app/quotes",
+    roles: ["ADMIN"],
+  },
+  {
     label: "Servicios",
     shortLabel: "Servicios",
     href: "/app/services",

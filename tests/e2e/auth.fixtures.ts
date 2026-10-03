@@ -1,7 +1,6 @@
-import { PrismaPg } from "@prisma/adapter-pg";
-
 import { PrismaClient, UserRole } from "../../src/generated/prisma/client";
 import { hashPassword } from "../../src/infrastructure/auth/password";
+import { createPostgresAdapter } from "../../src/infrastructure/db/adapter";
 
 export const e2eUsers = {
   admin: {
@@ -21,7 +20,7 @@ export const e2eUsers = {
 export function createTestPrisma() {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new Error("DATABASE_URL is required for E2E");
-  return new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
+  return new PrismaClient({ adapter: createPostgresAdapter(connectionString) });
 }
 
 export async function resetE2EAuthRateLimit() {

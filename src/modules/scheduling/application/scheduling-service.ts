@@ -6,9 +6,11 @@ import {
   appointmentEditSchema,
   appointmentInputSchema,
   calendarBlockInputSchema,
+  quoteAppointmentInputSchema,
   type AppointmentEditInput,
   type AppointmentInput,
   type CalendarBlockInput,
+  type QuoteAppointmentInput,
 } from "@/modules/scheduling/domain/scheduling-schema";
 import { businessLocalDateTimeToUtc } from "@/shared/date-time/business-time";
 
@@ -148,6 +150,105 @@ export async function createAppointment(input: AppointmentInput, actor: Actor) {
         requestHash,
         resultReference: appointment.id,
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      },
+    });
+    return { id: appointment.id, replayed: false };
+  });
+}
+
+export async function createAppointmentFromQuote(
+  input: QuoteAppointmentInput,
+  actor: Actor,
+) {
+  const data = quoteAppointmentInputSchema.parse(input);
+  const startAt = businessLocalDateTimeToUtc(data.startLocal);
+  const endAt = businessLocalDateTimeToUtc(data.endLocal);
+  assertRange(startAt, endAt);
+  const hash = inputHash(data);
+  return prisma.$transaction(async (tx) => {
+    const existingKey = await tx.idempotencyKey.findUnique({
+      where: {
+        operation_key: {
+          operation: "QUOTE_TO_APPOINTMENT",
+          key: data.idempotencyKey,
+        },
+      },
+    });
+    if (existingKey) {
+      if (existingKey.requestHash !== hash)
+        throw new Error("IDEMPOTENCY_CONFLICT");
+      if (!existingKey.resultReference)
+        throw new Error("IDEMPOTENCY_INCOMPLETE");
+      return { id: existingKey.resultReference, replayed: true };
+    }
+    const quote = await tx.quote.findUnique({
+      where: { id: data.quoteId },
+      select: {
+        status: true,
+        acceptedServiceCase: {
+          select: {
+            id: true,
+            appointments: {
+              select: { id: true },
+              orderBy: { createdAt: "desc" },
+              take: 1,
+            },
+          },
+        },
+        items: {
+          select: {
+            serviceId: true,
+            nameSnapshot: true,
+            service: { select: { estimatedDurationMinutes: true } },
+          },
+          orderBy: { sortOrder: "asc" },
+        },
+      },
+    });
+    if (!quote || quote.status !== "ACCEPTED" || !quote.acceptedServiceCase)
+      throw new Error("QUOTE_NOT_SCHEDULABLE");
+    const existingAppointment = quote.acceptedServiceCase.appointments[0];
+    if (existingAppointment)
+      return { id: existingAppointment.id, replayed: true };
+    const employees = await tx.user.findMany({
+      where: { id: { in: data.employeeIds }, active: true },
+      select: { id: true },
+    });
+    if (employees.length !== new Set(data.employeeIds).size)
+      throw new Error("EMPLOYEE_NOT_AVAILABLE");
+    await assertNoBlock(tx, startAt, endAt);
+    const appointment = await tx.appointment.create({
+      data: {
+        serviceCaseId: quote.acceptedServiceCase.id,
+        startAt,
+        endAt,
+        status: "CONFIRMED",
+        internalNotes: data.internalNotes,
+        visibleToClient: data.visibleToClient,
+        createdById: actor.id,
+        updatedById: actor.id,
+        services: {
+          create: quote.items.map((item, index) => ({
+            serviceId: item.serviceId,
+            nameSnapshot: item.nameSnapshot,
+            durationMinutesSnapshot: item.service?.estimatedDurationMinutes,
+            sortOrder: index,
+          })),
+        },
+        employees: {
+          create: employees.map((employee) => ({ userId: employee.id })),
+        },
+      },
+      select: { id: true },
+    });
+    await tx.idempotencyKey.create({
+      data: {
+        operation: "QUOTE_TO_APPOINTMENT",
+        key: data.idempotencyKey,
+        actorId: actor.id,
+        requestHash: hash,
+        resultReference: appointment.id,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1_000),
       },
     });
     return { id: appointment.id, replayed: false };
@@ -322,13 +423,45 @@ export async function listSchedulingOptions() {
 }
 
 export async function getAppointmentDetail(id: string) {
-  return prisma.appointment.findUnique({
-    where: { id },
-    include: {
-      serviceCase: { include: { client: true, vehicle: true } },
-      job: { select: { id: true, voidedAt: true } },
-      services: { orderBy: { sortOrder: "asc" } },
-      employees: { include: { user: { select: { id: true, name: true } } } },
-    },
+  const appointment = await prisma.appointment.findUnique({ where: { id } });
+  if (!appointment) return null;
+
+  const serviceCase = await prisma.serviceCase.findUnique({
+    where: { id: appointment.serviceCaseId },
   });
+  if (!serviceCase) return null;
+  const client = await prisma.client.findUnique({
+    where: { id: serviceCase.clientId },
+  });
+  const vehicle = await prisma.vehicle.findUnique({
+    where: { id: serviceCase.vehicleId },
+  });
+  if (!client || !vehicle) return null;
+  const job = await prisma.job.findUnique({
+    where: { originAppointmentId: appointment.id },
+    select: { id: true, voidedAt: true },
+  });
+  const services = await prisma.appointmentService.findMany({
+    where: { appointmentId: appointment.id },
+    orderBy: { sortOrder: "asc" },
+  });
+  const assignments = await prisma.appointmentEmployee.findMany({
+    where: { appointmentId: appointment.id },
+  });
+  const users = await prisma.user.findMany({
+    where: { id: { in: assignments.map((assignment) => assignment.userId) } },
+    select: { id: true, name: true },
+  });
+  const usersById = new Map(users.map((user) => [user.id, user]));
+
+  return {
+    ...appointment,
+    serviceCase: { ...serviceCase, client, vehicle },
+    job,
+    services,
+    employees: assignments.flatMap((assignment) => {
+      const user = usersById.get(assignment.userId);
+      return user ? [{ ...assignment, user }] : [];
+    }),
+  };
 }

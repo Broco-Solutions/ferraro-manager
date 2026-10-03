@@ -9,6 +9,8 @@ import {
 import { getClientDetail } from "@/modules/clients/application/client-service";
 import { VehicleForm } from "@/modules/clients/ui/vehicle-form";
 import { listClientJobHistory } from "@/modules/jobs/application/job-service";
+import { requireUser } from "@/modules/identity/application/session";
+import { listClientQuotes } from "@/modules/quotes/application/quote-service";
 import { formatBusinessDate } from "@/shared/date-time/business-time";
 
 export const metadata: Metadata = { title: "Ficha de cliente" };
@@ -29,9 +31,13 @@ export default async function ClientDetailPage({
 }: PageProps) {
   const { clientId } = await params;
   const notices = await searchParams;
-  const [client, jobs] = await Promise.all([
+  const session = await requireUser();
+  const [client, jobs, quotes] = await Promise.all([
     getClientDetail(clientId),
     listClientJobHistory(clientId),
+    session.user.role === "ADMIN"
+      ? listClientQuotes(clientId)
+      : Promise.resolve([]),
   ]);
   if (!client) notFound();
 
@@ -173,6 +179,44 @@ export default async function ClientDetailPage({
           </div>
         )}
       </section>
+
+      {session.user.role === "ADMIN" ? (
+        <section className="section-stack">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">Comercial</p>
+              <h2>Presupuestos</h2>
+            </div>
+            <span>{quotes.length}</span>
+          </div>
+          {quotes.length ? (
+            <div className="timeline-list">
+              {quotes.map((quote) => (
+                <Link
+                  href={`/app/quotes/${quote.id}`}
+                  key={quote.id}
+                  className="timeline-item"
+                >
+                  <span>
+                    {formatBusinessDate(quote.issuedOn, { timeZone: "UTC" })}
+                  </span>
+                  <strong>{quote.number}</strong>
+                  <small>
+                    {quote.vehicle.brand} {quote.vehicle.model} · USD{" "}
+                    {quote.totalUsd.toFixed(2)}
+                  </small>
+                  <em>{quote.status}</em>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="inline-empty">
+              <strong>Sin presupuestos</strong>
+              <p>Podés crear el primero desde el módulo comercial.</p>
+            </div>
+          )}
+        </section>
+      ) : null}
 
       <details className="form-disclosure" open={!client.vehicles.length}>
         <summary>Agregar vehículo</summary>

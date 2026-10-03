@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
 
-import { PrismaPg } from "@prisma/adapter-pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { PrismaClient } from "@/generated/prisma/client";
+import { createPostgresAdapter } from "@/infrastructure/db/adapter";
 import {
   completeAppointment,
   createDirectJob,
@@ -13,7 +13,7 @@ import {
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) throw new Error("DATABASE_URL is required");
 const prisma = new PrismaClient({
-  adapter: new PrismaPg({ connectionString }),
+  adapter: createPostgresAdapter(connectionString),
 });
 const suffix = randomUUID().slice(0, 8);
 let actorId = "";

@@ -33,6 +33,7 @@ Thumbs.db
 .vercel/
 .turbo/
 .prisma/
+.data/
 
 # generated database client
 src/generated/prisma/

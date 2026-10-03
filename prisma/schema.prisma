@@ -36,6 +36,13 @@ enum AppointmentStatus {
   CANCELLED
 }
 
+enum QuoteStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+}
+
 model User {
   id                       String                @id @default(uuid()) @db.Uuid
   name                     String
@@ -69,6 +76,8 @@ model User {
   jobsCreated              Job[]                 @relation("JobCreatedBy")
   jobsUpdated              Job[]                 @relation("JobUpdatedBy")
   jobAssignments           JobEmployee[]
+  quotesCreated            Quote[]               @relation("QuoteCreatedBy")
+  quotesUpdated            Quote[]               @relation("QuoteUpdatedBy")
 
   @@index([active])
   @@map("users")
@@ -95,6 +104,7 @@ model Client {
   updatedBy       User?         @relation("ClientUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
   vehicles        Vehicle[]
   serviceCases    ServiceCase[]
+  quotes          Quote[]
 
   @@index([displayName])
   @@index([normalizedPhone])
@@ -126,6 +136,7 @@ model Vehicle {
   createdBy      User?         @relation("VehicleCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   updatedBy      User?         @relation("VehicleUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
   serviceCases   ServiceCase[]
+  quotes         Quote[]
 
   @@index([clientId, active])
   @@index([brand, model])
@@ -171,6 +182,7 @@ model Service {
   variants                 ServiceVariant[]
   appointmentServices      AppointmentService[]
   jobServices              JobService[]
+  quoteItems               QuoteItem[]
   createdBy                User?                @relation("ServiceCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   updatedBy                User?                @relation("ServiceUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
 
@@ -210,18 +222,84 @@ model ServiceCase {
   vehicleId       String            @db.Uuid
   origin          ServiceCaseOrigin
   agreedAmountUsd Decimal?          @db.Decimal(19, 2)
+  acceptedQuoteId String?           @unique @db.Uuid
   createdAt       DateTime          @default(now()) @db.Timestamptz(3)
   updatedAt       DateTime          @updatedAt @db.Timestamptz(3)
   createdById     String?           @db.Uuid
   client          Client            @relation(fields: [clientId], references: [id], onDelete: Restrict)
   vehicle         Vehicle           @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
   createdBy       User?             @relation("ServiceCaseCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  acceptedQuote   Quote?            @relation(fields: [acceptedQuoteId], references: [id], onDelete: Restrict)
   appointments    Appointment[]
   jobs            Job[]
 
   @@index([clientId, vehicleId])
   @@index([createdById])
   @@map("service_cases")
+}
+
+model QuoteSequence {
+  year      Int      @id
+  nextValue Int
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@map("quote_sequences")
+}
+
+model Quote {
+  id                 String       @id @default(uuid()) @db.Uuid
+  clientId           String       @db.Uuid
+  vehicleId          String       @db.Uuid
+  number             String       @unique
+  status             QuoteStatus  @default(DRAFT)
+  issuedOn           DateTime     @db.Date
+  validUntil         DateTime?    @db.Date
+  notes              String?
+  terms              String?
+  subtotalUsd        Decimal      @db.Decimal(19, 2)
+  discountUsd        Decimal      @default(0) @db.Decimal(19, 2)
+  totalUsd           Decimal      @db.Decimal(19, 2)
+  templateVersion    Int          @default(1)
+  pdfArtifactKey     String?
+  pdfSha256          String?
+  pdfGeneratedAt     DateTime?    @db.Timestamptz(3)
+  sentAt             DateTime?    @db.Timestamptz(3)
+  acceptedAt         DateTime?    @db.Timestamptz(3)
+  rejectedAt         DateTime?    @db.Timestamptz(3)
+  createdAt          DateTime     @default(now()) @db.Timestamptz(3)
+  updatedAt          DateTime     @updatedAt @db.Timestamptz(3)
+  createdById        String?      @db.Uuid
+  updatedById        String?      @db.Uuid
+  client             Client       @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  vehicle            Vehicle      @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
+  items              QuoteItem[]
+  acceptedServiceCase ServiceCase?
+  createdBy          User?        @relation("QuoteCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy          User?        @relation("QuoteUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@index([status, issuedOn])
+  @@index([clientId, issuedOn])
+  @@index([vehicleId])
+  @@map("quotes")
+}
+
+model QuoteItem {
+  id                  String   @id @default(uuid()) @db.Uuid
+  quoteId             String   @db.Uuid
+  serviceId           String?  @db.Uuid
+  nameSnapshot        String
+  descriptionSnapshot String?
+  quantity            Decimal  @db.Decimal(12, 3)
+  unitPriceUsd        Decimal  @db.Decimal(19, 2)
+  discountUsd         Decimal  @default(0) @db.Decimal(19, 2)
+  totalUsd            Decimal  @db.Decimal(19, 2)
+  sortOrder           Int      @default(0)
+  quote               Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  service             Service? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+
+  @@index([quoteId, sortOrder])
+  @@index([serviceId])
+  @@map("quote_items")
 }
 
 model Appointment {
