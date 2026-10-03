@@ -78,53 +78,54 @@ enum PurchaseStatus {
 }
 
 model User {
-  id                         String                      @id @default(uuid()) @db.Uuid
-  name                       String
-  email                      String                      @unique
-  emailVerified              Boolean                     @default(false)
-  image                      String?
-  role                       UserRole                    @default(STAFF)
-  active                     Boolean                     @default(true)
-  lastLoginAt                DateTime?
-  createdAt                  DateTime                    @default(now())
-  updatedAt                  DateTime                    @updatedAt
-  sessions                   Session[]
-  accounts                   Account[]
-  idempotency                IdempotencyKey[]
-  clientsCreated             Client[]                    @relation("ClientCreatedBy")
-  clientsUpdated             Client[]                    @relation("ClientUpdatedBy")
-  vehiclesCreated            Vehicle[]                   @relation("VehicleCreatedBy")
-  vehiclesUpdated            Vehicle[]                   @relation("VehicleUpdatedBy")
-  serviceCategoriesCreated   ServiceCategory[]           @relation("ServiceCategoryCreatedBy")
-  serviceCategoriesUpdated   ServiceCategory[]           @relation("ServiceCategoryUpdatedBy")
-  servicesCreated            Service[]                   @relation("ServiceCreatedBy")
-  servicesUpdated            Service[]                   @relation("ServiceUpdatedBy")
-  serviceVariantsCreated     ServiceVariant[]            @relation("ServiceVariantCreatedBy")
-  serviceVariantsUpdated     ServiceVariant[]            @relation("ServiceVariantUpdatedBy")
-  serviceCasesCreated        ServiceCase[]               @relation("ServiceCaseCreatedBy")
-  appointmentsCreated        Appointment[]               @relation("AppointmentCreatedBy")
-  appointmentsUpdated        Appointment[]               @relation("AppointmentUpdatedBy")
-  appointmentAssignments     AppointmentEmployee[]
-  calendarBlocksCreated      CalendarBlock[]             @relation("CalendarBlockCreatedBy")
-  calendarBlocksUpdated      CalendarBlock[]             @relation("CalendarBlockUpdatedBy")
-  jobsCreated                Job[]                       @relation("JobCreatedBy")
-  jobsUpdated                Job[]                       @relation("JobUpdatedBy")
-  jobAssignments             JobEmployee[]
-  quotesCreated              Quote[]                     @relation("QuoteCreatedBy")
-  quotesUpdated              Quote[]                     @relation("QuoteUpdatedBy")
-  financialCategoriesCreated FinancialCategory[]         @relation("FinancialCategoryCreatedBy")
-  financialCategoriesUpdated FinancialCategory[]         @relation("FinancialCategoryUpdatedBy")
-  financialEntriesCreated    FinancialEntry[]            @relation("FinancialEntryCreatedBy")
-  amountRevisionsCreated     ServiceCaseAmountRevision[] @relation("AmountRevisionCreatedBy")
-  inventoryCategoriesCreated InventoryCategory[]          @relation("InventoryCategoryCreatedBy")
-  inventoryCategoriesUpdated InventoryCategory[]          @relation("InventoryCategoryUpdatedBy")
-  inventoryItemsCreated      InventoryItem[]              @relation("InventoryItemCreatedBy")
-  inventoryItemsUpdated      InventoryItem[]              @relation("InventoryItemUpdatedBy")
-  inventoryMovementsCreated  InventoryMovement[]          @relation("InventoryMovementCreatedBy")
-  suppliersCreated           Supplier[]                   @relation("SupplierCreatedBy")
-  suppliersUpdated           Supplier[]                   @relation("SupplierUpdatedBy")
-  purchasesCreated           Purchase[]                   @relation("PurchaseCreatedBy")
-  purchasesVoided            Purchase[]                   @relation("PurchaseVoidedBy")
+  id                          String                      @id @default(uuid()) @db.Uuid
+  name                        String
+  email                       String                      @unique
+  emailVerified               Boolean                     @default(false)
+  image                       String?
+  role                        UserRole                    @default(STAFF)
+  active                      Boolean                     @default(true)
+  lastLoginAt                 DateTime?
+  createdAt                   DateTime                    @default(now())
+  updatedAt                   DateTime                    @updatedAt
+  sessions                    Session[]
+  accounts                    Account[]
+  idempotency                 IdempotencyKey[]
+  clientsCreated              Client[]                    @relation("ClientCreatedBy")
+  clientsUpdated              Client[]                    @relation("ClientUpdatedBy")
+  vehiclesCreated             Vehicle[]                   @relation("VehicleCreatedBy")
+  vehiclesUpdated             Vehicle[]                   @relation("VehicleUpdatedBy")
+  serviceCategoriesCreated    ServiceCategory[]           @relation("ServiceCategoryCreatedBy")
+  serviceCategoriesUpdated    ServiceCategory[]           @relation("ServiceCategoryUpdatedBy")
+  servicesCreated             Service[]                   @relation("ServiceCreatedBy")
+  servicesUpdated             Service[]                   @relation("ServiceUpdatedBy")
+  serviceVariantsCreated      ServiceVariant[]            @relation("ServiceVariantCreatedBy")
+  serviceVariantsUpdated      ServiceVariant[]            @relation("ServiceVariantUpdatedBy")
+  serviceCasesCreated         ServiceCase[]               @relation("ServiceCaseCreatedBy")
+  appointmentsCreated         Appointment[]               @relation("AppointmentCreatedBy")
+  appointmentsUpdated         Appointment[]               @relation("AppointmentUpdatedBy")
+  appointmentAssignments      AppointmentEmployee[]
+  calendarBlocksCreated       CalendarBlock[]             @relation("CalendarBlockCreatedBy")
+  calendarBlocksUpdated       CalendarBlock[]             @relation("CalendarBlockUpdatedBy")
+  jobsCreated                 Job[]                       @relation("JobCreatedBy")
+  jobsUpdated                 Job[]                       @relation("JobUpdatedBy")
+  jobAssignments              JobEmployee[]
+  quotesCreated               Quote[]                     @relation("QuoteCreatedBy")
+  quotesUpdated               Quote[]                     @relation("QuoteUpdatedBy")
+  financialCategoriesCreated  FinancialCategory[]         @relation("FinancialCategoryCreatedBy")
+  financialCategoriesUpdated  FinancialCategory[]         @relation("FinancialCategoryUpdatedBy")
+  financialEntriesCreated     FinancialEntry[]            @relation("FinancialEntryCreatedBy")
+  amountRevisionsCreated      ServiceCaseAmountRevision[] @relation("AmountRevisionCreatedBy")
+  inventoryCategoriesCreated  InventoryCategory[]         @relation("InventoryCategoryCreatedBy")
+  inventoryCategoriesUpdated  InventoryCategory[]         @relation("InventoryCategoryUpdatedBy")
+  inventoryItemsCreated       InventoryItem[]             @relation("InventoryItemCreatedBy")
+  inventoryItemsUpdated       InventoryItem[]             @relation("InventoryItemUpdatedBy")
+  inventoryMovementsCreated   InventoryMovement[]         @relation("InventoryMovementCreatedBy")
+  suppliersCreated            Supplier[]                  @relation("SupplierCreatedBy")
+  suppliersUpdated            Supplier[]                  @relation("SupplierUpdatedBy")
+  purchasesCreated            Purchase[]                  @relation("PurchaseCreatedBy")
+  purchasesVoided             Purchase[]                  @relation("PurchaseVoidedBy")
+  materialConsumptionsCreated JobMaterialConsumption[]    @relation("MaterialConsumptionCreatedBy")
 
   @@index([active])
   @@map("users")
@@ -367,26 +368,27 @@ model InventoryCategory {
 }
 
 model InventoryItem {
-  id            String                 @id @default(uuid()) @db.Uuid
-  categoryId    String                 @db.Uuid
+  id            String                   @id @default(uuid()) @db.Uuid
+  categoryId    String                   @db.Uuid
   name          String
-  sku           String?                @unique
+  sku           String?                  @unique
   baseUnit      String
-  currentStock  Decimal                @default(0) @db.Decimal(19, 3)
-  minimumStock  Decimal                @default(0) @db.Decimal(19, 3)
-  costHintUsd   Decimal?               @db.Decimal(19, 2)
+  currentStock  Decimal                  @default(0) @db.Decimal(19, 3)
+  minimumStock  Decimal                  @default(0) @db.Decimal(19, 3)
+  costHintUsd   Decimal?                 @db.Decimal(19, 2)
   notes         String?
-  active        Boolean                @default(true)
-  createdAt     DateTime               @default(now()) @db.Timestamptz(3)
-  updatedAt     DateTime               @updatedAt @db.Timestamptz(3)
-  createdById   String?                @db.Uuid
-  updatedById   String?                @db.Uuid
-  category      InventoryCategory      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  active        Boolean                  @default(true)
+  createdAt     DateTime                 @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime                 @updatedAt @db.Timestamptz(3)
+  createdById   String?                  @db.Uuid
+  updatedById   String?                  @db.Uuid
+  category      InventoryCategory        @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   presentations PurchasePresentation[]
   movements     InventoryMovement[]
   purchaseItems PurchaseItem[]
-  createdBy     User?                  @relation("InventoryItemCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
-  updatedBy     User?                  @relation("InventoryItemUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  consumptions  JobMaterialConsumption[]
+  createdBy     User?                    @relation("InventoryItemCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy     User?                    @relation("InventoryItemUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
 
   @@unique([categoryId, name])
   @@index([active, name])
@@ -396,14 +398,14 @@ model InventoryItem {
 }
 
 model PurchasePresentation {
-  id           String        @id @default(uuid()) @db.Uuid
-  itemId       String        @db.Uuid
-  name         String
-  factorToBase Decimal       @db.Decimal(19, 6)
-  active       Boolean       @default(true)
-  createdAt    DateTime      @default(now()) @db.Timestamptz(3)
-  updatedAt    DateTime      @updatedAt @db.Timestamptz(3)
-  item         InventoryItem @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  id            String         @id @default(uuid()) @db.Uuid
+  itemId        String         @db.Uuid
+  name          String
+  factorToBase  Decimal        @db.Decimal(19, 6)
+  active        Boolean        @default(true)
+  createdAt     DateTime       @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime       @updatedAt @db.Timestamptz(3)
+  item          InventoryItem  @relation(fields: [itemId], references: [id], onDelete: Restrict)
   purchaseItems PurchaseItem[]
 
   @@unique([itemId, name])
@@ -412,22 +414,24 @@ model PurchasePresentation {
 }
 
 model InventoryMovement {
-  id                 String                @id @default(uuid()) @db.Uuid
-  itemId             String                @db.Uuid
+  id                 String                  @id @default(uuid()) @db.Uuid
+  itemId             String                  @db.Uuid
   type               InventoryMovementType
-  signedQuantityBase Decimal               @db.Decimal(19, 3)
+  signedQuantityBase Decimal                 @db.Decimal(19, 3)
   unitSnapshot       String
-  occurredAt         DateTime              @db.Timestamptz(3)
+  occurredAt         DateTime                @db.Timestamptz(3)
   note               String
-  reversalOfId       String?               @unique @db.Uuid
-  purchaseItemId     String?               @unique @db.Uuid
-  createdAt          DateTime              @default(now()) @db.Timestamptz(3)
-  createdById        String?               @db.Uuid
-  item               InventoryItem         @relation(fields: [itemId], references: [id], onDelete: Restrict)
-  reversalOf         InventoryMovement?    @relation("InventoryReversal", fields: [reversalOfId], references: [id], onDelete: Restrict)
-  reversedBy         InventoryMovement?    @relation("InventoryReversal")
-  purchaseItem       PurchaseItem?         @relation(fields: [purchaseItemId], references: [id], onDelete: Restrict)
-  createdBy          User?                 @relation("InventoryMovementCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  reversalOfId       String?                 @unique @db.Uuid
+  purchaseItemId     String?                 @unique @db.Uuid
+  consumptionId      String?                 @unique @db.Uuid
+  createdAt          DateTime                @default(now()) @db.Timestamptz(3)
+  createdById        String?                 @db.Uuid
+  item               InventoryItem           @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  reversalOf         InventoryMovement?      @relation("InventoryReversal", fields: [reversalOfId], references: [id], onDelete: Restrict)
+  reversedBy         InventoryMovement?      @relation("InventoryReversal")
+  purchaseItem       PurchaseItem?           @relation(fields: [purchaseItemId], references: [id], onDelete: Restrict)
+  consumption        JobMaterialConsumption? @relation(fields: [consumptionId], references: [id], onDelete: Restrict)
+  createdBy          User?                   @relation("InventoryMovementCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
 
   @@index([itemId, occurredAt])
   @@index([type, occurredAt])
@@ -650,23 +654,24 @@ model CalendarBlock {
 }
 
 model Job {
-  id                  String        @id @default(uuid()) @db.Uuid
-  serviceCaseId       String        @db.Uuid
-  originAppointmentId String?       @unique @db.Uuid
-  performedAt         DateTime      @db.Timestamptz(3)
-  notes               String?
-  voidedAt            DateTime?     @db.Timestamptz(3)
-  voidReason          String?
-  createdAt           DateTime      @default(now()) @db.Timestamptz(3)
-  updatedAt           DateTime      @updatedAt @db.Timestamptz(3)
-  createdById         String?       @db.Uuid
-  updatedById         String?       @db.Uuid
-  serviceCase         ServiceCase   @relation(fields: [serviceCaseId], references: [id], onDelete: Restrict)
-  originAppointment   Appointment?  @relation(fields: [originAppointmentId], references: [id], onDelete: Restrict)
-  services            JobService[]
-  employees           JobEmployee[]
-  createdBy           User?         @relation("JobCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
-  updatedBy           User?         @relation("JobUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  id                   String                   @id @default(uuid()) @db.Uuid
+  serviceCaseId        String                   @db.Uuid
+  originAppointmentId  String?                  @unique @db.Uuid
+  performedAt          DateTime                 @db.Timestamptz(3)
+  notes                String?
+  voidedAt             DateTime?                @db.Timestamptz(3)
+  voidReason           String?
+  createdAt            DateTime                 @default(now()) @db.Timestamptz(3)
+  updatedAt            DateTime                 @updatedAt @db.Timestamptz(3)
+  createdById          String?                  @db.Uuid
+  updatedById          String?                  @db.Uuid
+  serviceCase          ServiceCase              @relation(fields: [serviceCaseId], references: [id], onDelete: Restrict)
+  originAppointment    Appointment?             @relation(fields: [originAppointmentId], references: [id], onDelete: Restrict)
+  services             JobService[]
+  employees            JobEmployee[]
+  materialConsumptions JobMaterialConsumption[]
+  createdBy            User?                    @relation("JobCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy            User?                    @relation("JobUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
 
   @@index([performedAt])
   @@index([serviceCaseId, performedAt])
@@ -698,6 +703,28 @@ model JobEmployee {
   @@id([jobId, userId])
   @@index([userId])
   @@map("job_employees")
+}
+
+model JobMaterialConsumption {
+  id           String                  @id @default(uuid()) @db.Uuid
+  jobId        String                  @db.Uuid
+  itemId       String                  @db.Uuid
+  quantityBase Decimal                 @db.Decimal(19, 3)
+  unitSnapshot String
+  note         String?
+  replacesId   String?                 @unique @db.Uuid
+  createdAt    DateTime                @default(now()) @db.Timestamptz(3)
+  createdById  String?                 @db.Uuid
+  job          Job                     @relation(fields: [jobId], references: [id], onDelete: Restrict)
+  item         InventoryItem           @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  movement     InventoryMovement?
+  replaces     JobMaterialConsumption? @relation("ConsumptionReplacement", fields: [replacesId], references: [id], onDelete: Restrict)
+  replacedBy   JobMaterialConsumption? @relation("ConsumptionReplacement")
+  createdBy    User?                   @relation("MaterialConsumptionCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([jobId, createdAt])
+  @@index([itemId, createdAt])
+  @@map("job_material_consumptions")
 }
 
 model Session {

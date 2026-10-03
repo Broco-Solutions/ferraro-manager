@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 
-import type { Prisma } from "@/generated/prisma/client";
+import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/infrastructure/db/client";
 import {
   completeAppointmentSchema,
@@ -169,15 +169,59 @@ export async function createDirectJob(input: DirectJobInput, actor: Actor) {
 
 export async function voidJob(input: unknown, actor: Actor) {
   const data = voidJobSchema.parse(input);
-  const result = await prisma.job.updateMany({
-    where: { id: data.jobId, voidedAt: null },
-    data: {
-      voidedAt: new Date(),
-      voidReason: data.reason,
-      updatedById: actor.id,
-    },
+  return prisma.$transaction(async (tx) => {
+    await tx.$queryRaw(
+      Prisma.sql`SELECT "id" FROM "jobs" WHERE "id" = ${data.jobId}::uuid FOR UPDATE`,
+    );
+    const job = await tx.job.findUnique({
+      where: { id: data.jobId },
+      select: {
+        id: true,
+        voidedAt: true,
+        materialConsumptions: {
+          where: { replacedBy: null },
+          select: {
+            itemId: true,
+            quantityBase: true,
+            unitSnapshot: true,
+            movement: {
+              select: { id: true, reversedBy: { select: { id: true } } },
+            },
+          },
+        },
+      },
+    });
+    if (!job || job.voidedAt) throw new Error("JOB_NOT_VOIDABLE");
+    for (const consumption of job.materialConsumptions) {
+      if (!consumption.movement)
+        throw new Error("CONSUMPTION_LEDGER_INCONSISTENT");
+      if (consumption.movement.reversedBy) continue;
+      await tx.inventoryItem.update({
+        where: { id: consumption.itemId },
+        data: { currentStock: { increment: consumption.quantityBase } },
+      });
+      await tx.inventoryMovement.create({
+        data: {
+          itemId: consumption.itemId,
+          type: "REVERSAL",
+          signedQuantityBase: consumption.quantityBase,
+          unitSnapshot: consumption.unitSnapshot,
+          occurredAt: new Date(),
+          note: `Anulación de trabajo: ${data.reason}`,
+          reversalOfId: consumption.movement.id,
+          createdById: actor.id,
+        },
+      });
+    }
+    await tx.job.update({
+      where: { id: job.id },
+      data: {
+        voidedAt: new Date(),
+        voidReason: data.reason,
+        updatedById: actor.id,
+      },
+    });
   });
-  if (result.count !== 1) throw new Error("JOB_NOT_VOIDABLE");
 }
 
 export async function listJobOptions() {
@@ -333,6 +377,22 @@ export async function getJobDetail(id: string) {
       originAppointment: { select: { id: true, startAt: true, endAt: true } },
       services: { orderBy: { sortOrder: "asc" } },
       employees: { include: { user: { select: { id: true, name: true } } } },
+      materialConsumptions: {
+        select: {
+          id: true,
+          quantityBase: true,
+          unitSnapshot: true,
+          note: true,
+          createdAt: true,
+          replacesId: true,
+          item: { select: { id: true, name: true } },
+          movement: {
+            select: { reversedBy: { select: { id: true, note: true } } },
+          },
+          replacedBy: { select: { id: true } },
+        },
+        orderBy: { createdAt: "desc" },
+      },
     },
   });
 }

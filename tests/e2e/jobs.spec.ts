@@ -8,12 +8,16 @@ import {
 
 const clientName = "Trabajo E2E Cliente";
 const serviceName = "Trabajo E2E Cerámico";
+const inventoryCategoryName = "Trabajo E2E Films";
+const inventoryItemName = "Trabajo E2E PPF";
 let appointmentId = "";
 let caseId = "";
 let clientId = "";
 let vehicleId = "";
 let categoryId = "";
 let serviceId = "";
+let inventoryCategoryId = "";
+let inventoryItemId = "";
 
 async function login(page: Page) {
   await resetE2EAuthRateLimit();
@@ -47,6 +51,26 @@ async function cleanup() {
       select: { id: true },
     });
     const jobIds = jobs.map((item) => item.id);
+    const inventoryItems = await prisma.inventoryItem.findMany({
+      where: { name: inventoryItemName },
+      select: { id: true },
+    });
+    const inventoryItemIds = inventoryItems.map((item) => item.id);
+    const consumptions = await prisma.jobMaterialConsumption.findMany({
+      where: { jobId: { in: jobIds } },
+      select: { id: true },
+    });
+    await prisma.idempotencyKey.deleteMany({
+      where: {
+        resultReference: { in: consumptions.map((item) => item.id) },
+      },
+    });
+    await prisma.inventoryMovement.deleteMany({
+      where: { itemId: { in: inventoryItemIds } },
+    });
+    await prisma.jobMaterialConsumption.deleteMany({
+      where: { jobId: { in: jobIds } },
+    });
     await prisma.jobEmployee.deleteMany({ where: { jobId: { in: jobIds } } });
     await prisma.jobService.deleteMany({ where: { jobId: { in: jobIds } } });
     await prisma.job.deleteMany({ where: { id: { in: jobIds } } });
@@ -69,6 +93,12 @@ async function cleanup() {
     });
     await prisma.serviceCategory.deleteMany({
       where: { name: "Trabajo E2E Categoría" },
+    });
+    await prisma.inventoryItem.deleteMany({
+      where: { id: { in: inventoryItemIds } },
+    });
+    await prisma.inventoryCategory.deleteMany({
+      where: { name: inventoryCategoryName },
     });
     await prisma.vehicle.deleteMany({ where: { clientId: { in: clientIds } } });
     await prisma.client.deleteMany({ where: { id: { in: clientIds } } });
@@ -97,6 +127,29 @@ test.beforeAll(async () => {
       data: { categoryId, name: serviceName },
     });
     serviceId = service.id;
+    const inventoryCategory = await prisma.inventoryCategory.create({
+      data: { name: inventoryCategoryName },
+    });
+    inventoryCategoryId = inventoryCategory.id;
+    const inventoryItem = await prisma.inventoryItem.create({
+      data: {
+        categoryId: inventoryCategoryId,
+        name: inventoryItemName,
+        baseUnit: "meter",
+        currentStock: "10",
+      },
+    });
+    inventoryItemId = inventoryItem.id;
+    await prisma.inventoryMovement.create({
+      data: {
+        itemId: inventoryItemId,
+        type: "ADJUSTMENT_IN",
+        signedQuantityBase: "10",
+        unitSnapshot: "meter",
+        occurredAt: new Date(),
+        note: "Saldo E2E",
+      },
+    });
     const serviceCase = await prisma.serviceCase.create({
       data: { clientId, vehicleId, origin: "DIRECT_APPOINTMENT" },
     });
@@ -138,4 +191,46 @@ test("STAFF converts a confirmed appointment into a separate job", async ({
   await page.getByRole("link", { name: "Ver turno" }).click();
   await expect(page.getByText("Trabajo realizado").first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Ver trabajo" })).toBeVisible();
+});
+
+test("STAFF records and corrects an exact material consumption from the job", async ({
+  page,
+}) => {
+  test.setTimeout(60_000);
+  await login(page);
+  const prisma = createTestPrisma();
+  const job = await prisma.job.findFirstOrThrow({
+    where: { serviceCaseId: caseId },
+    select: { id: true },
+  });
+  await prisma.$disconnect();
+  await page.goto(`/app/jobs/${job.id}`);
+  await expect(
+    page.getByRole("heading", { name: "Consumos del trabajo" }),
+  ).toBeVisible();
+  const itemSearch = page.getByLabel("Buscar insumo");
+  if (!(await itemSearch.isVisible()))
+    await page
+      .locator("summary")
+      .filter({ hasText: "Registrar consumo" })
+      .click();
+  await itemSearch.fill(inventoryItemName);
+  await page.getByLabel("Insumo *").selectOption(inventoryItemId);
+  await page.getByLabel("Cantidad en meter *").fill("3.2");
+  await page.getByLabel("Nota").fill("Frontal E2E");
+  await page.getByRole("button", { name: "Registrar consumo" }).click();
+  await expect(
+    page.getByText("El consumo quedó registrado y el stock fue actualizado."),
+  ).toBeVisible();
+  await expect(page.getByText("3.200 meter")).toBeVisible();
+  await page.getByText("Corregir o anular").click();
+  await page.getByLabel("Nueva cantidad en meter *").fill("2.4");
+  await page.getByLabel("Motivo *").first().fill("Medición final E2E");
+  await page.getByRole("button", { name: "Guardar corrección" }).click();
+  await expect(
+    page.getByText(
+      "La corrección quedó registrada con sus movimientos compensatorios.",
+    ),
+  ).toBeVisible();
+  await expect(page.getByText("2.400 meter")).toBeVisible();
 });

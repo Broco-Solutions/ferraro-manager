@@ -2139,6 +2139,11 @@ a.nav-link:hover {
   .variant-count {
     display: none;
   }
+
+  .quiet-panel {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
 }
 
 @media (max-width: 47.99rem) {
@@ -2975,6 +2980,75 @@ a.nav-link:hover {
   .purchase-integrity article + article {
     border-top: 1px solid var(--color-border);
     border-left: 0;
+  }
+}
+
+.consumption-list {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.consumption-list > article {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  padding: var(--space-4);
+}
+
+.consumption-list > article > p,
+.form-hint {
+  margin: var(--space-2) 0 0;
+  color: var(--color-ink-soft);
+  font-size: 0.875rem;
+}
+
+.consumption-inactive {
+  opacity: 0.68;
+}
+
+.consumption-summary {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.consumption-summary > div {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.consumption-summary span {
+  color: var(--color-ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.inline-disclosure {
+  margin-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-3);
+}
+
+.inline-disclosure > summary {
+  color: var(--color-accent);
+  cursor: pointer;
+  font-weight: 650;
+}
+
+.consumption-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-5);
+  margin-top: var(--space-4);
+}
+
+@media (max-width: 620px) {
+  .consumption-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .consumption-summary {
+    align-items: flex-start;
   }
 }
 
