@@ -5,6 +5,7 @@ import { brandConfig } from "@/config/brand";
 import { getNavigationForRole } from "@/modules/identity/application/navigation";
 import type { AuthenticatedUser } from "@/modules/identity/application/session";
 import { LogoutButton } from "@/modules/identity/ui/logout-button";
+import { GlobalSearchBar } from "@/modules/search/ui/global-search-bar";
 
 interface AppShellProps {
   children: ReactNode;
@@ -86,6 +87,8 @@ export function AppShell({ children, user }: AppShellProps) {
             </div>
           </details>
         </header>
+
+        <GlobalSearchBar />
 
         <main className="app-content">{children}</main>
 
