@@ -73,3 +73,12 @@ Registro resumido de la ejecución autónoma de V1. El contrato funcional contin
 - **Migrations:** `20261003003829_inventory_core`, `20261003003910_inventory_constraints`; schema y migraciones sin drift.
 - **Decisions:** ninguna nueva; saldo agregado + ledger y factores explícitos ejecutan el Master Plan.
 - **Known issues:** ninguno.
+
+## BUILD 8
+
+- **Status:** COMPLETE
+- **Commits:** `e26f1b8` — `feat(purchases): complete build 8 atomic purchasing`
+- **Tests:** 29 unit, 25 integración y 13 E2E verdes; lint sin warnings, typecheck, format, build, migraciones y diff verdes. Compra→snapshots→stock→egreso único, idempotencia, rollback y anulación compensatoria verificados. Revisión visual desktop 1280 px, tablet 768 px y mobile 390 px sin overflow.
+- **Migrations:** `20261003010430_suppliers_purchases`; schema y migraciones sin drift.
+- **Decisions:** ninguna nueva; V1 registra la compra como pagada al postear, según contrato.
+- **Known issues:** ninguno.
