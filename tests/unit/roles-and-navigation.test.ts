@@ -16,8 +16,10 @@ describe("roles and navigation", () => {
 
     expect(staffLabels).not.toContain("Administración");
     expect(staffLabels).not.toContain("Finanzas");
+    expect(staffLabels).not.toContain("Compras");
     expect(adminLabels).toContain("Administración");
     expect(adminLabels).toContain("Finanzas");
+    expect(adminLabels).toContain("Compras");
     expect(staffLabels).toContain("Inventario");
     expect(adminLabels).toContain("Inventario");
     expect(hasRole("STAFF", ["ADMIN"])).toBe(false);

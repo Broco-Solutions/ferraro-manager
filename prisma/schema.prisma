@@ -72,6 +72,11 @@ enum InventoryMovementType {
   REVERSAL
 }
 
+enum PurchaseStatus {
+  POSTED
+  VOIDED
+}
+
 model User {
   id                         String                      @id @default(uuid()) @db.Uuid
   name                       String
@@ -116,6 +121,10 @@ model User {
   inventoryItemsCreated      InventoryItem[]              @relation("InventoryItemCreatedBy")
   inventoryItemsUpdated      InventoryItem[]              @relation("InventoryItemUpdatedBy")
   inventoryMovementsCreated  InventoryMovement[]          @relation("InventoryMovementCreatedBy")
+  suppliersCreated           Supplier[]                   @relation("SupplierCreatedBy")
+  suppliersUpdated           Supplier[]                   @relation("SupplierUpdatedBy")
+  purchasesCreated           Purchase[]                   @relation("PurchaseCreatedBy")
+  purchasesVoided            Purchase[]                   @relation("PurchaseVoidedBy")
 
   @@index([active])
   @@map("users")
@@ -322,11 +331,13 @@ model FinancialEntry {
   paymentMethod PaymentMethod?
   serviceCaseId String?            @db.Uuid
   categoryId    String?            @db.Uuid
+  purchaseId    String?            @unique @db.Uuid
   reversalOfId  String?            @unique @db.Uuid
   createdAt     DateTime           @default(now()) @db.Timestamptz(3)
   createdById   String?            @db.Uuid
   serviceCase   ServiceCase?       @relation(fields: [serviceCaseId], references: [id], onDelete: Restrict)
   category      FinancialCategory? @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  purchase      Purchase?          @relation(fields: [purchaseId], references: [id], onDelete: Restrict)
   reversalOf    FinancialEntry?    @relation("FinancialReversal", fields: [reversalOfId], references: [id], onDelete: Restrict)
   reversedBy    FinancialEntry?    @relation("FinancialReversal")
   createdBy     User?              @relation("FinancialEntryCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
@@ -373,6 +384,7 @@ model InventoryItem {
   category      InventoryCategory      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   presentations PurchasePresentation[]
   movements     InventoryMovement[]
+  purchaseItems PurchaseItem[]
   createdBy     User?                  @relation("InventoryItemCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   updatedBy     User?                  @relation("InventoryItemUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
 
@@ -392,6 +404,7 @@ model PurchasePresentation {
   createdAt    DateTime      @default(now()) @db.Timestamptz(3)
   updatedAt    DateTime      @updatedAt @db.Timestamptz(3)
   item         InventoryItem @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  purchaseItems PurchaseItem[]
 
   @@unique([itemId, name])
   @@index([itemId, active])
@@ -407,16 +420,96 @@ model InventoryMovement {
   occurredAt         DateTime              @db.Timestamptz(3)
   note               String
   reversalOfId       String?               @unique @db.Uuid
+  purchaseItemId     String?               @unique @db.Uuid
   createdAt          DateTime              @default(now()) @db.Timestamptz(3)
   createdById        String?               @db.Uuid
   item               InventoryItem         @relation(fields: [itemId], references: [id], onDelete: Restrict)
   reversalOf         InventoryMovement?    @relation("InventoryReversal", fields: [reversalOfId], references: [id], onDelete: Restrict)
   reversedBy         InventoryMovement?    @relation("InventoryReversal")
+  purchaseItem       PurchaseItem?         @relation(fields: [purchaseItemId], references: [id], onDelete: Restrict)
   createdBy          User?                 @relation("InventoryMovementCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
 
   @@index([itemId, occurredAt])
   @@index([type, occurredAt])
   @@map("inventory_movements")
+}
+
+model Supplier {
+  id          String     @id @default(uuid()) @db.Uuid
+  name        String     @unique
+  contactName String?
+  phone       String?
+  email       String?
+  notes       String?
+  active      Boolean    @default(true)
+  createdAt   DateTime   @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime   @updatedAt @db.Timestamptz(3)
+  createdById String?    @db.Uuid
+  updatedById String?    @db.Uuid
+  createdBy   User?      @relation("SupplierCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy   User?      @relation("SupplierUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  purchases   Purchase[]
+
+  @@index([active, name])
+  @@map("suppliers")
+}
+
+model PurchaseSequence {
+  year      Int      @id
+  nextValue Int
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@map("purchase_sequences")
+}
+
+model Purchase {
+  id             String          @id @default(uuid()) @db.Uuid
+  supplierId     String          @db.Uuid
+  number         String          @unique
+  businessDate   DateTime        @db.Date
+  reference      String?
+  notes          String?
+  totalUsd       Decimal         @db.Decimal(19, 2)
+  status         PurchaseStatus  @default(POSTED)
+  postedAt       DateTime        @default(now()) @db.Timestamptz(3)
+  voidedAt       DateTime?       @db.Timestamptz(3)
+  voidReason     String?
+  createdAt      DateTime        @default(now()) @db.Timestamptz(3)
+  createdById    String?         @db.Uuid
+  voidedById     String?         @db.Uuid
+  supplier       Supplier        @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  items          PurchaseItem[]
+  financialEntry FinancialEntry?
+  createdBy      User?           @relation("PurchaseCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  voidedBy       User?           @relation("PurchaseVoidedBy", fields: [voidedById], references: [id], onDelete: SetNull)
+
+  @@index([businessDate, status])
+  @@index([supplierId, businessDate])
+  @@map("purchases")
+}
+
+model PurchaseItem {
+  id                       String                @id @default(uuid()) @db.Uuid
+  purchaseId               String                @db.Uuid
+  itemId                   String                @db.Uuid
+  presentationId           String?               @db.Uuid
+  itemNameSnapshot         String
+  presentationNameSnapshot String
+  baseUnitSnapshot         String
+  factorToBaseSnapshot     Decimal               @db.Decimal(19, 6)
+  quantityPurchased        Decimal               @db.Decimal(19, 3)
+  quantityBase             Decimal               @db.Decimal(19, 3)
+  unitCostUsd              Decimal               @db.Decimal(19, 2)
+  totalUsd                 Decimal               @db.Decimal(19, 2)
+  sortOrder                Int                   @default(0)
+  purchase                 Purchase              @relation(fields: [purchaseId], references: [id], onDelete: Restrict)
+  item                     InventoryItem         @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  presentation             PurchasePresentation? @relation(fields: [presentationId], references: [id], onDelete: SetNull)
+  inventoryMovement        InventoryMovement?
+
+  @@index([purchaseId, sortOrder])
+  @@index([itemId])
+  @@map("purchase_items")
 }
 
 model QuoteSequence {
