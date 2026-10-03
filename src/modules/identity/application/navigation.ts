@@ -41,9 +41,9 @@ const navigation: readonly NavigationItem[] = [
   {
     label: "Inventario",
     shortLabel: "Stock",
+    href: "/app/inventory",
     roles: ["ADMIN", "STAFF"],
     mobile: true,
-    upcoming: true,
   },
   {
     label: "Presupuestos",

@@ -63,6 +63,15 @@ enum PaymentMethod {
   OTHER
 }
 
+enum InventoryMovementType {
+  PURCHASE
+  CONSUMPTION
+  ADJUSTMENT_IN
+  ADJUSTMENT_OUT
+  RETURN
+  REVERSAL
+}
+
 model User {
   id                         String                      @id @default(uuid()) @db.Uuid
   name                       String
@@ -102,6 +111,11 @@ model User {
   financialCategoriesUpdated FinancialCategory[]         @relation("FinancialCategoryUpdatedBy")
   financialEntriesCreated    FinancialEntry[]            @relation("FinancialEntryCreatedBy")
   amountRevisionsCreated     ServiceCaseAmountRevision[] @relation("AmountRevisionCreatedBy")
+  inventoryCategoriesCreated InventoryCategory[]          @relation("InventoryCategoryCreatedBy")
+  inventoryCategoriesUpdated InventoryCategory[]          @relation("InventoryCategoryUpdatedBy")
+  inventoryItemsCreated      InventoryItem[]              @relation("InventoryItemCreatedBy")
+  inventoryItemsUpdated      InventoryItem[]              @relation("InventoryItemUpdatedBy")
+  inventoryMovementsCreated  InventoryMovement[]          @relation("InventoryMovementCreatedBy")
 
   @@index([active])
   @@map("users")
@@ -322,6 +336,87 @@ model FinancialEntry {
   @@index([categoryId, occurredAt])
   @@index([type, occurredAt])
   @@map("financial_entries")
+}
+
+model InventoryCategory {
+  id          String          @id @default(uuid()) @db.Uuid
+  name        String          @unique
+  active      Boolean         @default(true)
+  sortOrder   Int             @default(0)
+  createdAt   DateTime        @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime        @updatedAt @db.Timestamptz(3)
+  createdById String?         @db.Uuid
+  updatedById String?         @db.Uuid
+  createdBy   User?           @relation("InventoryCategoryCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy   User?           @relation("InventoryCategoryUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  items       InventoryItem[]
+
+  @@index([active, sortOrder])
+  @@map("inventory_categories")
+}
+
+model InventoryItem {
+  id            String                 @id @default(uuid()) @db.Uuid
+  categoryId    String                 @db.Uuid
+  name          String
+  sku           String?                @unique
+  baseUnit      String
+  currentStock  Decimal                @default(0) @db.Decimal(19, 3)
+  minimumStock  Decimal                @default(0) @db.Decimal(19, 3)
+  costHintUsd   Decimal?               @db.Decimal(19, 2)
+  notes         String?
+  active        Boolean                @default(true)
+  createdAt     DateTime               @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime               @updatedAt @db.Timestamptz(3)
+  createdById   String?                @db.Uuid
+  updatedById   String?                @db.Uuid
+  category      InventoryCategory      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  presentations PurchasePresentation[]
+  movements     InventoryMovement[]
+  createdBy     User?                  @relation("InventoryItemCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy     User?                  @relation("InventoryItemUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@unique([categoryId, name])
+  @@index([active, name])
+  @@index([categoryId, active])
+  @@index([currentStock, minimumStock])
+  @@map("inventory_items")
+}
+
+model PurchasePresentation {
+  id           String        @id @default(uuid()) @db.Uuid
+  itemId       String        @db.Uuid
+  name         String
+  factorToBase Decimal       @db.Decimal(19, 6)
+  active       Boolean       @default(true)
+  createdAt    DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime      @updatedAt @db.Timestamptz(3)
+  item         InventoryItem @relation(fields: [itemId], references: [id], onDelete: Restrict)
+
+  @@unique([itemId, name])
+  @@index([itemId, active])
+  @@map("purchase_presentations")
+}
+
+model InventoryMovement {
+  id                 String                @id @default(uuid()) @db.Uuid
+  itemId             String                @db.Uuid
+  type               InventoryMovementType
+  signedQuantityBase Decimal               @db.Decimal(19, 3)
+  unitSnapshot       String
+  occurredAt         DateTime              @db.Timestamptz(3)
+  note               String
+  reversalOfId       String?               @unique @db.Uuid
+  createdAt          DateTime              @default(now()) @db.Timestamptz(3)
+  createdById        String?               @db.Uuid
+  item               InventoryItem         @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  reversalOf         InventoryMovement?    @relation("InventoryReversal", fields: [reversalOfId], references: [id], onDelete: Restrict)
+  reversedBy         InventoryMovement?    @relation("InventoryReversal")
+  createdBy          User?                 @relation("InventoryMovementCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([itemId, occurredAt])
+  @@index([type, occurredAt])
+  @@map("inventory_movements")
 }
 
 model QuoteSequence {
