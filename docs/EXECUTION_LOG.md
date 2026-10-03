@@ -46,3 +46,12 @@ Registro resumido de la ejecución autónoma de V1. El contrato funcional contin
 - **Migrations:** `20261002230859_jobs`, `20261002231010_job_constraints`.
 - **Decisions:** ninguna.
 - **Known issues:** ninguno.
+
+## BUILD 5
+
+- **Status:** COMPLETE
+- **Commits:** `c635ef0` — `feat(quotes): complete build 5 quotes and PDF`
+- **Tests:** 20 unit, 14 integración y 9 E2E verdes; lint, typecheck, format, build, migraciones y diff verdes. Presupuesto→PDF→aceptación→mismo `ServiceCase`→turno verificado. Lista/editor revisados en desktop 1440 px, tablet 768 px y mobile 390 px; PDF A4 inspeccionado visualmente en una página y cubierto en varias páginas por test.
+- **Migrations:** `20261002234000_quotes`.
+- **Decisions:** ninguna nueva; `@react-pdf/renderer` 4.9.0 y storage privado detrás de adapter ejecutan la arquitectura aprobada en el Master Plan.
+- **Known issues:** ninguno.
