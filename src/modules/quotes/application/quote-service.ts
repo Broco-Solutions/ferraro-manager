@@ -218,6 +218,7 @@ export async function acceptQuote(quoteId: string, actor: Actor) {
       where: { id: quoteId },
       select: {
         id: true,
+        number: true,
         status: true,
         clientId: true,
         vehicleId: true,
@@ -239,6 +240,15 @@ export async function acceptQuote(quoteId: string, actor: Actor) {
         createdById: actor.id,
       },
       select: { id: true },
+    });
+    await tx.serviceCaseAmountRevision.create({
+      data: {
+        serviceCaseId: serviceCase.id,
+        previousAmountUsd: null,
+        newAmountUsd: quote.totalUsd,
+        reason: `Presupuesto ${quote.number} aceptado`,
+        createdById: actor.id,
+      },
     });
     await tx.quote.update({
       where: { id: quote.id },

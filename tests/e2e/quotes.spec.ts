@@ -63,6 +63,9 @@ async function cleanup() {
     await prisma.appointment.deleteMany({
       where: { id: { in: appointmentIds } },
     });
+    await prisma.serviceCaseAmountRevision.deleteMany({
+      where: { serviceCaseId: { in: caseIds } },
+    });
     await prisma.serviceCase.deleteMany({ where: { id: { in: caseIds } } });
     await prisma.quoteItem.deleteMany({ where: { quoteId: { in: quoteIds } } });
     await prisma.quote.deleteMany({ where: { id: { in: quoteIds } } });

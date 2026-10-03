@@ -15,7 +15,9 @@ describe("roles and navigation", () => {
     const adminLabels = getNavigationForRole("ADMIN").map((item) => item.label);
 
     expect(staffLabels).not.toContain("Administración");
+    expect(staffLabels).not.toContain("Finanzas");
     expect(adminLabels).toContain("Administración");
+    expect(adminLabels).toContain("Finanzas");
     expect(hasRole("STAFF", ["ADMIN"])).toBe(false);
   });
 });

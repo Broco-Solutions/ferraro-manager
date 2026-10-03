@@ -9,6 +9,7 @@ import {
   listSchedulingOptions,
 } from "@/modules/scheduling/application/scheduling-service";
 import { AppointmentForm } from "@/modules/scheduling/ui/appointment-form";
+import { requireRole } from "@/modules/identity/application/authorization";
 import { formatBusinessDateTimeInput } from "@/shared/date-time/business-time";
 
 export const metadata: Metadata = { title: "Turno" };
@@ -24,6 +25,7 @@ export default async function AppointmentPage({
     params,
     searchParams,
   ]);
+  const session = await requireRole("ADMIN", "STAFF");
   const [appointment, options] = await Promise.all([
     getAppointmentDetail(appointmentId),
     listSchedulingOptions(),
@@ -59,6 +61,14 @@ export default async function AppointmentPage({
         </div>
         {appointment.status === "CONFIRMED" ? (
           <div className="header-actions">
+            {session.user.role === "ADMIN" ? (
+              <Link
+                href={`/app/finance/cases/${appointment.serviceCaseId}`}
+                className="ghost-button button-link"
+              >
+                Ver cobros
+              </Link>
+            ) : null}
             <Link
               href={`/app/calendar/${appointment.id}/complete`}
               className="primary-button button-link"

@@ -43,41 +43,65 @@ enum QuoteStatus {
   REJECTED
 }
 
+enum FinancialDirection {
+  INFLOW
+  OUTFLOW
+}
+
+enum FinancialEntryType {
+  CUSTOMER_PAYMENT
+  CUSTOMER_REFUND
+  PURCHASE
+  MANUAL_INCOME
+  MANUAL_EXPENSE
+  REVERSAL
+}
+
+enum PaymentMethod {
+  TRANSFER
+  CASH
+  OTHER
+}
+
 model User {
-  id                       String                @id @default(uuid()) @db.Uuid
-  name                     String
-  email                    String                @unique
-  emailVerified            Boolean               @default(false)
-  image                    String?
-  role                     UserRole              @default(STAFF)
-  active                   Boolean               @default(true)
-  lastLoginAt              DateTime?
-  createdAt                DateTime              @default(now())
-  updatedAt                DateTime              @updatedAt
-  sessions                 Session[]
-  accounts                 Account[]
-  idempotency              IdempotencyKey[]
-  clientsCreated           Client[]              @relation("ClientCreatedBy")
-  clientsUpdated           Client[]              @relation("ClientUpdatedBy")
-  vehiclesCreated          Vehicle[]             @relation("VehicleCreatedBy")
-  vehiclesUpdated          Vehicle[]             @relation("VehicleUpdatedBy")
-  serviceCategoriesCreated ServiceCategory[]     @relation("ServiceCategoryCreatedBy")
-  serviceCategoriesUpdated ServiceCategory[]     @relation("ServiceCategoryUpdatedBy")
-  servicesCreated          Service[]             @relation("ServiceCreatedBy")
-  servicesUpdated          Service[]             @relation("ServiceUpdatedBy")
-  serviceVariantsCreated   ServiceVariant[]      @relation("ServiceVariantCreatedBy")
-  serviceVariantsUpdated   ServiceVariant[]      @relation("ServiceVariantUpdatedBy")
-  serviceCasesCreated      ServiceCase[]         @relation("ServiceCaseCreatedBy")
-  appointmentsCreated      Appointment[]         @relation("AppointmentCreatedBy")
-  appointmentsUpdated      Appointment[]         @relation("AppointmentUpdatedBy")
-  appointmentAssignments   AppointmentEmployee[]
-  calendarBlocksCreated    CalendarBlock[]       @relation("CalendarBlockCreatedBy")
-  calendarBlocksUpdated    CalendarBlock[]       @relation("CalendarBlockUpdatedBy")
-  jobsCreated              Job[]                 @relation("JobCreatedBy")
-  jobsUpdated              Job[]                 @relation("JobUpdatedBy")
-  jobAssignments           JobEmployee[]
-  quotesCreated            Quote[]               @relation("QuoteCreatedBy")
-  quotesUpdated            Quote[]               @relation("QuoteUpdatedBy")
+  id                         String                      @id @default(uuid()) @db.Uuid
+  name                       String
+  email                      String                      @unique
+  emailVerified              Boolean                     @default(false)
+  image                      String?
+  role                       UserRole                    @default(STAFF)
+  active                     Boolean                     @default(true)
+  lastLoginAt                DateTime?
+  createdAt                  DateTime                    @default(now())
+  updatedAt                  DateTime                    @updatedAt
+  sessions                   Session[]
+  accounts                   Account[]
+  idempotency                IdempotencyKey[]
+  clientsCreated             Client[]                    @relation("ClientCreatedBy")
+  clientsUpdated             Client[]                    @relation("ClientUpdatedBy")
+  vehiclesCreated            Vehicle[]                   @relation("VehicleCreatedBy")
+  vehiclesUpdated            Vehicle[]                   @relation("VehicleUpdatedBy")
+  serviceCategoriesCreated   ServiceCategory[]           @relation("ServiceCategoryCreatedBy")
+  serviceCategoriesUpdated   ServiceCategory[]           @relation("ServiceCategoryUpdatedBy")
+  servicesCreated            Service[]                   @relation("ServiceCreatedBy")
+  servicesUpdated            Service[]                   @relation("ServiceUpdatedBy")
+  serviceVariantsCreated     ServiceVariant[]            @relation("ServiceVariantCreatedBy")
+  serviceVariantsUpdated     ServiceVariant[]            @relation("ServiceVariantUpdatedBy")
+  serviceCasesCreated        ServiceCase[]               @relation("ServiceCaseCreatedBy")
+  appointmentsCreated        Appointment[]               @relation("AppointmentCreatedBy")
+  appointmentsUpdated        Appointment[]               @relation("AppointmentUpdatedBy")
+  appointmentAssignments     AppointmentEmployee[]
+  calendarBlocksCreated      CalendarBlock[]             @relation("CalendarBlockCreatedBy")
+  calendarBlocksUpdated      CalendarBlock[]             @relation("CalendarBlockUpdatedBy")
+  jobsCreated                Job[]                       @relation("JobCreatedBy")
+  jobsUpdated                Job[]                       @relation("JobUpdatedBy")
+  jobAssignments             JobEmployee[]
+  quotesCreated              Quote[]                     @relation("QuoteCreatedBy")
+  quotesUpdated              Quote[]                     @relation("QuoteUpdatedBy")
+  financialCategoriesCreated FinancialCategory[]         @relation("FinancialCategoryCreatedBy")
+  financialCategoriesUpdated FinancialCategory[]         @relation("FinancialCategoryUpdatedBy")
+  financialEntriesCreated    FinancialEntry[]            @relation("FinancialEntryCreatedBy")
+  amountRevisionsCreated     ServiceCaseAmountRevision[] @relation("AmountRevisionCreatedBy")
 
   @@index([active])
   @@map("users")
@@ -217,25 +241,87 @@ model ServiceVariant {
 }
 
 model ServiceCase {
-  id              String            @id @default(uuid()) @db.Uuid
-  clientId        String            @db.Uuid
-  vehicleId       String            @db.Uuid
-  origin          ServiceCaseOrigin
-  agreedAmountUsd Decimal?          @db.Decimal(19, 2)
-  acceptedQuoteId String?           @unique @db.Uuid
-  createdAt       DateTime          @default(now()) @db.Timestamptz(3)
-  updatedAt       DateTime          @updatedAt @db.Timestamptz(3)
-  createdById     String?           @db.Uuid
-  client          Client            @relation(fields: [clientId], references: [id], onDelete: Restrict)
-  vehicle         Vehicle           @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
-  createdBy       User?             @relation("ServiceCaseCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
-  acceptedQuote   Quote?            @relation(fields: [acceptedQuoteId], references: [id], onDelete: Restrict)
-  appointments    Appointment[]
-  jobs            Job[]
+  id               String                      @id @default(uuid()) @db.Uuid
+  clientId         String                      @db.Uuid
+  vehicleId        String                      @db.Uuid
+  origin           ServiceCaseOrigin
+  agreedAmountUsd  Decimal?                    @db.Decimal(19, 2)
+  acceptedQuoteId  String?                     @unique @db.Uuid
+  createdAt        DateTime                    @default(now()) @db.Timestamptz(3)
+  updatedAt        DateTime                    @updatedAt @db.Timestamptz(3)
+  createdById      String?                     @db.Uuid
+  client           Client                      @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  vehicle          Vehicle                     @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
+  createdBy        User?                       @relation("ServiceCaseCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  acceptedQuote    Quote?                      @relation(fields: [acceptedQuoteId], references: [id], onDelete: Restrict)
+  appointments     Appointment[]
+  jobs             Job[]
+  financialEntries FinancialEntry[]
+  amountRevisions  ServiceCaseAmountRevision[]
 
   @@index([clientId, vehicleId])
   @@index([createdById])
   @@map("service_cases")
+}
+
+model ServiceCaseAmountRevision {
+  id                String      @id @default(uuid()) @db.Uuid
+  serviceCaseId     String      @db.Uuid
+  previousAmountUsd Decimal?    @db.Decimal(19, 2)
+  newAmountUsd      Decimal     @db.Decimal(19, 2)
+  reason            String
+  createdAt         DateTime    @default(now()) @db.Timestamptz(3)
+  createdById       String?     @db.Uuid
+  serviceCase       ServiceCase @relation(fields: [serviceCaseId], references: [id], onDelete: Restrict)
+  createdBy         User?       @relation("AmountRevisionCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([serviceCaseId, createdAt])
+  @@map("service_case_amount_revisions")
+}
+
+model FinancialCategory {
+  id          String             @id @default(uuid()) @db.Uuid
+  name        String
+  direction   FinancialDirection
+  active      Boolean            @default(true)
+  sortOrder   Int                @default(0)
+  createdAt   DateTime           @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime           @updatedAt @db.Timestamptz(3)
+  createdById String?            @db.Uuid
+  updatedById String?            @db.Uuid
+  createdBy   User?              @relation("FinancialCategoryCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy   User?              @relation("FinancialCategoryUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  entries     FinancialEntry[]
+
+  @@unique([direction, name])
+  @@index([active, direction, sortOrder])
+  @@map("financial_categories")
+}
+
+model FinancialEntry {
+  id            String             @id @default(uuid()) @db.Uuid
+  direction     FinancialDirection
+  type          FinancialEntryType
+  amountUsd     Decimal            @db.Decimal(19, 2)
+  occurredAt    DateTime           @db.Timestamptz(3)
+  description   String?
+  paymentMethod PaymentMethod?
+  serviceCaseId String?            @db.Uuid
+  categoryId    String?            @db.Uuid
+  reversalOfId  String?            @unique @db.Uuid
+  createdAt     DateTime           @default(now()) @db.Timestamptz(3)
+  createdById   String?            @db.Uuid
+  serviceCase   ServiceCase?       @relation(fields: [serviceCaseId], references: [id], onDelete: Restrict)
+  category      FinancialCategory? @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  reversalOf    FinancialEntry?    @relation("FinancialReversal", fields: [reversalOfId], references: [id], onDelete: Restrict)
+  reversedBy    FinancialEntry?    @relation("FinancialReversal")
+  createdBy     User?              @relation("FinancialEntryCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([occurredAt, direction])
+  @@index([serviceCaseId, occurredAt])
+  @@index([categoryId, occurredAt])
+  @@index([type, occurredAt])
+  @@map("financial_entries")
 }
 
 model QuoteSequence {
@@ -247,35 +333,35 @@ model QuoteSequence {
 }
 
 model Quote {
-  id                 String       @id @default(uuid()) @db.Uuid
-  clientId           String       @db.Uuid
-  vehicleId          String       @db.Uuid
-  number             String       @unique
-  status             QuoteStatus  @default(DRAFT)
-  issuedOn           DateTime     @db.Date
-  validUntil         DateTime?    @db.Date
-  notes              String?
-  terms              String?
-  subtotalUsd        Decimal      @db.Decimal(19, 2)
-  discountUsd        Decimal      @default(0) @db.Decimal(19, 2)
-  totalUsd           Decimal      @db.Decimal(19, 2)
-  templateVersion    Int          @default(1)
-  pdfArtifactKey     String?
-  pdfSha256          String?
-  pdfGeneratedAt     DateTime?    @db.Timestamptz(3)
-  sentAt             DateTime?    @db.Timestamptz(3)
-  acceptedAt         DateTime?    @db.Timestamptz(3)
-  rejectedAt         DateTime?    @db.Timestamptz(3)
-  createdAt          DateTime     @default(now()) @db.Timestamptz(3)
-  updatedAt          DateTime     @updatedAt @db.Timestamptz(3)
-  createdById        String?      @db.Uuid
-  updatedById        String?      @db.Uuid
-  client             Client       @relation(fields: [clientId], references: [id], onDelete: Restrict)
-  vehicle            Vehicle      @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
-  items              QuoteItem[]
+  id                  String       @id @default(uuid()) @db.Uuid
+  clientId            String       @db.Uuid
+  vehicleId           String       @db.Uuid
+  number              String       @unique
+  status              QuoteStatus  @default(DRAFT)
+  issuedOn            DateTime     @db.Date
+  validUntil          DateTime?    @db.Date
+  notes               String?
+  terms               String?
+  subtotalUsd         Decimal      @db.Decimal(19, 2)
+  discountUsd         Decimal      @default(0) @db.Decimal(19, 2)
+  totalUsd            Decimal      @db.Decimal(19, 2)
+  templateVersion     Int          @default(1)
+  pdfArtifactKey      String?
+  pdfSha256           String?
+  pdfGeneratedAt      DateTime?    @db.Timestamptz(3)
+  sentAt              DateTime?    @db.Timestamptz(3)
+  acceptedAt          DateTime?    @db.Timestamptz(3)
+  rejectedAt          DateTime?    @db.Timestamptz(3)
+  createdAt           DateTime     @default(now()) @db.Timestamptz(3)
+  updatedAt           DateTime     @updatedAt @db.Timestamptz(3)
+  createdById         String?      @db.Uuid
+  updatedById         String?      @db.Uuid
+  client              Client       @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  vehicle             Vehicle      @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
+  items               QuoteItem[]
   acceptedServiceCase ServiceCase?
-  createdBy          User?        @relation("QuoteCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
-  updatedBy          User?        @relation("QuoteUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  createdBy           User?        @relation("QuoteCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy           User?        @relation("QuoteUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
 
   @@index([status, issuedOn])
   @@index([clientId, issuedOn])

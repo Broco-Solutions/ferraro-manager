@@ -307,8 +307,29 @@ export async function listJobs(options: {
 export async function getJobDetail(id: string) {
   return prisma.job.findUnique({
     where: { id },
-    include: {
-      serviceCase: { include: { client: true, vehicle: true } },
+    select: {
+      id: true,
+      serviceCaseId: true,
+      performedAt: true,
+      notes: true,
+      voidedAt: true,
+      voidReason: true,
+      serviceCase: {
+        select: {
+          id: true,
+          client: { select: { displayName: true } },
+          vehicle: {
+            select: {
+              id: true,
+              brand: true,
+              model: true,
+              version: true,
+              year: true,
+              color: true,
+            },
+          },
+        },
+      },
       originAppointment: { select: { id: true, startAt: true, endAt: true } },
       services: { orderBy: { sortOrder: "asc" } },
       employees: { include: { user: { select: { id: true, name: true } } } },

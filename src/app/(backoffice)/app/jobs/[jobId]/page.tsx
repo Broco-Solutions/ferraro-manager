@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { ConfirmButton } from "@/components/ui/confirm-button";
 import { voidJobAction } from "@/modules/jobs/application/actions";
 import { getJobDetail } from "@/modules/jobs/application/job-service";
+import { requireRole } from "@/modules/identity/application/authorization";
 import { formatBusinessDateTime } from "@/shared/date-time/business-time";
 
 export const metadata: Metadata = { title: "Detalle de trabajo" };
@@ -17,6 +18,7 @@ export default async function JobDetailPage({
   searchParams: Promise<{ saved?: string; voided?: string }>;
 }) {
   const [{ jobId }, notices] = await Promise.all([params, searchParams]);
+  const session = await requireRole("ADMIN", "STAFF");
   const job = await getJobDetail(jobId);
   if (!job) notFound();
   const vehicle = job.serviceCase.vehicle;
@@ -48,14 +50,24 @@ export default async function JobDetailPage({
             {formatBusinessDateTime(job.performedAt)}
           </p>
         </div>
-        {job.originAppointment ? (
-          <Link
-            href={`/app/calendar/${job.originAppointment.id}`}
-            className="ghost-button button-link"
-          >
-            Ver turno
-          </Link>
-        ) : null}
+        <div className="header-actions">
+          {session.user.role === "ADMIN" ? (
+            <Link
+              href={`/app/finance/cases/${job.serviceCaseId}`}
+              className="primary-button button-link"
+            >
+              Ver cobros
+            </Link>
+          ) : null}
+          {job.originAppointment ? (
+            <Link
+              href={`/app/calendar/${job.originAppointment.id}`}
+              className="ghost-button button-link"
+            >
+              Ver turno
+            </Link>
+          ) : null}
+        </div>
       </header>
       <section className="detail-summary">
         <div>

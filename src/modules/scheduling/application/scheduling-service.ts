@@ -428,6 +428,7 @@ export async function getAppointmentDetail(id: string) {
 
   const serviceCase = await prisma.serviceCase.findUnique({
     where: { id: appointment.serviceCaseId },
+    select: { id: true, clientId: true, vehicleId: true },
   });
   if (!serviceCase) return null;
   const client = await prisma.client.findUnique({

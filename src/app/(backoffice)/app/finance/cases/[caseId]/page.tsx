@@ -1,0 +1,194 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+
+import { ConfirmButton } from "@/components/ui/confirm-button";
+import {
+  reverseFinancialEntryAction,
+  setAgreedAmountAction,
+} from "@/modules/finance/application/actions";
+import { getCaseFinancialSummary } from "@/modules/finance/application/finance-service";
+import { requireRole } from "@/modules/identity/application/authorization";
+import { formatBusinessDateTime } from "@/shared/date-time/business-time";
+
+export const metadata: Metadata = { title: "Estado de cobro" };
+
+export default async function CaseFinancePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ caseId: string }>;
+  searchParams: Promise<{ amount?: string; reversed?: string }>;
+}) {
+  await requireRole("ADMIN");
+  const { caseId } = await params;
+  const query = await searchParams;
+  const summary = await getCaseFinancialSummary(caseId);
+  if (!summary || !summary.client || !summary.vehicle) notFound();
+  return (
+    <div className="page-stack narrow-page">
+      <Link href="/app/finance" className="back-link">
+        ← Finanzas
+      </Link>
+      <header className="page-header page-header-actions">
+        <div>
+          <p className="eyebrow">Estado comercial</p>
+          <h1>{summary.client.displayName}</h1>
+          <p className="page-description">
+            {summary.vehicle.brand} {summary.vehicle.model}
+            {summary.vehicle.year ? ` · ${summary.vehicle.year}` : ""}
+          </p>
+        </div>
+        <Link
+          href={`/app/finance/new?caseId=${caseId}`}
+          className="primary-button button-link"
+        >
+          Registrar cobro
+        </Link>
+      </header>
+      {query.amount ? (
+        <p className="success-banner">Importe acordado actualizado.</p>
+      ) : null}
+      {query.reversed ? (
+        <p className="success-banner">Cobro revertido sin borrar historia.</p>
+      ) : null}
+      <section className="case-balance" aria-label="Resumen de saldo">
+        <article>
+          <span>Importe acordado</span>
+          <strong>
+            {summary.agreedAmountUsd
+              ? `USD ${summary.agreedAmountUsd.toFixed(2)}`
+              : "Importe por definir"}
+          </strong>
+        </article>
+        <article>
+          <span>Cobrado neto</span>
+          <strong>USD {summary.collectedUsd.toFixed(2)}</strong>
+        </article>
+        <article>
+          <span>
+            {summary.balanceUsd?.isNegative()
+              ? "Saldo a favor"
+              : "Saldo pendiente"}
+          </span>
+          <strong>
+            {summary.balanceUsd === null
+              ? "No calculable"
+              : `USD ${summary.balanceUsd.abs().toFixed(2)}`}
+          </strong>
+        </article>
+      </section>
+      <section className="form-section">
+        <div className="form-section-heading">
+          <p className="eyebrow">Acuerdo comercial</p>
+          <h2>Actualizar importe</h2>
+        </div>
+        <form
+          action={setAgreedAmountAction}
+          className="inline-create-form finance-inline-form"
+        >
+          <input type="hidden" name="serviceCaseId" value={caseId} />
+          <label>
+            <span>Nuevo importe USD *</span>
+            <input
+              name="amountUsd"
+              inputMode="decimal"
+              required
+              defaultValue={summary.agreedAmountUsd?.toFixed(2)}
+            />
+          </label>
+          <label className="grow-field">
+            <span>Motivo *</span>
+            <input
+              name="reason"
+              minLength={3}
+              maxLength={300}
+              required
+              placeholder="Cambio de alcance acordado"
+            />
+          </label>
+          <button className="ghost-button">Actualizar</button>
+        </form>
+      </section>
+      <section className="detail-section">
+        <div className="section-heading-row">
+          <div>
+            <p className="eyebrow">Caja</p>
+            <h2>Cobros y correcciones</h2>
+          </div>
+        </div>
+        {summary.entries.length ? (
+          <div className="financial-list">
+            {summary.entries.map((entry) => (
+              <article className="financial-row" key={entry.id}>
+                <div className="financial-main">
+                  <strong>
+                    {entry.type === "CUSTOMER_PAYMENT"
+                      ? "Cobro"
+                      : entry.type === "CUSTOMER_REFUND"
+                        ? "Devolución"
+                        : "Reversión"}
+                  </strong>
+                  <small>{formatBusinessDateTime(entry.occurredAt)}</small>
+                </div>
+                <strong
+                  className={
+                    entry.direction === "INFLOW"
+                      ? "money-positive"
+                      : "money-negative"
+                  }
+                >
+                  {entry.direction === "INFLOW" ? "+" : "−"} USD{" "}
+                  {entry.amountUsd.toFixed(2)}
+                </strong>
+                {entry.type !== "REVERSAL" && !entry.reversedBy ? (
+                  <form
+                    action={reverseFinancialEntryAction}
+                    className="reverse-form"
+                  >
+                    <input type="hidden" name="entryId" value={entry.id} />
+                    <input type="hidden" name="serviceCaseId" value={caseId} />
+                    <input
+                      name="reason"
+                      aria-label="Motivo de reversión"
+                      minLength={3}
+                      required
+                      placeholder="Motivo"
+                    />
+                    <ConfirmButton
+                      className="text-button danger-text"
+                      message="Se compensará este movimiento sin borrarlo. ¿Continuar?"
+                    >
+                      Revertir
+                    </ConfirmButton>
+                  </form>
+                ) : (
+                  <span className="status-badge">
+                    {entry.type === "REVERSAL" ? "Compensación" : "Revertido"}
+                  </span>
+                )}
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="empty-inline">
+            Todavía no hay cobros. El turno y el trabajo pueden continuar igual.
+          </div>
+        )}
+      </section>
+      <section className="detail-section">
+        <p className="eyebrow">Trazabilidad</p>
+        <h2>Historial de importe acordado</h2>
+        <div className="timeline-list">
+          {summary.revisions.map((revision) => (
+            <article key={revision.id}>
+              <strong>USD {revision.newAmountUsd.toFixed(2)}</strong>
+              <span>{revision.reason}</span>
+              <small>{formatBusinessDateTime(revision.createdAt)}</small>
+            </article>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}

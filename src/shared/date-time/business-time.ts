@@ -111,6 +111,23 @@ export function businessDayRange(dateKey: string) {
   };
 }
 
+export function businessMonthRange(monthKey: string) {
+  const match = /^(\d{4})-(\d{2})$/.exec(monthKey);
+  if (!match) throw new Error("INVALID_MONTH_KEY");
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  if (month < 1 || month > 12) throw new Error("INVALID_MONTH_KEY");
+  const next = new Date(Date.UTC(year, month, 1)).toISOString().slice(0, 7);
+  return {
+    start: businessLocalDateTimeToUtc(`${monthKey}-01T00:00`),
+    end: businessLocalDateTimeToUtc(`${next}-01T00:00`),
+  };
+}
+
+export function getBusinessMonthKey(instant: Date) {
+  return getBusinessDateKey(instant).slice(0, 7);
+}
+
 export function formatBusinessTime(instant: Date): string {
   return new Intl.DateTimeFormat("es-AR", {
     timeZone: BUSINESS_TIME_ZONE,

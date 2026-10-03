@@ -6,6 +6,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { PrismaClient } from "@/generated/prisma/client";
 import { createPostgresAdapter } from "@/infrastructure/db/adapter";
+import { setAgreedAmount } from "@/modules/finance/application/finance-service";
 import {
   acceptQuote,
   createQuote,
@@ -75,7 +76,12 @@ describe("quotes and conversion integration", () => {
       });
       await prisma.appointment.deleteMany({ where: { id: appointmentId } });
     }
-    if (caseId) await prisma.serviceCase.deleteMany({ where: { id: caseId } });
+    if (caseId) {
+      await prisma.serviceCaseAmountRevision.deleteMany({
+        where: { serviceCaseId: caseId },
+      });
+      await prisma.serviceCase.deleteMany({ where: { id: caseId } });
+    }
     if (quoteId) {
       await prisma.quoteItem.deleteMany({ where: { quoteId } });
       await prisma.quote.deleteMany({ where: { id: quoteId } });
@@ -153,6 +159,14 @@ describe("quotes and conversion integration", () => {
     expect(pdf.length).toBeGreaterThan(2_000);
     const accepted = await acceptQuote(quoteId, { id: actorId });
     caseId = accepted.id;
+    await setAgreedAmount(
+      {
+        serviceCaseId: caseId,
+        amountUsd: "750",
+        reason: "Alcance ampliado después de aceptar",
+      },
+      { id: actorId },
+    );
     await expect(acceptQuote(quoteId, { id: actorId })).resolves.toEqual({
       id: caseId,
       replayed: true,
@@ -181,7 +195,7 @@ describe("quotes and conversion integration", () => {
     expect(stored.items[0]).toMatchObject({ nameSnapshot: `PPF ${suffix}` });
     expect(stored.totalUsd.toFixed(2)).toBe("700.00");
     expect(stored.acceptedServiceCase?.agreedAmountUsd?.toFixed(2)).toBe(
-      "700.00",
+      "750.00",
     );
     expect(
       stored.acceptedServiceCase?.appointments[0]?.services[0]?.nameSnapshot,

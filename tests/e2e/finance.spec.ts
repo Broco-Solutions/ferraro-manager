@@ -1,0 +1,117 @@
+import { expect, test, type Page } from "@playwright/test";
+
+import {
+  createTestPrisma,
+  e2eUsers,
+  resetE2EAuthRateLimit,
+} from "./auth.fixtures";
+
+const clientName = "Finanzas E2E Cliente";
+let clientId = "";
+let vehicleId = "";
+let caseId = "";
+
+async function login(
+  page: Page,
+  user: (typeof e2eUsers)[keyof typeof e2eUsers],
+) {
+  await resetE2EAuthRateLimit();
+  await page.goto("/login");
+  await page.getByLabel("Email").fill(user.email);
+  await page.getByLabel("Contraseña").fill(user.password);
+  await page.getByRole("button", { name: "Ingresar" }).click();
+  await expect(page).toHaveURL(/\/app$/);
+}
+
+async function cleanup() {
+  const prisma = createTestPrisma();
+  try {
+    const clients = await prisma.client.findMany({
+      where: { displayName: clientName },
+      select: { id: true },
+    });
+    const ids = clients.map((client) => client.id);
+    const cases = await prisma.serviceCase.findMany({
+      where: { clientId: { in: ids } },
+      select: { id: true },
+    });
+    const caseIds = cases.map((item) => item.id);
+    const entries = await prisma.financialEntry.findMany({
+      where: { serviceCaseId: { in: caseIds } },
+      select: { id: true },
+    });
+    await prisma.idempotencyKey.deleteMany({
+      where: { resultReference: { in: entries.map((entry) => entry.id) } },
+    });
+    await prisma.financialEntry.deleteMany({
+      where: { serviceCaseId: { in: caseIds } },
+    });
+    await prisma.serviceCaseAmountRevision.deleteMany({
+      where: { serviceCaseId: { in: caseIds } },
+    });
+    await prisma.serviceCase.deleteMany({ where: { id: { in: caseIds } } });
+    await prisma.vehicle.deleteMany({ where: { clientId: { in: ids } } });
+    await prisma.client.deleteMany({ where: { id: { in: ids } } });
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+test.beforeAll(async () => {
+  await cleanup();
+  const prisma = createTestPrisma();
+  try {
+    clientId = (
+      await prisma.client.create({ data: { displayName: clientName } })
+    ).id;
+    vehicleId = (
+      await prisma.vehicle.create({
+        data: { clientId, brand: "Porsche", model: "911", year: 2026 },
+      })
+    ).id;
+    caseId = (
+      await prisma.serviceCase.create({
+        data: { clientId, vehicleId, origin: "DIRECT_APPOINTMENT" },
+      })
+    ).id;
+  } finally {
+    await prisma.$disconnect();
+  }
+});
+
+test.afterAll(cleanup);
+
+test("ADMIN sets an agreed amount and records a deposit without operational state", async ({
+  page,
+}) => {
+  await login(page, e2eUsers.admin);
+  await page.goto(`/app/finance/cases/${caseId}`);
+  await expect(page.getByText("Importe por definir")).toBeVisible();
+  await page.getByLabel("Nuevo importe USD *").fill("1000");
+  await page.getByLabel("Motivo *").fill("Alcance acordado E2E");
+  await page.getByRole("button", { name: "Actualizar" }).click();
+  await expect(page.getByText("Importe acordado actualizado.")).toBeVisible();
+  await page.getByRole("link", { name: "Registrar cobro" }).click();
+  await page.getByLabel("Monto USD *").fill("250");
+  await page.getByLabel("Método").selectOption("TRANSFER");
+  await page.getByRole("button", { name: "Registrar movimiento" }).click();
+  await expect(
+    page.getByText(
+      "Movimiento registrado sin modificar la agenda ni el trabajo.",
+    ),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "Ver saldo" }).click();
+  await expect(page.getByText("USD 750.00")).toBeVisible();
+  await expect(page.getByText("USD 250.00", { exact: true })).toBeVisible();
+});
+
+test("STAFF is denied finance routes and receives no financial navigation", async ({
+  page,
+}) => {
+  await login(page, e2eUsers.staff);
+  await expect(page.getByRole("link", { name: "Finanzas" })).toHaveCount(0);
+  await page.goto("/app/finance");
+  await expect(page.getByText("403")).toBeVisible();
+  await page.goto(`/app/finance/cases/${caseId}`);
+  await expect(page.getByText("403")).toBeVisible();
+});

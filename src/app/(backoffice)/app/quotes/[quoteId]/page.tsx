@@ -181,6 +181,14 @@ export default async function QuoteDetailPage({
             Ver turno
           </Link>
         ) : null}
+        {quote.acceptedServiceCase ? (
+          <Link
+            href={`/app/finance/cases/${quote.acceptedServiceCase.id}`}
+            className="ghost-button button-link"
+          >
+            Ver cobros
+          </Link>
+        ) : null}
         <form action={duplicateQuoteAction}>
           <input type="hidden" name="quoteId" value={quote.id} />
           <button className="ghost-button">Duplicar como borrador</button>

@@ -52,6 +52,12 @@ const navigation: readonly NavigationItem[] = [
     roles: ["ADMIN"],
   },
   {
+    label: "Finanzas",
+    shortLabel: "Finanzas",
+    href: "/app/finance",
+    roles: ["ADMIN"],
+  },
+  {
     label: "Servicios",
     shortLabel: "Servicios",
     href: "/app/services",
