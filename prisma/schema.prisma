@@ -135,13 +135,15 @@ model User {
   photoUploadIntentsCreated   PhotoUploadIntent[]         @relation("PhotoUploadIntentCreatedBy")
   jobPhotosCreated            JobPhoto[]                  @relation("JobPhotoCreatedBy")
   jobPhotosUpdated            JobPhoto[]                  @relation("JobPhotoUpdatedBy")
+  clientShareLinksCreated     ClientShareLink[]           @relation("ClientShareLinkCreatedBy")
+  clientShareLinksUpdated     ClientShareLink[]           @relation("ClientShareLinkUpdatedBy")
 
   @@index([active])
   @@map("users")
 }
 
 model Client {
-  id              String        @id @default(uuid()) @db.Uuid
+  id              String            @id @default(uuid()) @db.Uuid
   displayName     String
   firstName       String?
   lastName        String?
@@ -151,17 +153,18 @@ model Client {
   email           String?
   instagram       String?
   notes           String?
-  active          Boolean       @default(true)
+  active          Boolean           @default(true)
   archivedAt      DateTime?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  createdById     String?       @db.Uuid
-  updatedById     String?       @db.Uuid
-  createdBy       User?         @relation("ClientCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
-  updatedBy       User?         @relation("ClientUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  createdById     String?           @db.Uuid
+  updatedById     String?           @db.Uuid
+  createdBy       User?             @relation("ClientCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy       User?             @relation("ClientUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
   vehicles        Vehicle[]
   serviceCases    ServiceCase[]
   quotes          Quote[]
+  shareLinks      ClientShareLink[]
 
   @@index([displayName])
   @@index([normalizedPhone])
@@ -170,6 +173,27 @@ model Client {
   @@index([createdById])
   @@index([updatedById])
   @@map("clients")
+}
+
+model ClientShareLink {
+  id           String    @id @default(uuid()) @db.Uuid
+  clientId     String    @db.Uuid
+  tokenHash    String    @unique
+  passwordHash String?
+  expiresAt    DateTime? @db.Timestamptz(3)
+  revokedAt    DateTime? @db.Timestamptz(3)
+  lastAccessAt DateTime? @db.Timestamptz(3)
+  createdAt    DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime  @updatedAt @db.Timestamptz(3)
+  createdById  String?   @db.Uuid
+  updatedById  String?   @db.Uuid
+  client       Client    @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  createdBy    User?     @relation("ClientShareLinkCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy    User?     @relation("ClientShareLinkUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@index([clientId, createdAt])
+  @@index([expiresAt, revokedAt])
+  @@map("client_share_links")
 }
 
 model Vehicle {

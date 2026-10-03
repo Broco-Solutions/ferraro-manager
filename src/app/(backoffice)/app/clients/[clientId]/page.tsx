@@ -11,6 +11,8 @@ import { VehicleForm } from "@/modules/clients/ui/vehicle-form";
 import { listClientJobHistory } from "@/modules/jobs/application/job-service";
 import { requireUser } from "@/modules/identity/application/session";
 import { listClientQuotes } from "@/modules/quotes/application/quote-service";
+import { getClientShareLinkSummary } from "@/modules/portal/application/portal-service";
+import { ShareLinkManager } from "@/modules/portal/ui/share-link-manager";
 import { formatBusinessDate } from "@/shared/date-time/business-time";
 
 export const metadata: Metadata = { title: "Ficha de cliente" };
@@ -32,12 +34,15 @@ export default async function ClientDetailPage({
   const { clientId } = await params;
   const notices = await searchParams;
   const session = await requireUser();
-  const [client, jobs, quotes] = await Promise.all([
+  const [client, jobs, quotes, shareLink] = await Promise.all([
     getClientDetail(clientId),
     listClientJobHistory(clientId),
     session.user.role === "ADMIN"
       ? listClientQuotes(clientId)
       : Promise.resolve([]),
+    session.user.role === "ADMIN"
+      ? getClientShareLinkSummary(clientId)
+      : Promise.resolve(null),
   ]);
   if (!client) notFound();
 
@@ -179,6 +184,10 @@ export default async function ClientDetailPage({
           </div>
         )}
       </section>
+
+      {session.user.role === "ADMIN" ? (
+        <ShareLinkManager clientId={client.id} initialLink={shareLink} />
+      ) : null}
 
       {session.user.role === "ADMIN" ? (
         <section className="section-stack">
