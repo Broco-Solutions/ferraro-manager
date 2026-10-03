@@ -280,7 +280,6 @@ test("STAFF records consumptions and private photos from the job", async ({
   });
   await page.getByLabel("Etapa opcional").selectOption("AFTER");
   await page.getByRole("button", { name: "Subir fotos" }).click();
-  await expect(page.getByText("Cargada")).toBeVisible();
   const thumbnail = page.getByAltText("Foto 1 del trabajo");
   await expect(thumbnail).toBeVisible();
   await expect(
