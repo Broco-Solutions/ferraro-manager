@@ -55,3 +55,12 @@ Registro resumido de la ejecución autónoma de V1. El contrato funcional contin
 - **Migrations:** `20261002234000_quotes`.
 - **Decisions:** ninguna nueva; `@react-pdf/renderer` 4.9.0 y storage privado detrás de adapter ejecutan la arquitectura aprobada en el Master Plan.
 - **Known issues:** ninguno.
+
+## BUILD 6
+
+- **Status:** COMPLETE
+- **Commits:** `1caf1a0` — `feat(finance): complete build 6 deposits and balances`
+- **Tests:** 24 unit, 18 integración y 11 E2E verdes; lint, typecheck, format, build, migraciones y diff verdes. Señas, pagos parciales/completos, reversión compensatoria, importe acordado versionado y límites mensuales de Buenos Aires verificados. Revisión visual desktop 1440 px, tablet 768 px y mobile 390 px sin overflow.
+- **Migrations:** `20261003000954_finance`; schema y migraciones sin drift.
+- **Decisions:** ninguna nueva; `FinancialEntry` es el ledger único de caja y el saldo de `ServiceCase` permanece derivado, según el Master Plan.
+- **Known issues:** ninguno.
