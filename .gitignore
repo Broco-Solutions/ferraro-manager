@@ -37,3 +37,9 @@ Thumbs.db
 
 # generated database client
 src/generated/prisma/
+
+# local AI tooling
+.agents/
+.claude/
+.windsurf/
+skills-lock.json
