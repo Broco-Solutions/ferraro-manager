@@ -1,5 +1,5 @@
 # Ferraro Manager
-
+ 
 Sistema interno de gestión para Ferraro Detail, Rosario. El contrato funcional y técnico es [`docs/FERRARO_MASTER_PLAN.md`](./docs/FERRARO_MASTER_PLAN.md); las decisiones posteriores se registran en [`docs/DECISIONS.md`](./docs/DECISIONS.md).
  
 ## Requisitos
