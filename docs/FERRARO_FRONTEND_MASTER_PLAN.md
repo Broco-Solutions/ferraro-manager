@@ -70,7 +70,7 @@ No se detectó un problema visual **crítico** que impida operar. “Crítico”
 
 ## 4. Fuente de marca
 
-La fuente primaria es `docs/brand/source/FERRARO_manual_marca.pdf`, inspeccionada visualmente página por página (5 páginas). No contiene especificaciones textuales extensas de área de seguridad o tamaño mínimo; esas reglas deben confirmarse con el diseñador/archivo maestro antes de fijarlas.
+La fuente primaria versionada es `docs/brand/source/FERRARO_manual_marca.pdf`, inspeccionada visualmente página por página (5 páginas). El PDF conserva arte vectorial y puede utilizarse para extraer los assets oficiales, siempre sujetos a comparación visual contra el manual en GATE 1. No contiene especificaciones textuales extensas de área de seguridad o tamaño mínimo; por eso se adoptan los criterios provisionales de §4.2 hasta su validación visual.
 
 ### 4.1 Activos observados
 
@@ -92,9 +92,9 @@ La fuente primaria es `docs/brand/source/FERRARO_manual_marca.pdf`, inspeccionad
 - No colocar la variante negra sobre fondos oscuros ni la blanca sobre fondos claros/gris insuficiente.
 - Sobre amarillo usar negro; sobre negro o gris oscuro usar blanco; sobre blanco usar negro o tricolor.
 - La versión outline no reemplaza un logo sólido a tamaños reducidos.
-- Conservar un área de exclusión provisional equivalente, como mínimo, al ancho del isotipo; reemplazarla por la medida oficial si se entrega el arte maestro.
-- Definir mínimos digitales mediante prueba óptica del SVG, no por escala arbitraria. Si `DETAIL` deja de leerse, cambiar a la variante sin descriptor.
-- Extraer o solicitar el SVG fuente desde el PDF vectorial y validar visualmente contra el manual. No autotracear una captura raster.
+- Conservar un área de exclusión provisional equivalente, como mínimo, al ancho del isotipo; GATE 1 debe validar el resultado y reemplazarla si más adelante se entrega una medida oficial.
+- Definir mínimos digitales mediante prueba óptica del SVG, no por escala arbitraria. Cuando `DETAIL` deje de ser legible, cambiar al wordmark sin descriptor o al isotipo según el espacio disponible.
+- Extraer el SVG fuente desde el PDF vectorial versionado y validar visualmente contra el manual. No autotracear una captura raster.
 
 ### 4.3 Matriz final de uso
 
@@ -152,7 +152,15 @@ La interfaz no será enteramente negra. El shell puede ser oscuro para dar ancla
 | Interacción         | `primary`, `primary-hover`, `primary-foreground`, `secondary`, `focus-ring`, `selection`                                | Acciones y foco. Primary puede ser negro; amarillo se reserva a momentos aprobados. |
 | Datos               | `data-1…data-8`, `data-positive`, `data-negative`, `data-neutral`                                                       | Gráficos sólo cuando una comparación lo necesita.                                   |
 
-El manual especifica Pantone Pro Black C, Pantone 424 C y Pantone 116 C. Los valores RGB/hex finales deben derivarse del archivo vectorial o de una conversión Pantone autorizada y aprobarse en GATE 1. Como referencia de prototipo —**no valor final de marca**— Pantone 116 C suele aproximarse a un amarillo cercano a `#FFCD00` y 424 C a un gris cercano a `#707372`; no deben entrar a producción sin validación.
+El manual especifica Pantone Pro Black C, Pantone 424 C y Pantone 116 C. El arte vectorial contenido en el PDF embebe estas referencias RGB:
+
+| Color    | Referencia digital inicial |
+| -------- | -------------------------- |
+| Negro    | `#000000`                  |
+| Gris     | `#706F6F`                  |
+| Amarillo | `#FFCE13`                  |
+
+**Naturaleza de los valores:** valores RGB extraídos del arte vectorial contenido en el manual. Se utilizarán como referencia digital inicial y deberán aprobarse visualmente en GATE 1. No constituyen una conversión Pantone universal para todos los procesos de impresión.
 
 ### 7.2 Reglas de contraste y estado
 
@@ -167,13 +175,13 @@ El manual especifica Pantone Pro Black C, Pantone 424 C y Pantone 116 C. Los val
 
 ### 8.1 Alternativas
 
-| Alternativa                      | Beneficios                                                                                                                                   | Costos/riesgos                                                                                        |
-| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| **Inter Variable** (recomendada) | OFL, excelente legibilidad pequeña, amplio set latino, muchos pesos, métricas estables, tabular nums y buena disponibilidad con `next/font`. | Muy extendida; la identidad debe venir de composición y marca, no de la fuente sola.                  |
-| IBM Plex Sans Variable           | OFL, carácter técnico y automotriz, números sólidos, familia amplia.                                                                         | Más personalidad puede competir con el wordmark; curvas y ancho requieren validar densidad en tablas. |
-| Source Sans 3 Variable           | OFL, muy legible y eficiente, excelente para formularios largos.                                                                             | Tono más editorial/institucional y menos distintivo en títulos.                                       |
+| Alternativa            | Beneficios                                                                                                                                   | Costos/riesgos                                                                                        |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Inter Variable         | OFL, excelente legibilidad pequeña, amplio set latino, muchos pesos, métricas estables, tabular nums y buena disponibilidad con `next/font`. | Muy extendida; la identidad debe venir de composición y marca, no de la fuente sola.                  |
+| IBM Plex Sans Variable | OFL, carácter técnico y automotriz, números sólidos, familia amplia.                                                                         | Más personalidad puede competir con el wordmark; curvas y ancho requieren validar densidad en tablas. |
+| Source Sans 3 Variable | OFL, muy legible y eficiente, excelente para formularios largos.                                                                             | Tono más editorial/institucional y menos distintivo en títulos.                                       |
 
-Recomendación: Inter Variable para interfaz y títulos, con pesos 400/500/600/700 y eje variable limitado; el wordmark siempre es un asset. Si GATE 1 considera Inter demasiado neutra, validar IBM Plex Sans con las mismas pantallas antes de cambiar.
+Shortlist aprobada para GATE 1: comparar Inter Variable e IBM Plex Sans Variable con las mismas pantallas, densidades, tablas y montos. Inter parte como hipótesis por legibilidad y métricas, pero la elección final sigue pendiente. El wordmark siempre es un asset.
 
 ### 8.2 Reglas
 
@@ -187,7 +195,7 @@ Recomendación: Inter Variable para interfaz y títulos, con pesos 400/500/600/7
 
 ## 9. Iconografía
 
-Se recomienda evaluar **Phosphor Icons** (MIT) en FE-02 y fijar una lista cerrada. Su familia Regular/Bold ofrece lectura clara y evita que la interfaz herede automáticamente la apariencia típica de shadcn. Alternativa: Lucide (ISC), más liviana y ubicua, pero visualmente más asociada a dashboards genéricos. No adoptar ambas.
+En FE-02 se compararán **Phosphor Icons** (MIT) y **Lucide** (ISC) con el mismo set real de navegación, acciones y estados. Phosphor ofrece más variantes de peso y Lucide un catálogo lineal liviano; GATE 1 elegirá una sola librería después de revisar legibilidad, carácter, SSR y bundle. No adoptar ambas.
 
 - Estilo lineal, remates simples, `stroke/weight` regular; activo puede usar variante bold, nunca rellenos mezclados al azar.
 - Tamaños: 16 px en metadatos, 20 px en acciones, 22–24 px en navegación/touch; caja óptica fija.
@@ -541,7 +549,7 @@ Pregunta rectora: **¿qué está pasando hoy y qué requiere acción?**
 
 - Nivel 1: fecha, estado de jornada, quick actions por rol y turnos de hoy.
 - Nivel 2: próximos turnos, trabajos recientes y stock bajo.
-- Nivel 3 ADMIN: KPI principal “Flujo neto” o “Cobrado” según gate; egresos, trabajos y saldo como secundarios; saldos pendientes e importes por definir como listas accionables.
+- Nivel 3 ADMIN: **Flujo neto** es el KPI financiero dominante; Cobrado y Egresos quedan como secundarios, junto con trabajos y saldo. La operación del día conserva el mayor peso del dashboard completo; los KPIs financieros no desplazan turnos ni alertas operativas.
 - STAFF no recibe espacio vacío donde irían finanzas; la grilla se recompone.
 - No añadir charts. Un sparkline sólo entra si existe comparación temporal accionable, datos suficientes y label alternativo.
 - Empty por bloque, skeleton independiente y enlaces de destino claros.
@@ -552,7 +560,7 @@ Pregunta rectora: **¿qué está pasando hoy y qué requiere acción?**
 - Semana: 7 días sólo cuando cada columna conserva legibilidad; tablet puede mostrar 3–4 días + navegación. Mes: grilla de semanas completas, resumen de eventos y “+N”.
 - Turno muestra hora/rango, vehículo, cliente, servicio principal y estado; bloqueo usa trama/icono y label “Bloqueo”. Confirmado, realizado, cancelado y bloqueo difieren por icono, borde/forma, texto y color.
 - Duración visible; solapes se presentan en carriles. Múltiples vehículos siguen siendo turnos separados; no inventar capacidad de bahías.
-- Interacción: selector de fecha real, anterior/siguiente/hoy, view switcher, abrir detalle y crear. Mejoras visuales: layout/estados. Mejoras de interacción: drawer de detalle y quick add sujetos a pruebas. Nueva funcionalidad diferida: DnD/resize, undo o capacidad; requiere aprobación y no integra FE-06 por defecto.
+- Interacción: selector de fecha real, anterior/siguiente/hoy, view switcher, abrir detalle y crear. La **página de turno es la fuente de verdad** para consulta y edición. Un drawer rápido queda como mejora complementaria sujeta a pruebas y no bloquea FE-06. Nueva funcionalidad diferida: DnD/resize, undo o capacidad; requiere aprobación y no integra FE-06 por defecto.
 
 ### 19.3 Clientes y vehículos
 
@@ -707,6 +715,15 @@ Objetivo: WCAG 2.2 AA.
 
 Para evitar dos design systems: source of truth único en tokens; primitives nuevos no importan CSS legacy; prohibir copiar declaraciones; registrar cada selector legacy con BUILD propietario; bloquear FE-14 si queda uso productivo no documentado.
 
+### 26.1 Estrategia de branches
+
+- Branch paraguas de ejecución: `feat/ferraro-frontend-redesign`.
+- FE-00 a FE-14 se integran progresivamente en esa branch mediante commits claros y los gates humanos definidos en §33.
+- Cada BUILD conserva inventario, validación, commits, evidencia, Definition of Done y gate; compartir branch no reduce sus controles ni mezcla alcances.
+- Sólo crear branches cortas adicionales cuando exista trabajo paralelo real. Esas branches salen de `feat/ferraro-frontend-redesign`, vuelven a `feat/ferraro-frontend-redesign` y nunca se mergean directamente a `main`.
+- `main` recibe el rediseño únicamente cuando correspondan los gates definidos, la branch paraguas esté validada y exista autorización humana explícita.
+- Antes de iniciar la ejecución, crear la branch paraguas desde `main` verde. Los siguientes BUILDs parten del último estado aprobado de esa branch, no nuevamente de `main`.
+
 ## 27. Portabilidad a PPF House
 
 | Común/copied package boundary                                            | Configurable en build time                                                    | Específico Ferraro                                                             |
@@ -744,6 +761,8 @@ Los tests funcionales no deben fijar clase, color, coordenada ni estructura deco
 6. Hacer recorrido teclado y zoom 200%; probar reduced motion y contraste.
 7. Aprobar gate con capturas lado a lado; actualizar baseline sólo después de aprobación humana.
 
+Los baselines visuales se publican como artifacts privados de Playwright, con retención inicial de 14 días. No se versionan en Git. Si una investigación necesita mayor retención, debe copiarse a un artifact privado identificado, nunca al repositorio ni con PII.
+
 ### 29.2 Dataset visual mínimo
 
 - Nombres/servicios/descripciones cortos y extremos; email/teléfono ausente.
@@ -752,10 +771,41 @@ Los tests funcionales no deben fijar clase, color, coordenada ni estructura deco
 - Quote de 1 y 35 líneas; compra con varias presentaciones; job con 0/1/muchas fotos y error de imagen.
 - Portal válido, password, inválido/revocado y cliente adversarial sin cruces.
 
-## 30. Dependency map
+## 30. Entorno de ejecución y preview
+
+### 30.1 Flujo de revisión
+
+1. El desarrollo cotidiano y la primera revisión de cada corte se realizan en local, con datos sintéticos y servicios locales/aislados.
+2. La branch paraguas `feat/ferraro-frontend-redesign` se despliega como **Vercel Preview** para revisión integrada y gates humanos. Las branches cortas paralelas pueden tener previews efímeras, pero la evidencia final de cada BUILD se toma sobre la preview de la branch paraguas ya integrada.
+3. La preview utiliza una base de datos exclusiva de preview, aislada de producción. Está prohibido conectar la preview a la base productiva para probar formularios, Server Actions, uploads o cualquier mutación.
+4. Vercel Preview mantiene variables específicas para ese entorno. No reutiliza secretos productivos salvo que un proveedor lo permita expresamente con credenciales de alcance aislado y sin acceso a datos productivos.
+5. Better Auth debe aceptar la URL canónica de la preview paraguas: origen/base URL, trusted origins, cookies y callbacks se configuran para ese host sin relajar la política de producción ni usar comodines amplios.
+6. Los datos de preview son sintéticos, reconocibles y sin PII. Seeds o fixtures deben ser idempotentes y exclusivos de preview.
+7. El storage de preview debe estar separado del productivo por bucket/cuenta/prefijo con credenciales aisladas. Hasta provisionarlo sólo pueden usarse fixtures controlados para revisión visual que no pretendan validar persistencia real.
+8. FE-08 y FE-12 no pueden aprobarse con `STORAGE_DRIVER=local` ejecutándose en Vercel si sus criterios incluyen persistencia real de fotografías: el filesystem efímero no demuestra durabilidad, aislamiento ni ciclo upload→procesamiento→portal.
+
+### 30.2 Dependencias y criterio de aceptación
+
+| Capacidad         | Dependencia documental/operativa                        | Criterio de aceptación antes del gate                                                                                                                       |
+| ----------------- | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Preview integrada | Branch paraguas desplegable y variables Vercel Preview. | URL estable accesible a revisores, build identificable por commit y ningún secreto productivo expuesto.                                                     |
+| Auth              | Better Auth configurado para la URL preview.            | ADMIN/STAFF ingresan y salen en preview; cookies/origins funcionan sin ampliar producción.                                                                  |
+| Datos             | DB preview aislada y dataset sintético.                 | Formularios y mutaciones no alcanzan producción; fixtures reproducibles, sin PII.                                                                           |
+| Fotografías       | Storage preview separado o fixtures controlados.        | Para FE-08/12, upload, variante, persistencia y acceso portal sobreviven una nueva instancia/deploy; `STORAGE_DRIVER=local` en Vercel no satisface el gate. |
+| Evidencia         | Playwright contra local y preview paraguas.             | Artifacts privados por commit/viewport/rol, retención 14 días y sin archivos versionados.                                                                   |
+
+Este plan no provisiona Vercel, base de datos, Better Auth ni storage. La preparación del entorno es una dependencia de ejecución: debe completarse con autorización e instrucciones operativas separadas antes de validar mutaciones en preview.
+
+## 31. Dependency map
 
 ```mermaid
 flowchart TD
+  BRANCH[feat/ferraro-frontend-redesign] --> FE00[FE-00 Marca y auditoría]
+  BRANCH --> ENV[Preview aislada: Vercel + DB + Auth]
+  ENV[Preview aislada: Vercel + DB + Auth] --> FE03[FE-03 Shell y navegación]
+  ENV --> FE04[FE-04 Login y estados]
+  MEDIA[Storage preview persistente] --> FE08[FE-08 Trabajos, consumos y fotos]
+  MEDIA --> FE12[FE-12 Búsqueda, admin y portal]
   FE00[FE-00 Marca y auditoría] --> FE01[FE-01 Foundations y tokens]
   FE01 --> FE02[FE-02 Base y design system]
   FE02 --> FE03[FE-03 Shell y navegación]
@@ -784,21 +834,21 @@ flowchart TD
 
 Paralelismo seguro después de GATE 2: FE-05 y FE-06 pueden correr en paralelo; FE-07, FE-10 y FE-11 pueden correr en paralelo si no editan primitives compartidos sin coordinación. FE-08 espera agenda/clientes; FE-09 espera clientes/servicios; FE-12 portal espera galería y shell. FE-13/14 no se paralelizan con migraciones activas. Todo cambio a primitive compartido vuelve a FE-02 y exige revalidar consumidores.
 
-## 31. BUILDs
+## 32. BUILDs
 
-Cada BUILD debe empezar con `main` verde, branch propia, inventario de archivos/rutas y baseline visual; termina con commit(s), evidencia y gate indicado. Ninguna autoriza cambios de Prisma, auth, API, reglas o infraestructura.
+FE-00 inicia sobre `feat/ferraro-frontend-redesign` creada desde `main` verde. FE-00 a FE-14 se integran progresivamente en esa branch paraguas. Cada BUILD comienza desde su último estado aprobado y mantiene inventario de archivos/rutas y baseline visual; termina con commit(s), evidencia, Definition of Done y gate indicado. Branches cortas sólo se usan ante paralelismo real conforme a §26.1. Ninguna BUILD autoriza cambios de Prisma, auth, API, reglas o infraestructura.
 
 ### BUILD FE-00 — Auditoría y extracción de marca
 
 1. **Objetivo:** convertir manual, UI actual y contratos en baselines aprobables.
-2. **Alcance:** extraer SVG oficiales desde fuente vectorial o solicitarlos; inventario de selectores, componentes, rutas y screenshots.
+2. **Alcance:** extraer SVG oficiales desde el PDF vectorial versionado y compararlos con el manual; solicitar otro arte maestro sólo si la extracción presenta defectos; inventariar selectores, componentes, rutas y screenshots.
 3. **Rutas afectadas:** ninguna productiva; documentación/assets candidatos y baseline de todas las rutas.
 4. **Componentes:** contratos propuestos `BrandLogo`, `BrandMark`, `BrandLockup`; sin integrar.
 5. **Assets:** PDF fuente, SVG candidatos, matriz de checksum/procedencia/licencia.
 6. **Responsive:** capturas en seis viewports de rutas representativas.
 7. **Accesibilidad:** contraste preliminar de combinaciones, tamaño mínimo y legibilidad del descriptor.
 8. **Dependencias:** ninguna; bloquea FE-01.
-9. **Riesgos:** autotracear, asumir hex o área segura inexistente.
+9. **Riesgos:** autotracear, tratar los RGB iniciales como aprobación final o aplicar el área provisional sin prueba óptica.
 10. **Fuera de alcance:** modificar UI, recolorear logo, crear fotografía.
 11. **Tests:** validación SVG, dimensiones/viewBox, scan de rutas/selectores.
 12. **Validación visual:** comparar cada variante con páginas 1–5 del manual.
@@ -851,7 +901,7 @@ Cada BUILD debe empezar con `main` verde, branch propia, inventario de archivos/
 5. **Assets:** isotipo/wordmark y set de iconos aprobado.
 6. **Responsive:** 280/72 px y drawer/bottom nav; probar seis viewports.
 7. **Accesibilidad:** landmarks, skip link, `aria-current`, foco, tooltip y orden teclado.
-8. **Dependencias:** FE-02; bloquea la lectura final de módulos.
+8. **Dependencias:** FE-02 y preview paraguas de §30 para evidencia integrada; bloquea la lectura final de módulos.
 9. **Riesgos:** layout shift por persistencia, rutas ADMIN visibles a STAFF, content width reducido.
 10. **Fuera de alcance:** cambiar auth, permisos, destinos o búsqueda backend.
 11. **Tests:** roles/navigation E2E, persistencia, JS-off links, keyboard/axe.
@@ -869,7 +919,7 @@ Cada BUILD debe empezar con `main` verde, branch propia, inventario de archivos/
 5. **Assets:** FERRARO DETAIL; geometría derivada del isotipo, sin foto necesaria.
 6. **Responsive:** composición 1440/1280; transición tablet; form único branded mobile.
 7. **Accesibilidad:** autofocus razonable, autofill, error live, contraste, heading/foco.
-8. **Dependencias:** FE-02; puede avanzar junto a FE-03 con coordinación mínima.
+8. **Dependencias:** FE-02 y Better Auth válido para la URL preview según §30; puede avanzar junto a FE-03 con coordinación mínima.
 9. **Riesgos:** alterar flujo Better Auth, esconder error o perder marca mobile.
 10. **Fuera de alcance:** signup/reset/social auth y fotografía no autorizada.
 11. **Tests:** auth E2E existente, error/loading, autofill styles, axe, screenshots.
@@ -941,7 +991,7 @@ Cada BUILD debe empezar con `main` verde, branch propia, inventario de archivos/
 5. **Assets:** fotos privadas existentes; placeholders de marca.
 6. **Responsive:** galería 4/2/1–2, actions drawer, form/queue mobile.
 7. **Accesibilidad:** progress live, alt contextual, lightbox keyboard/focus, actions named.
-8. **Dependencias:** FE-06/07; bloquea portal final FE-12.
+8. **Dependencias:** FE-06/07; storage preview persistente y aislado para aprobar fotografías; bloquea portal final FE-12.
 9. **Riesgos:** filtrar URLs, reordenar con controles inaccesibles, confundir reversión.
 10. **Fuera de alcance:** storage/procesamiento, before-after automático, edición de imagen.
 11. **Tests:** jobs/photos/consumptions existentes, upload retry, privacy, lightbox/a11y/visual.
@@ -1013,7 +1063,7 @@ Cada BUILD debe empezar con `main` verde, branch propia, inventario de archivos/
 5. **Assets:** lockup DETAIL portal y mark; fotos privadas autorizadas.
 6. **Responsive:** search groups→1 col; portal mobile-first; admin settings list.
 7. **Accesibilidad:** search keyboard, portal password errors, gallery/lightbox, headings.
-8. **Dependencias:** FE-03 y FE-08 para galería; command palette es spike opcional.
+8. **Dependencias:** FE-03 y FE-08 para galería; DB/auth/storage preview de §30; command palette es spike opcional.
 9. **Riesgos:** fuga de resultados/datos, copiar backoffice al portal, inventar admin.
 10. **Fuera de alcance:** capacidades admin nuevas, command actions, portal financiero.
 11. **Tests:** dashboard/search/admin/portal E2E existentes, adversarial privacy, a11y/visual.
@@ -1058,19 +1108,19 @@ Cada BUILD debe empezar con `main` verde, branch propia, inventario de archivos/
 14. **Commits sugeridos:** `refactor(ui): remove legacy frontend styles`; `docs(frontend): document brand portability`.
 15. **Gate humano:** cierre posterior a GATE 5; aprobación de release separada.
 
-## 32. Gates humanos
+## 33. Gates humanos
 
-| Gate                          | Qué revisar                                                                                | Evidencia obligatoria                                                           | Bloquea continuar cuando…                                                                   |
-| ----------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| **GATE 1 — Marca y sistema**  | SVG/variantes, paleta, tipografía, tokens, primitives, iconos, página DS.                  | Comparación manual, contrastes, 1440/768/390, estados de components.            | Logo/proporción/color/fuente no aprobados; primitive P0 inaccesible.                        |
-| **GATE 2 — Acceso y shell**   | Login idle/error/mobile, sidebar expandida/colapsada, roles, drawer, bottom nav, búsqueda. | ADMIN/STAFF, teclado, rutas activas, seis viewports.                            | Identidad débil, navegación ambigua, permiso visible incorrecto o mobile bloqueado.         |
-| **GATE 3 — Núcleo operativo** | Dashboard y agenda día/semana/mes, solapes, estados, forms.                                | Lleno/vacío, ADMIN/STAFF, screenshots y recorrido teclado.                      | No responde “hoy”, agenda depende del color o interacción exige funcionalidad no aprobada.  |
-| **GATE 4 — Módulos internos** | Clientes, servicios, jobs, quotes UI, finanzas, inventario, compras.                       | Route matrix, forms/filters/details, datos largos, roles.                       | Patrón inconsistente, cálculo/permisos cambiados o módulo queda híbrido sin salida.         |
-| **GATE 5 — Portal, PDF y QA** | Portal privado, PDF impreso, full visual/a11y/performance y cleanup plan.                  | Portal adversarial, PDFs color/B&N, seis viewports, axe/manual, suite completa. | Fuga/privacidad, PDF ilegible, issue crítico/alto o regresión funcional/visual no aceptada. |
+| Gate                          | Qué revisar                                                                                | Evidencia obligatoria                                                                                                   | Bloquea continuar cuando…                                                                          |
+| ----------------------------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| **GATE 1 — Marca y sistema**  | SVG/variantes, paleta, tipografía, tokens, primitives, iconos, página DS.                  | Comparación manual, contrastes, 1440/768/390, estados de components.                                                    | Logo/proporción/color/fuente no aprobados; primitive P0 inaccesible.                               |
+| **GATE 2 — Acceso y shell**   | Login idle/error/mobile, sidebar expandida/colapsada, roles, drawer, bottom nav, búsqueda. | ADMIN/STAFF en local y preview paraguas, teclado, rutas activas, seis viewports.                                        | Identidad débil, auth preview inválido, navegación ambigua, permiso incorrecto o mobile bloqueado. |
+| **GATE 3 — Núcleo operativo** | Dashboard y agenda día/semana/mes, solapes, estados, forms.                                | Lleno/vacío, ADMIN/STAFF, screenshots y recorrido teclado.                                                              | No responde “hoy”, agenda depende del color o interacción exige funcionalidad no aprobada.         |
+| **GATE 4 — Módulos internos** | Clientes, servicios, jobs, quotes UI, finanzas, inventario, compras.                       | Route matrix, forms/filters/details, datos largos, roles.                                                               | Patrón inconsistente, cálculo/permisos cambiados o módulo queda híbrido sin salida.                |
+| **GATE 5 — Portal, PDF y QA** | Portal privado, PDF impreso, full visual/a11y/performance y cleanup plan.                  | Portal adversarial, fotos persistentes en storage preview, PDFs color/B&N, seis viewports, axe/manual y suite completa. | Storage local efímero, fuga/privacidad, PDF ilegible, issue crítico/alto o regresión no aceptada.  |
 
 Cada gate registra fecha, participantes, decisión `approved / approved with actions / rejected`, links a capturas/diffs e issues. “Approved with actions” sólo permite continuar si las acciones no afectan foundations; si afectan tokens/primitive P0, el gate sigue bloqueado.
 
-## 33. Seguridad y privacidad
+## 34. Seguridad y privacidad
 
 El rediseño trata la interfaz como una proyección de permisos existentes, nunca como control de acceso único.
 
@@ -1081,31 +1131,31 @@ El rediseño trata la interfaz como una proyección de permisos existentes, nunc
 - ConfirmDialog no debilita autorización/idempotencia ni sustituye validación servidor.
 - Copy de forbidden/not-found no confirma existencia de cliente, quote, foto o link privado.
 - `/app/design-system` usa datos sintéticos locales, no PII ni ejemplos copiados de producción.
-- Capturas de QA se guardan como artifacts privados con datos sintéticos y retención definida.
+- Capturas de QA se guardan como artifacts privados de Playwright con datos sintéticos, sin PII, retención inicial de 14 días y sin versionarlas.
 - Dependencias headless/icon/font se revisan por licencia, mantenimiento, bundle y vulnerabilidades antes de incorporar.
 
-## 34. Decisiones técnicas evaluadas
+## 35. Decisiones técnicas evaluadas
 
-| Decisión             | Alternativas y beneficios                                                                                                       | Costos/riesgos                                                                                  | Recomendación                                                                                                                                      |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| CSS                  | (A) CSS global modularizado: simple, tokens directos. (B) CSS Modules: ownership/encapsulado. (C) utility framework: velocidad. | A solo puede volver a crecer; B fragmenta tokens; C suma segundo vocabulario durante migración. | Híbrido: layers globales para tokens/foundations + CSS Modules para components/modules. No Tailwind ahora.                                         |
-| Primitives           | Propios desde cero; headless; kit visual.                                                                                       | Propios elevan riesgo a11y; headless suma JS/API; kit visual homogeneiza marca.                 | Props/estilos propios sobre React Aria Components o alternativa headless aprobada para overlays/combobox; nativo para inputs simples. Spike FE-02. |
-| Iconos               | Phosphor, Lucide, SVG propios.                                                                                                  | Dos librerías inflan bundle/inconsistencia; SVG propios cuestan mantenimiento.                  | Phosphor subset si bundle/licencia/SSR pasan; Lucide fallback. Un solo peso y catálogo.                                                            |
-| Dialogs              | `<dialog>` propio; headless; portal artesanal.                                                                                  | `<dialog>` aún exige disciplina; artesanal arriesga foco/inert.                                 | Headless probado, wrapper Ferraro; ConfirmDialog y lightbox comparten primitive.                                                                   |
-| Drawers              | Dialog adaptativo; primitive separado; CSS-only `<details>`.                                                                    | Dos APIs divergen; details no ofrece modal/focus robusto.                                       | Dialog adaptativo con presentation drawer en mobile y API semántica única.                                                                         |
-| Data table           | HTML propio; TanStack Table; grid enterprise.                                                                                   | TanStack requiere adaptar a11y/UI; enterprise sobredimensiona; propio puede duplicar sort.      | HTML server-first + headless helpers pequeños. Evaluar TanStack sólo cuando sort/selection complejos reales lo justifiquen.                        |
-| Calendar UI          | Mantener render propio; librería calendar; construir temporal completo.                                                         | Librería puede traer DnD/bundle y alterar semántica; propio requiere layout.                    | Mantener queries/adapter y rediseñar vistas. Spike de librería sólo para layout/keyboard; DnD fuera de FE-06.                                      |
-| Visual testing       | Playwright screenshots; Chromatic/servicio; manual.                                                                             | Servicio agrega costo/vendor; manual no escala.                                                 | Playwright determinista en CI + gate humano; evaluar servicio tras estabilizar baselines.                                                          |
-| Typography           | `next/font/google`; archivos locales licenciados; CSS CDN.                                                                      | CDN runtime afecta privacidad/disponibilidad; local exige licencia/updates.                     | `next/font` con fuente OFL fijada/localizada o descarga de build reproducible; sin CDN runtime.                                                    |
-| SVG                  | `<img>/next/image`; SVGR; inline manual.                                                                                        | SVGR añade tooling y puede alterar IDs; inline duplica markup; img limita `currentColor`.       | Assets oficiales en `public/brand` con dimensiones/manifest; inline sólo variantes expresamente preparadas y auditadas.                            |
-| Storybook vs DS page | Storybook aísla/dev tooling; página interna usa runtime real.                                                                   | Storybook agrega config y puede divergir; interna requiere auth y estados demo.                 | `/app/design-system` ADMIN primero. Adoptar Storybook sólo si equipos paralelos/public package lo justifican.                                      |
-| Brand config         | Runtime theme; build-time typed config; hardcodes.                                                                              | Runtime implica multi-tenant/flash; hardcodes impiden PPF.                                      | Config tipada en build time + asset manifest + tokens por app.                                                                                     |
+| Decisión             | Alternativas y beneficios                                                                                                       | Costos/riesgos                                                                                  | Recomendación                                                                                                                         |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| CSS                  | (A) CSS global modularizado: simple, tokens directos. (B) CSS Modules: ownership/encapsulado. (C) utility framework: velocidad. | A solo puede volver a crecer; B fragmenta tokens; C suma segundo vocabulario durante migración. | Híbrido: layers globales para tokens/foundations + CSS Modules para components/modules. No Tailwind ahora.                            |
+| Primitives           | Propios desde cero; headless; kit visual.                                                                                       | Propios elevan riesgo a11y; headless suma JS/API; kit visual homogeneiza marca.                 | Nativo para inputs simples; elegir el primitive headless final para overlays/combobox después del spike FE-02 y aprobación en GATE 1. |
+| Iconos               | Phosphor, Lucide, SVG propios.                                                                                                  | Dos librerías inflan bundle/inconsistencia; SVG propios cuestan mantenimiento.                  | Comparar Phosphor y Lucide con el mismo set real; GATE 1 elige una sola librería, peso y catálogo después del spike.                  |
+| Dialogs              | `<dialog>` propio; headless; portal artesanal.                                                                                  | `<dialog>` aún exige disciplina; artesanal arriesga foco/inert.                                 | Headless probado, wrapper Ferraro; ConfirmDialog y lightbox comparten primitive.                                                      |
+| Drawers              | Dialog adaptativo; primitive separado; CSS-only `<details>`.                                                                    | Dos APIs divergen; details no ofrece modal/focus robusto.                                       | Dialog adaptativo con presentation drawer en mobile y API semántica única.                                                            |
+| Data table           | HTML propio; TanStack Table; grid enterprise.                                                                                   | TanStack requiere adaptar a11y/UI; enterprise sobredimensiona; propio puede duplicar sort.      | HTML server-first + headless helpers pequeños. Evaluar TanStack sólo cuando sort/selection complejos reales lo justifiquen.           |
+| Calendar UI          | Mantener render propio; librería calendar; construir temporal completo.                                                         | Librería puede traer DnD/bundle y alterar semántica; propio requiere layout.                    | Mantener queries/adapter y rediseñar vistas. Spike de librería sólo para layout/keyboard; DnD fuera de FE-06.                         |
+| Visual testing       | Playwright screenshots; Chromatic/servicio; manual.                                                                             | Servicio agrega costo/vendor; manual no escala.                                                 | Playwright determinista + gate humano; artifacts privados, no versionados y con retención inicial de 14 días.                         |
+| Typography           | `next/font/google`; archivos locales licenciados; CSS CDN.                                                                      | CDN runtime afecta privacidad/disponibilidad; local exige licencia/updates.                     | `next/font` con fuente OFL fijada/localizada o descarga de build reproducible; sin CDN runtime.                                       |
+| SVG                  | `<img>/next/image`; SVGR; inline manual.                                                                                        | SVGR añade tooling y puede alterar IDs; inline duplica markup; img limita `currentColor`.       | Assets oficiales en `public/brand` con dimensiones/manifest; inline sólo variantes expresamente preparadas y auditadas.               |
+| Storybook vs DS page | Storybook aísla/dev tooling; página interna usa runtime real.                                                                   | Storybook agrega config y puede divergir; interna requiere auth y estados demo.                 | `/app/design-system` ADMIN primero. Adoptar Storybook sólo si equipos paralelos/public package lo justifican.                         |
+| Brand config         | Runtime theme; build-time typed config; hardcodes.                                                                              | Runtime implica multi-tenant/flash; hardcodes impiden PPF.                                      | Config tipada en build time + asset manifest + tokens por app.                                                                        |
 
-## 35. Riesgos
+## 36. Riesgos
 
 | Riesgo                                            | Prob. | Impacto | Mitigación / señal de control                                                       |
 | ------------------------------------------------- | ----: | ------: | ----------------------------------------------------------------------------------- |
-| Marca incompleta en PDF manual                    |  Alta |    Alta | No fijar hex/proporciones no documentadas; obtener/validar arte maestro en GATE 1.  |
+| Validación digital del arte del manual            | Media |    Alta | Extraer vectores/RGB del PDF y comparar assets, mínimos, área y colores en GATE 1.  |
 | Scope creep funcional en agenda/admin/search      |  Alta |    Alta | Separar visual/interacción/feature; fuera de alcance explícito por BUILD.           |
 | Dos sistemas visuales permanentes                 | Media |    Alta | Owner por selector, límite de convivencia y FE-14 bloqueante.                       |
 | Regresión de permisos por UI compartida           |  Baja | Crítica | Proyecciones servidor y E2E ADMIN/STAFF/portal en cada BUILD.                       |
@@ -1119,24 +1169,29 @@ El rediseño trata la interfaz como una proyección de permisos existentes, nunc
 | Abstracción prematura ralentiza módulos           | Media |   Media | Crear sólo componentes con primer consumidor real; API mínima.                      |
 | Cleanup borra estilo usado                        | Media |   Media | `rg`, visual full y commits pequeños/revertibles.                                   |
 
-## 36. Decisiones pendientes reales
+## 37. Decisiones humanas
 
-Estas decisiones requieren aprobación humana o evidencia adicional; no impiden revisar este plan, pero bloquean el BUILD indicado.
+### 37.1 Recomendaciones aprobadas para ejecución
 
-1. **Arte maestro:** confirmar si el PDF puede considerarse fuente vectorial de producción o entregar SVG/AI/EPS oficial; bloquea FE-00/01.
-2. **Equivalencias digitales:** aprobar RGB/hex derivados de Pantone Pro Black C, 424 C y 116 C; bloquea tokens finales.
-3. **Área de seguridad y mínimos:** el manual visual auditado no los explicita; aprobar criterios digitales tras prueba óptica.
-4. **Tipografía:** aceptar Inter Variable o pedir comparación final con IBM Plex Sans en tres pantallas; GATE 1.
-5. **Iconos/headless:** aprobar Phosphor y la librería headless luego del spike de bundle/a11y; FE-02.
-6. **KPI dominante ADMIN:** Cobrado vs Flujo neto debe validarse con usuario operativo; FE-05. No cambia fórmula.
-7. **Agenda:** decidir si el detalle será página, drawer o híbrido; DnD queda explícitamente fuera salvo nueva aprobación.
-8. **Fotos reales:** inventariar material y derechos; no bloquea ninguna BUILD porque la geometría de marca es suficiente.
-9. **Baseline visual en CI:** definir almacenamiento/retención de artifacts; FE-02/13.
-10. **Administración:** la ruta actual no tiene gestión de usuarios/configuración; no diseñar capacidades inexistentes.
+1. **Fuente vectorial:** el PDF versionado puede utilizarse para extraer assets vectoriales, sujetos a comparación visual en GATE 1.
+2. **Área de seguridad:** usar provisionalmente al menos el ancho del isotipo alrededor del lockup.
+3. **Tamaños mínimos:** resolverlos mediante prueba óptica; cambiar de lockup FERRARO DETAIL a wordmark o isotipo cuando el descriptor deje de ser legible.
+4. **Dashboard ADMIN:** Flujo neto es el KPI financiero dominante; Cobrado y Egresos son secundarios. La operación del día domina el dashboard completo.
+5. **Agenda:** la página de turno es la fuente de verdad. El drawer rápido es una mejora complementaria y no bloquea FE-06.
+6. **Fotografías:** las fotografías reales no bloquean el rediseño; se mantiene la prioridad y el control de derechos definidos en §10.
+7. **Baselines visuales:** usar artifacts privados de Playwright, no versionados, con retención inicial de 14 días.
+8. **Administración:** no diseñar usuarios, roles, configuración ni otras capacidades que la aplicación todavía no implemente.
 
-No hace falta actualizar `DECISIONS.md` hasta que una de estas recomendaciones sea aceptada como decisión estructural o se desvíe del Master Plan vigente.
+### 37.2 Pendientes para GATE 1
 
-## 37. Definition of Done global
+1. Comparación final de Inter Variable vs IBM Plex Sans Variable.
+2. Elección Phosphor vs Lucide con el set real y medición de bundle/SSR.
+3. Elección final del primitive headless después del spike de accesibilidad, API y bundle.
+4. Aprobación visual final de las referencias RGB extraídas: negro `#000000`, gris `#706F6F` y amarillo `#FFCE13`.
+
+Estas decisiones de planificación quedan registradas aquí. `DECISIONS.md` sólo requiere cambio si durante la ejecución aparece una desviación estructural respecto del Master Plan o de este plan aprobado.
+
+## 38. Definition of Done global
 
 ### Marca y coherencia
 
@@ -1163,12 +1218,14 @@ No hace falta actualizar `DECISIONS.md` hasta que una de estas recomendaciones s
 - Reduced motion, zoom 200%, reflow y targets táctiles verificados.
 - No regresión relevante de CSS/JS/fonts/CWV respecto del baseline; assets optimizados.
 - Tests de permisos, portal adversarial y fotos/PDF privados continúan verdes.
+- La preview paraguas usa DB, variables y credenciales aisladas de producción; FE-08/12 validan fotografías sobre storage persistente, no `STORAGE_DRIVER=local` en Vercel.
 
 ### Migración y mantenimiento
 
 - Un solo design system; `globals.css` queda como entrypoint/foundations, sin estilos huérfanos de módulos migrados.
 - Suite actual no reduce cobertura; lint, typecheck, unit, integration, E2E, build, visual y a11y pasan en la ejecución futura.
 - Gates 1–5 tienen aprobación registrada; deuda media/baja tiene owner y fecha.
+- FE-00 a FE-14 están integrados y trazables en `feat/ferraro-frontend-redesign`; ninguna branch corta se integra directamente a `main`.
 - Guía de portabilidad PPF House permite reemplazar assets/tokens/config en otro repo sin tenancy ni datos compartidos.
 
 ## Apéndice A — Fuentes auditadas
@@ -1183,4 +1240,4 @@ No hace falta actualizar `DECISIONS.md` hasta que una de estas recomendaciones s
 
 ## Apéndice B — Regla de ejecución
 
-Antes de cada BUILD: releer este documento y el Master Plan, verificar branch/dirty state, delimitar rutas/roles y capturar baseline. Después: revisar diff, permisos, selectors legacy, responsive y gate. Ningún BUILD de rediseño autoriza modificar Prisma, datos, autenticación, API, reglas de negocio, Vercel, Railway o producción.
+Antes de cada BUILD: releer este documento y el Master Plan, verificar `feat/ferraro-frontend-redesign`/dirty state, delimitar rutas/roles y capturar baseline. Después: revisar diff, permisos, selectors legacy, responsive y gate. Branches cortas salen y vuelven a la branch paraguas; `main` exige gates y autorización humana explícita. Ningún BUILD de rediseño autoriza por sí mismo modificar Prisma, datos, autenticación, API, reglas de negocio, Vercel, Railway o producción.
