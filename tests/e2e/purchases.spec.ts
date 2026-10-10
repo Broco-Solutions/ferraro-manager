@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
 import {
@@ -9,6 +10,38 @@ import {
 const categoryName = "Compras E2E";
 const itemName = "PPF Compra E2E";
 const supplierName = "Proveedor E2E";
+const evidenceViewports = [
+  ["1440x900", 1440, 900],
+  ["1280x800", 1280, 800],
+  ["1024x768", 1024, 768],
+  ["820x1180", 820, 1180],
+  ["768x1024", 768, 1024],
+  ["390x844", 390, 844],
+] as const;
+
+async function captureEvidence(page: Page) {
+  if (!process.env.FE_EVIDENCE_DIR) return;
+  for (const [name, width, height] of evidenceViewports) {
+    await page.setViewportSize({ width, height });
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            document.documentElement.scrollWidth <=
+            document.documentElement.clientWidth,
+        ),
+      )
+      .toBe(true);
+    await page.evaluate(() => {
+      (document.activeElement as HTMLElement | null)?.blur();
+      window.scrollTo(0, 0);
+    });
+    await page.screenshot({
+      path: `${process.env.FE_EVIDENCE_DIR}/purchase-detail-${name}.png`,
+    });
+  }
+  await page.setViewportSize({ width: 1440, height: 900 });
+}
 
 async function login(
   page: Page,
@@ -131,7 +164,7 @@ test.afterAll(cleanup);
 test("ADMIN posts one purchase into stock and cash while STAFF is denied", async ({
   page,
 }) => {
-  test.setTimeout(60_000);
+  test.setTimeout(90_000);
   await login(page, e2eUsers.admin);
   await page.getByRole("link", { name: "Compras", exact: true }).click();
   await page.getByRole("link", { name: "Proveedores" }).click();
@@ -151,6 +184,11 @@ test("ADMIN posts one purchase into stock and cash while STAFF is denied", async
   ).toBeVisible();
   await expect(page.getByText("+30.000 m")).toBeVisible();
   await expect(page.getByText("Egreso USD 1200.00")).toBeVisible();
+  const accessibility = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(accessibility.violations).toEqual([]);
+  await captureEvidence(page);
   await page.getByRole("button", { name: "Cerrar sesión" }).click();
 
   await login(page, e2eUsers.staff);

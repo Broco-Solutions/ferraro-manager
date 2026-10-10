@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
+import { ArrowRightIcon, PlusIcon } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 
+import { DataToolbar, Page, PageHeader } from "@/components/patterns/page";
+import { buttonClassName } from "@/components/ui/button";
+import { Badge } from "@/components/ui/status";
 import { requireRole } from "@/modules/identity/application/authorization";
+import styles from "@/modules/inventory/ui/supply.module.css";
 import { listPurchases } from "@/modules/purchases/application/purchase-service";
 import { formatBusinessDate } from "@/shared/date-time/business-time";
 
@@ -25,67 +30,68 @@ export default async function PurchasesPage({
   });
   const filtered = Boolean(params.q || status);
   return (
-    <div className="page-stack">
-      <header className="page-header page-header-actions">
-        <div>
-          <p className="eyebrow">Abastecimiento</p>
-          <h1>Compras</h1>
-          <p className="page-description">
-            Una carga actualiza stock y caja sin duplicaciones.
-          </p>
-        </div>
-        <div className="button-cluster">
-          <Link
-            href="/app/purchases/suppliers"
-            className="ghost-button button-link"
-          >
-            Proveedores
-          </Link>
-          <Link
-            href="/app/purchases/new"
-            className="primary-button button-link"
-          >
-            Nueva compra
-          </Link>
-        </div>
-      </header>
-      <form className="filter-bar" role="search">
-        <label className="search-field">
-          <span className="sr-only">Buscar compras</span>
-          <input
-            name="q"
-            defaultValue={params.q}
-            placeholder="Número, proveedor o referencia"
-          />
-        </label>
-        <label className="compact-field">
-          <span>Estado</span>
-          <select name="status" defaultValue={status ?? ""}>
-            <option value="">Todas</option>
-            <option value="POSTED">Posteadas</option>
-            <option value="VOIDED">Anuladas</option>
-          </select>
-        </label>
-        <button className="ghost-button">Aplicar</button>
-        {filtered ? (
-          <Link href="/app/purchases" className="text-link">
-            Limpiar
-          </Link>
-        ) : null}
-      </form>
-      <div className="results-meta">
+    <Page className={styles.page} size="wide">
+      <PageHeader
+        eyebrow="Abastecimiento"
+        title="Compras"
+        description="Una carga trazable actualiza stock y caja sin duplicar movimientos."
+        actions={
+          <>
+            <Link
+              href="/app/purchases/suppliers"
+              className={buttonClassName("secondary")}
+            >
+              Proveedores
+            </Link>
+            <Link
+              href="/app/purchases/new"
+              className={buttonClassName("primary")}
+            >
+              <PlusIcon aria-hidden="true" />
+              Nueva compra
+            </Link>
+          </>
+        }
+      />
+      <DataToolbar>
+        <form className="filter-bar" role="search">
+          <label className="search-field">
+            <span className="sr-only">Buscar compras</span>
+            <input
+              name="q"
+              defaultValue={params.q}
+              placeholder="Número, proveedor o referencia"
+            />
+          </label>
+          <label className="compact-field">
+            <span>Estado</span>
+            <select name="status" defaultValue={status ?? ""}>
+              <option value="">Todas</option>
+              <option value="POSTED">Posteadas</option>
+              <option value="VOIDED">Anuladas</option>
+            </select>
+          </label>
+          <button className="ghost-button">Aplicar</button>
+          {filtered ? (
+            <Link href="/app/purchases" className="text-link">
+              Limpiar
+            </Link>
+          ) : null}
+        </form>
+      </DataToolbar>
+      <div className={styles.meta}>
         <strong>{result.total}</strong>{" "}
         {result.total === 1 ? "compra" : "compras"}
       </div>
       {result.items.length ? (
-        <section className="purchase-list">
+        <section className={styles.list} aria-label="Compras">
           {result.items.map((purchase) => (
             <Link
               href={`/app/purchases/${purchase.id}`}
-              className="purchase-row"
+              className={`${styles.row} ${styles.purchaseRow}`}
               key={purchase.id}
             >
-              <div>
+              <div className={styles.primary}>
                 <strong>{purchase.number}</strong>
                 <small>
                   {purchase.supplier.name} ·{" "}
@@ -94,21 +100,20 @@ export default async function PurchasesPage({
                   })}
                 </small>
               </div>
-              <span>
+              <span className={styles.count}>
                 {purchase._count.items}{" "}
                 {purchase._count.items === 1 ? "ítem" : "ítems"}
               </span>
-              <strong>USD {purchase.totalUsd.toFixed(2)}</strong>
-              <span
-                className={
-                  purchase.status === "POSTED"
-                    ? "status-badge status-active"
-                    : "status-badge"
-                }
+              <strong className={styles.money}>
+                USD {purchase.totalUsd.toFixed(2)}
+              </strong>
+              <Badge
+                intent={purchase.status === "POSTED" ? "success" : "danger"}
+                withIcon
               >
                 {purchase.status === "POSTED" ? "Posteada" : "Anulada"}
-              </span>
-              <span className="row-arrow">→</span>
+              </Badge>
+              <ArrowRightIcon className={styles.arrow} aria-hidden="true" />
             </Link>
           ))}
         </section>
@@ -135,6 +140,6 @@ export default async function PurchasesPage({
           </Link>
         </section>
       )}
-    </div>
+    </Page>
   );
 }

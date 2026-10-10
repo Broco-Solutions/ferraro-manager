@@ -1,12 +1,17 @@
 import type { Metadata } from "next";
+import { ArrowRightIcon, PlusIcon } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 
+import { DataToolbar, Page, PageHeader } from "@/components/patterns/page";
+import { buttonClassName } from "@/components/ui/button";
+import { Badge } from "@/components/ui/status";
 import { requireRole } from "@/modules/identity/application/authorization";
 import {
   listInventoryCategories,
   listInventoryItems,
 } from "@/modules/inventory/application/inventory-service";
 import { inventoryUnitSymbols } from "@/modules/inventory/domain/inventory-schema";
+import styles from "@/modules/inventory/ui/supply.module.css";
 
 export const metadata: Metadata = { title: "Inventario" };
 
@@ -63,111 +68,109 @@ export default async function InventoryPage({ searchParams }: PageProps) {
   );
 
   return (
-    <div className="page-stack">
-      <header className="page-header page-header-actions">
-        <div>
-          <p className="eyebrow">Stock operativo</p>
-          <h1>Inventario</h1>
-          <p className="page-description">
-            Cantidades reales, siempre expresadas en su unidad base.
-          </p>
-        </div>
-        {session.user.role === "ADMIN" ? (
-          <div className="button-cluster">
-            <Link
-              href="/app/inventory/categories"
-              className="ghost-button button-link"
-            >
-              Categorías
-            </Link>
-            <Link
-              href="/app/inventory/new"
-              className="primary-button button-link"
-            >
-              Nuevo artículo
-            </Link>
-          </div>
-        ) : null}
-      </header>
+    <Page className={styles.page} size="wide">
+      <PageHeader
+        eyebrow="Stock operativo"
+        title="Inventario"
+        description="Cantidades reales en unidad base, alertas accionables y trazabilidad de cada movimiento."
+        actions={
+          session.user.role === "ADMIN" ? (
+            <>
+              <Link
+                href="/app/inventory/categories"
+                className={buttonClassName("secondary")}
+              >
+                Categorías
+              </Link>
+              <Link
+                href="/app/inventory/new"
+                className={buttonClassName("primary")}
+              >
+                <PlusIcon aria-hidden="true" />
+                Nuevo artículo
+              </Link>
+            </>
+          ) : null
+        }
+      />
 
-      <form className="filter-bar inventory-filters" role="search">
-        <label className="search-field">
-          <span className="sr-only">Buscar inventario</span>
-          <input
-            name="q"
-            defaultValue={params.q}
-            placeholder="Artículo, SKU o categoría"
-          />
-        </label>
-        <label className="compact-field">
-          <span>Categoría</span>
-          <select name="category" defaultValue={params.category ?? ""}>
-            <option value="">Todas</option>
-            {categories.map((category) => (
-              <option value={category.id} key={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="compact-field">
-          <span>Estado</span>
-          <select name="status" defaultValue={status}>
-            <option value="active">Activos</option>
-            <option value="archived">Archivados</option>
-            <option value="all">Todos</option>
-          </select>
-        </label>
-        <label className="compact-field">
-          <span>Orden</span>
-          <select name="sort" defaultValue={params.sort ?? "name"}>
-            <option value="name">Nombre</option>
-            <option value="stock">Menor stock</option>
-          </select>
-        </label>
-        <label className="check-field compact-check">
-          <input
-            type="checkbox"
-            name="low"
-            value="1"
-            defaultChecked={params.low === "1"}
-          />
-          <span>Stock bajo</span>
-        </label>
-        <button className="ghost-button">Aplicar</button>
-        {filtered ? (
-          <Link href="/app/inventory" className="text-link">
-            Limpiar
-          </Link>
-        ) : null}
-      </form>
+      <DataToolbar>
+        <form className="filter-bar inventory-filters" role="search">
+          <label className="search-field">
+            <span className="sr-only">Buscar inventario</span>
+            <input
+              name="q"
+              defaultValue={params.q}
+              placeholder="Artículo, SKU o categoría"
+            />
+          </label>
+          <label className="compact-field">
+            <span>Categoría</span>
+            <select name="category" defaultValue={params.category ?? ""}>
+              <option value="">Todas</option>
+              {categories.map((category) => (
+                <option value={category.id} key={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="compact-field">
+            <span>Estado</span>
+            <select name="status" defaultValue={status}>
+              <option value="active">Activos</option>
+              <option value="archived">Archivados</option>
+              <option value="all">Todos</option>
+            </select>
+          </label>
+          <label className="compact-field">
+            <span>Orden</span>
+            <select name="sort" defaultValue={params.sort ?? "name"}>
+              <option value="name">Nombre</option>
+              <option value="stock">Menor stock</option>
+            </select>
+          </label>
+          <label className="check-field compact-check">
+            <input
+              type="checkbox"
+              name="low"
+              value="1"
+              defaultChecked={params.low === "1"}
+            />
+            <span>Stock bajo</span>
+          </label>
+          <button className="ghost-button">Aplicar</button>
+          {filtered ? (
+            <Link href="/app/inventory" className="text-link">
+              Limpiar
+            </Link>
+          ) : null}
+        </form>
+      </DataToolbar>
 
-      <div className="results-meta">
+      <div className={styles.meta}>
         <strong>{result.total}</strong>{" "}
         {result.total === 1 ? "artículo" : "artículos"}
       </div>
 
       {result.items.length ? (
-        <section
-          className="inventory-list"
-          aria-label="Artículos de inventario"
-        >
+        <section className={styles.list} aria-label="Artículos de inventario">
           {result.items.map((item) => {
             const low = item.currentStock.lte(item.minimumStock);
             return (
               <Link
                 href={`/app/inventory/${item.id}`}
-                className="inventory-row"
+                className={styles.row}
                 key={item.id}
               >
-                <span className="inventory-primary">
+                <span className={styles.primary}>
                   <strong>{item.name}</strong>
                   <small>
                     {item.category.name}
                     {item.sku ? ` · ${item.sku}` : ""}
                   </small>
                 </span>
-                <span className={`stock-quantity ${low ? "is-low" : ""}`}>
+                <span className={styles.quantity}>
                   <strong>{item.currentStock.toFixed(3)}</strong>
                   <small>
                     {inventoryUnitSymbols[
@@ -175,21 +178,13 @@ export default async function InventoryPage({ searchParams }: PageProps) {
                     ] ?? item.baseUnit}
                   </small>
                 </span>
-                <span className="stock-minimum">
+                <span className={styles.minimum}>
                   Mín. {item.minimumStock.toFixed(3)}
                 </span>
-                <span
-                  className={
-                    low
-                      ? "status-badge status-warning"
-                      : "status-badge status-active"
-                  }
-                >
+                <Badge intent={low ? "warning" : "success"} withIcon>
                   {low ? "Stock bajo" : "Disponible"}
-                </span>
-                <span className="row-arrow" aria-hidden="true">
-                  →
-                </span>
+                </Badge>
+                <ArrowRightIcon className={styles.arrow} aria-hidden="true" />
               </Link>
             );
           })}
@@ -249,6 +244,6 @@ export default async function InventoryPage({ searchParams }: PageProps) {
           )}
         </nav>
       ) : null}
-    </div>
+    </Page>
   );
 }

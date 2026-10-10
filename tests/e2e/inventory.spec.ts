@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
 import {
@@ -61,12 +62,18 @@ test("ADMIN configures traceable PPF stock and STAFF receives only the operation
 }) => {
   test.setTimeout(60_000);
   await login(page, e2eUsers.admin);
-  await page.getByRole("link", { name: "Inventario", exact: true }).click();
+  await page
+    .getByRole("link", { name: "Inventario", exact: true })
+    .first()
+    .click();
   await page.getByRole("link", { name: "Categorías" }).click();
   await page.getByLabel("Nueva categoría").fill(categoryName);
   await page.getByRole("button", { name: "Agregar" }).click();
   await expect(page.getByText(categoryName)).toBeVisible();
-  await page.getByRole("link", { name: "Inventario", exact: true }).click();
+  await page
+    .getByRole("link", { name: "Inventario", exact: true })
+    .first()
+    .click();
   await page.getByRole("link", { name: "Nuevo artículo" }).click();
   await page.getByLabel("Categoría *").selectOption({ label: categoryName });
   await page.getByLabel("Nombre *").fill(itemName);
@@ -98,6 +105,10 @@ test("ADMIN configures traceable PPF stock and STAFF receives only the operation
   await expect(page.getByText("30.000", { exact: true })).toBeVisible();
   await expect(page.getByText("Costo orientativo USD")).toHaveCount(0);
   await expect(page.getByText("Ajustar stock")).toHaveCount(0);
+  const accessibility = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(accessibility.violations).toEqual([]);
   await page.goto("/app/inventory/new");
   await expect(page.getByText("403")).toBeVisible();
 });

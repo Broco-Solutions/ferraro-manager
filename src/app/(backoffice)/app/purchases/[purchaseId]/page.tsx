@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { DetailHeader, Page } from "@/components/patterns/page";
+import { Badge } from "@/components/ui/status";
 import { requireRole } from "@/modules/identity/application/authorization";
 import { inventoryUnitSymbols } from "@/modules/inventory/domain/inventory-schema";
+import styles from "@/modules/inventory/ui/supply.module.css";
 import { voidPurchaseAction } from "@/modules/purchases/application/actions";
 import { getPurchaseDetail } from "@/modules/purchases/application/purchase-service";
 import { formatBusinessDate } from "@/shared/date-time/business-time";
@@ -32,33 +35,27 @@ export default async function PurchaseDetailPage({
   const purchase = await getPurchaseDetail(purchaseId);
   if (!purchase) notFound();
   return (
-    <div className="page-stack">
+    <Page className={styles.page} size="wide">
       <Link href="/app/purchases" className="back-link">
         ← Compras
       </Link>
-      <header className="page-header page-header-actions">
-        <div>
-          <p className="eyebrow">{purchase.supplier.name}</p>
-          <h1>{purchase.number}</h1>
-          <p className="page-description">
-            {formatBusinessDate(purchase.businessDate, { timeZone: "UTC" })}
-            {purchase.reference ? ` · ${purchase.reference}` : ""}
-          </p>
-        </div>
-        <div className="purchase-hero-total">
-          <small>Total</small>
-          <strong>USD {purchase.totalUsd.toFixed(2)}</strong>
-          <span
-            className={
-              purchase.status === "POSTED"
-                ? "status-badge status-active"
-                : "status-badge"
-            }
-          >
-            {purchase.status === "POSTED" ? "Posteada" : "Anulada"}
-          </span>
-        </div>
-      </header>
+      <DetailHeader
+        eyebrow={purchase.supplier.name}
+        title={purchase.number}
+        description={`${formatBusinessDate(purchase.businessDate, { timeZone: "UTC" })}${purchase.reference ? ` · ${purchase.reference}` : ""}`}
+        actions={
+          <div className={styles.heroTotal}>
+            <small>Total</small>
+            <strong>USD {purchase.totalUsd.toFixed(2)}</strong>
+            <Badge
+              intent={purchase.status === "POSTED" ? "success" : "danger"}
+              withIcon
+            >
+              {purchase.status === "POSTED" ? "Posteada" : "Anulada"}
+            </Badge>
+          </div>
+        }
+      />
       {notice.created ? (
         <p className="success-banner">
           Compra registrada: stock y egreso se actualizaron juntos.
@@ -82,9 +79,9 @@ export default async function PurchaseDetailPage({
             <h2>Artículos comprados</h2>
           </div>
         </div>
-        <div className="purchase-detail-lines">
+        <div className={styles.lines}>
           {purchase.items.map((item) => (
-            <article key={item.id}>
+            <article className={styles.line} key={item.id}>
               <div>
                 <strong>{item.itemNameSnapshot}</strong>
                 <small>
@@ -105,7 +102,10 @@ export default async function PurchaseDetailPage({
           ))}
         </div>
       </section>
-      <section className="purchase-integrity">
+      <section
+        className={styles.integrity}
+        aria-label="Integridad de movimientos"
+      >
         <article>
           <span>Inventario</span>
           <strong>
@@ -152,6 +152,6 @@ export default async function PurchaseDetailPage({
           <p>{purchase.voidReason}</p>
         </section>
       )}
-    </div>
+    </Page>
   );
 }
