@@ -239,3 +239,14 @@ Registro resumido de la ejecución autónoma de V1. El contrato funcional contin
 - **Tests:** lint, typecheck, 35 unit, 42 integración, build y `git diff --check` verdes. Quote E2E 2/2: crear, preview PDF válido, emitir, aceptar, agendar, reconciliar USD 800.00 y denegación STAFF.
 - **Gate:** GATE 4 UI continúa y GATE 5 PDF parcial, `approved for continued autonomous execution`.
 - **Known issues:** no existe preview cloud aislada; el artefacto se validó con filesystem local, sin producción.
+
+## FRONTEND BUILD FE-10 — Finanzas
+
+- **Status:** COMPLETE — approved for continued autonomous execution.
+- **Scope:** resumen mensual, ledger, filtros, movimientos/categorías, estado financiero por caso, importe acordado, cobros, revisiones y reversión compensatoria. Sólo cambió presentación; moneda, signos, balances y reglas permanecen intactos.
+- **Hierarchy:** entradas/salidas sostienen contexto y flujo neto ocupa la superficie oscura dominante. Importe acordado, cobrado neto y saldo pendiente/a favor/indefinido conservan etiquetas diferentes; ningún total depende sólo del color.
+- **Evidence:** seis baselines en `/tmp/ferraro-redesign-evidence/fe10/baseline` y seis capturas finales del caso poblado en `/tmp/ferraro-redesign-evidence/fe10/final`, cubriendo todos los viewports obligatorios. Sin overflow horizontal.
+- **Accessibility/security:** montos tabulares con signo y label, timeline textual, confirmación robusta y axe WCAG A/AA/2.2 AA en 0 violations. STAFF no recibe navegación financiera y obtiene 403 server-side tanto en lista como caso.
+- **Tests:** lint, typecheck, 35 unit, 42 integración, build y `git diff --check` verdes. Finance E2E 2/2: importe por definir→acordado, cobro parcial, saldo USD 750.00 y denial STAFF.
+- **Gate:** GATE 4 continúa, `approved for continued autonomous execution`.
+- **Known issues:** preview cloud aislada no disponible; datos sintéticos PostgreSQL local, sin producción.

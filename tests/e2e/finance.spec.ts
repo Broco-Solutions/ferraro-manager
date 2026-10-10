@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
 import {
@@ -10,6 +11,37 @@ const clientName = "Finanzas E2E Cliente";
 let clientId = "";
 let vehicleId = "";
 let caseId = "";
+const evidenceViewports = [
+  ["1440x900", 1440, 900],
+  ["1280x800", 1280, 800],
+  ["1024x768", 1024, 768],
+  ["820x1180", 820, 1180],
+  ["768x1024", 768, 1024],
+  ["390x844", 390, 844],
+] as const;
+
+async function captureEvidence(page: Page) {
+  if (!process.env.FE_EVIDENCE_DIR) return;
+  for (const [name, width, height] of evidenceViewports) {
+    await page.setViewportSize({ width, height });
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            document.documentElement.scrollWidth <=
+            document.documentElement.clientWidth,
+        ),
+      )
+      .toBe(true);
+    await page.evaluate(() => {
+      (document.activeElement as HTMLElement | null)?.blur();
+      window.scrollTo(0, 0);
+    });
+    await page.screenshot({
+      path: `${process.env.FE_EVIDENCE_DIR}/finance-case-${name}.png`,
+    });
+  }
+}
 
 async function login(
   page: Page,
@@ -103,6 +135,11 @@ test("ADMIN sets an agreed amount and records a deposit without operational stat
   await page.getByRole("link", { name: "Ver saldo" }).click();
   await expect(page.getByText("USD 750.00")).toBeVisible();
   await expect(page.getByText("USD 250.00", { exact: true })).toBeVisible();
+  const accessibility = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(accessibility.violations).toEqual([]);
+  await captureEvidence(page);
 });
 
 test("STAFF is denied finance routes and receives no financial navigation", async ({

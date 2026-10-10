@@ -2,12 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { DetailHeader, Page } from "@/components/patterns/page";
+import { buttonClassName } from "@/components/ui/button";
 import { ConfirmButton } from "@/components/ui/confirm-button";
 import {
   reverseFinancialEntryAction,
   setAgreedAmountAction,
 } from "@/modules/finance/application/actions";
 import { getCaseFinancialSummary } from "@/modules/finance/application/finance-service";
+import styles from "@/modules/finance/ui/finance.module.css";
 import { requireRole } from "@/modules/identity/application/authorization";
 import { formatBusinessDateTime } from "@/shared/date-time/business-time";
 
@@ -26,33 +29,30 @@ export default async function CaseFinancePage({
   const summary = await getCaseFinancialSummary(caseId);
   if (!summary || !summary.client || !summary.vehicle) notFound();
   return (
-    <div className="page-stack narrow-page">
+    <Page className={styles.page} size="default">
       <Link href="/app/finance" className="back-link">
         ← Finanzas
       </Link>
-      <header className="page-header page-header-actions">
-        <div>
-          <p className="eyebrow">Estado comercial</p>
-          <h1>{summary.client.displayName}</h1>
-          <p className="page-description">
-            {summary.vehicle.brand} {summary.vehicle.model}
-            {summary.vehicle.year ? ` · ${summary.vehicle.year}` : ""}
-          </p>
-        </div>
-        <Link
-          href={`/app/finance/new?caseId=${caseId}`}
-          className="primary-button button-link"
-        >
-          Registrar cobro
-        </Link>
-      </header>
+      <DetailHeader
+        eyebrow="Estado comercial"
+        title={summary.client.displayName}
+        description={`${summary.vehicle.brand} ${summary.vehicle.model}${summary.vehicle.year ? ` · ${summary.vehicle.year}` : ""}`}
+        actions={
+          <Link
+            href={`/app/finance/new?caseId=${caseId}`}
+            className={buttonClassName("primary")}
+          >
+            Registrar cobro
+          </Link>
+        }
+      />
       {query.amount ? (
         <p className="success-banner">Importe acordado actualizado.</p>
       ) : null}
       {query.reversed ? (
         <p className="success-banner">Cobro revertido sin borrar historia.</p>
       ) : null}
-      <section className="case-balance" aria-label="Resumen de saldo">
+      <section className={styles.balance} aria-label="Resumen de saldo">
         <article>
           <span>Importe acordado</span>
           <strong>
@@ -179,7 +179,7 @@ export default async function CaseFinancePage({
       <section className="detail-section">
         <p className="eyebrow">Trazabilidad</p>
         <h2>Historial de importe acordado</h2>
-        <div className="timeline-list">
+        <div className={styles.timeline}>
           {summary.revisions.map((revision) => (
             <article key={revision.id}>
               <strong>USD {revision.newAmountUsd.toFixed(2)}</strong>
@@ -189,6 +189,6 @@ export default async function CaseFinancePage({
           ))}
         </div>
       </section>
-    </div>
+    </Page>
   );
 }

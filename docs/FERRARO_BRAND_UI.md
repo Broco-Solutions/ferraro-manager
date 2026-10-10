@@ -148,6 +148,16 @@ Evidencia FE-08: `/tmp/ferraro-redesign-evidence/fe08`, seis baselines y seis ca
 
 Evidencia FE-09: `/tmp/ferraro-redesign-evidence/fe09/final`; incluye UI en seis viewports, PDF, raster color/grises y texto extraído. El TTF embebido tiene SHA-256 `4989b125924991b90d05b2d16e0e388c48f7d5bb8b30539bbf9c755278d0ccaf`.
 
+## Finanzas y saldos
+
+- Finanzas es ADMIN-only y usa densidad de ledger, no un dashboard de cards. Flujo neto es el dato principal; entradas y salidas aportan contexto con signo, label y color semántico.
+- Cada movimiento conserva tipo, caso/categoría, fecha, monto firmado, vínculo al saldo y reversión. Revertir siempre abre confirmación y crea compensación; nunca aparenta borrar historia.
+- El caso separa importe acordado, cobrado neto y saldo pendiente/a favor. “Importe por definir” y “No calculable” son estados explícitos, no ceros decorativos.
+- Desktop presenta tres KPIs/columnas; tablet usa 2+1 y mobile una secuencia. El ledger recompone monto/acción sin truncar cliente ni motivo.
+- Los montos usan cifras tabulares. Verde/rojo nunca son la única señal: signo, dirección, tipo y texto acompañan todos los valores.
+
+Evidencia FE-10: `/tmp/ferraro-redesign-evidence/fe10`, seis baselines y seis capturas finales; axe sin violations y denial STAFF verificado en navegación y ruta.
+
 ## Geometría y tono
 
 La UI deriva del isotipo su ritmo vertical y división en tres, sin convertirlos en patrón ornamental repetitivo. El shell es grafito y el área de trabajo clara. La identidad proviene de activo, tipografía, alineación, ritmo y detalle; el amarillo se reserva para marca, foco y selección controlada.
