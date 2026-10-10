@@ -1,0 +1,143 @@
+.page {
+  display: grid;
+  gap: var(--space-8);
+  width: 100%;
+  max-width: var(--content-default);
+  margin-inline: auto;
+}
+
+.wide {
+  max-width: var(--content-wide);
+}
+
+.narrow {
+  max-width: var(--content-narrow);
+}
+
+.header,
+.sectionHeader,
+.detailHeader {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-6);
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.headerCopy,
+.sectionCopy {
+  display: grid;
+  gap: var(--space-2);
+  max-width: 50rem;
+}
+
+.header h1,
+.header h2,
+.header p,
+.sectionHeader h2,
+.sectionHeader h3,
+.sectionHeader p,
+.detailHeader h1,
+.detailHeader p {
+  margin: 0;
+}
+
+.header p,
+.sectionHeader p,
+.detailHeader p {
+  color: var(--foreground-muted);
+}
+
+.eyebrow {
+  color: var(--foreground-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  min-height: var(--touch-target);
+  padding-block: var(--space-3);
+  border-block: 1px solid var(--border);
+}
+
+.toolbarPrimary {
+  flex: 1 1 18rem;
+}
+
+.formSection {
+  display: grid;
+  gap: var(--space-5);
+  padding-block: var(--space-6);
+  border-top: 1px solid var(--border);
+}
+
+.formSection h2,
+.formSection h3,
+.formSection p {
+  margin: 0;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-5);
+}
+
+.formActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: flex-end;
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 48rem) {
+  .page {
+    gap: var(--space-6);
+  }
+
+  .header,
+  .detailHeader {
+    align-items: flex-start;
+  }
+
+  .actions {
+    width: 100%;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 30rem) {
+  .actions > *,
+  .formActions > * {
+    flex: 1 1 auto;
+  }
+
+  .formActions {
+    position: sticky;
+    z-index: var(--z-sticky);
+    bottom: 0;
+    margin-inline: calc(var(--gutter-mobile) * -1);
+    padding: var(--space-3) var(--gutter-mobile)
+      max(var(--space-3), env(safe-area-inset-bottom));
+    background: var(--surface-raised);
+    box-shadow: 0 -1px 0 var(--border);
+  }
+}

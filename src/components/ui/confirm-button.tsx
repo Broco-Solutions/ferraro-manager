@@ -1,5 +1,9 @@
 "use client";
 
+import { useRef } from "react";
+
+import { ConfirmDialog } from "./overlays";
+
 interface ConfirmButtonProps {
   children: string;
   message: string;
@@ -11,15 +15,18 @@ export function ConfirmButton({
   message,
   className,
 }: ConfirmButtonProps) {
+  const anchorRef = useRef<HTMLSpanElement>(null);
+
   return (
-    <button
-      type="submit"
-      className={className}
-      onClick={(event) => {
-        if (!window.confirm(message)) event.preventDefault();
-      }}
-    >
-      {children}
-    </button>
+    <span ref={anchorRef}>
+      <ConfirmDialog
+        confirmLabel={children}
+        description={message}
+        onConfirm={() => anchorRef.current?.closest("form")?.requestSubmit()}
+        title="Confirmar acción"
+        triggerClassName={className}
+        triggerLabel={children}
+      />
+    </span>
   );
 }

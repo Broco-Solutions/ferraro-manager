@@ -152,13 +152,19 @@ test("ADMIN creates, emits, accepts and converts a quote into the same case appo
   expect(preview.headers()["content-type"]).toContain("application/pdf");
   expect((await preview.body()).subarray(0, 4).toString()).toBe("%PDF");
 
-  page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Emitir presupuesto" }).click();
+  await page
+    .getByRole("alertdialog", { name: "Confirmar acción" })
+    .getByRole("button", { name: "Emitir presupuesto" })
+    .click();
   await expect(
     page.getByText("Presupuesto emitido y PDF congelado."),
   ).toBeVisible();
-  page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Marcar aceptado" }).click();
+  await page
+    .getByRole("alertdialog", { name: "Confirmar acción" })
+    .getByRole("button", { name: "Marcar aceptado" })
+    .click();
   await expect(
     page.getByText("El importe acordado quedó fijado."),
   ).toBeVisible();
