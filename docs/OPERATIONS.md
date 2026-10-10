@@ -28,7 +28,7 @@ Cuando el acceso quede resuelto:
 9. Revisar logs de build y runtime, además de errores 5xx.
 10. Registrar el release como completado en `docs/EXECUTION_LOG.md` sólo después de confirmar todas las verificaciones.
 
-El próximo checkpoint es **PENDIENTE DE ACCESO VERCEL**. No volver a implementar la feature, recrear el merge, rehacer migraciones ni resetear `main`.
+El checkpoint quedó resuelto el 2026-10-10 mediante el deployment `dpl_4FCq5cKW2mWMBTLEZZM94wCTq7hd`, que llegó a `READY` y aplicó las tres migraciones en Railway. Si se retoma una nueva operación, conservar el procedimiento anterior para futuros releases y no volver a implementar la feature, recrear el merge, rehacer migraciones ni resetear `main`.
 
 ## Health y observabilidad
 

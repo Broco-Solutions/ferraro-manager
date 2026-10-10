@@ -335,3 +335,15 @@ Registro resumido de la ejecución autónoma de V1. El contrato funcional contin
 - **Base de datos:** el producto aún no está en uso operativo y no hay datos productivos relevantes para este release; por eso no se exigió backup previo. Esto no es una política general: cuando existan datos reales, cada release con migraciones debe evaluar backup, rollback e impacto explícitamente.
 - **Seguridad:** permanece pendiente el advisory dev-only `GHSA-vfj7-8cjw-p6xm`, `braces@3.0.3`, CWE-674, HIGH; `pnpm audit --prod` reporta cero vulnerabilidades y no existe publicada la versión `braces@3.0.4` indicada como fix.
 - **Próximo paso:** **PENDIENTE DE ACCESO VERCEL**. Al retomar, resolver la asociación/aprobación del committer, desplegar nuevamente el último `main`, esperar `READY`, verificar build y Prisma, confirmar las tres migraciones, ejecutar smoke test de USD/ARS, presupuestos, compras, finanzas, costo directo, margen y cobertura, revisar logs y actualizar este log sólo cuando el release productivo sea exitoso.
+
+## RELEASE DEPLOYED — Money + profitability
+
+- **Fecha:** 2026-10-10
+- **Código:** `main` en `e5dc479d4addc48ac7eb4875c6d244789934babf`.
+- **Deployment:** Vercel `dpl_4FCq5cKW2mWMBTLEZZM94wCTq7hd`, origen CLI autorizado sobre el proyecto existente `ferraro-manager`, estado `READY`, alias `https://ferraro-manager.vercel.app`.
+- **Build:** completado correctamente con `pnpm db:generate && pnpm db:migrate:deploy && pnpm build`; Next.js 16.3.8 compiló y generó las rutas sin error.
+- **Producción:** las tres migraciones quedaron aplicadas en Railway: `20261010120000_money_profitability`, `20261010140000_money_consistency_constraints` y `20261010160000_direct_cost_consistency`.
+- **Smoke test:** `/login` respondió 200; `/api/health` respondió `{"status":"ok"}`; `/app`, `/app/calendar` y `/app/finance` redirigieron anónimamente a `/login` con 307; las rutas productivas principales respondieron correctamente al seguimiento de redirección. No se crearon datos productivos.
+- **Runtime:** no se encontraron logs `error` ni `fatal` para el deployment durante la ventana posterior al release.
+- **Seguridad:** continúa documentado `GHSA-vfj7-8cjw-p6xm` / `braces@3.0.3` como advisory HIGH, transitivo y dev-only; `pnpm audit --prod` permanece en cero.
+- **Estado:** release productivo completado. La validación autenticada de ADMIN y los flujos que requieren datos queda para una sesión con credenciales operativas; no se inventaron usuarios ni datos.
