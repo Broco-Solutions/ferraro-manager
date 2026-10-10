@@ -250,3 +250,14 @@ Registro resumido de la ejecución autónoma de V1. El contrato funcional contin
 - **Tests:** lint, typecheck, 35 unit, 42 integración, build y `git diff --check` verdes. Finance E2E 2/2: importe por definir→acordado, cobro parcial, saldo USD 750.00 y denial STAFF.
 - **Gate:** GATE 4 continúa, `approved for continued autonomous execution`.
 - **Known issues:** preview cloud aislada no disponible; datos sintéticos PostgreSQL local, sin producción.
+
+## FRONTEND BUILD FE-11 — Inventario, compras y proveedores
+
+- **Status:** COMPLETE — approved for continued autonomous execution.
+- **Scope:** inventario/filtros/estados, detalle y ajustes, categorías/presentaciones, compras/lista/editor/detalle y proveedores. No cambiaron unidades, factores, ledger, cálculos ni permisos.
+- **Hierarchy:** stock actual y unidad se leen juntos; mínimo y estado completan la decisión. Compra muestra snapshot, factor de conversión, cantidad base ingresada, costo/total e integridad enlazada de inventario/caja.
+- **Evidence:** seis baselines en `/tmp/ferraro-redesign-evidence/fe11/baseline` y seis capturas finales de compra poblada en `/tmp/ferraro-redesign-evidence/fe11/final`, cubriendo viewports obligatorios sin overflow horizontal.
+- **Accessibility/security:** disponible/bajo usan icono+texto+color, unidad acompaña cantidad y targets preservan 44 px. Axe WCAG A/AA/2.2 AA en 0 violations para detalle de compra ADMIN y detalle de inventario STAFF. Costos/ajustes no se proyectan a STAFF; Compras devuelve 403.
+- **Tests:** lint, typecheck, 35 unit, 42 integración, build y `git diff --check` verdes. Inventory/purchases E2E 2/2: categoría, artículo, ajuste, presentación 1=15 m, compra 2 rollos→+30 m, egreso USD 1200 y denegaciones.
+- **Gate:** GATE 4 módulos operativos/comerciales completo, `approved for continued autonomous execution`.
+- **Known issues:** preview cloud aislada no disponible; validación local reversible, sin producción.

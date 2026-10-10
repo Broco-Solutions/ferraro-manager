@@ -158,6 +158,16 @@ Evidencia FE-09: `/tmp/ferraro-redesign-evidence/fe09/final`; incluye UI en seis
 
 Evidencia FE-10: `/tmp/ferraro-redesign-evidence/fe10`, seis baselines y seis capturas finales; axe sin violations y denial STAFF verificado en navegación y ruta.
 
+## Inventario y abastecimiento
+
+- Inventario prioriza nombre/categoría/SKU, stock actual+unidad, mínimo y estado. Disponible, bajo y agotado se comunican con texto/icono y no con color aislado.
+- ADMIN recibe categorías, artículo, costo, ajustes y presentaciones. STAFF recibe la proyección operativa de cantidad/movimientos, sin costos ni acciones de configuración.
+- Compras es ADMIN-only. La lista concentra número/proveedor/fecha, ítems, total y estado; el detalle explica cantidad comprada, costo unitario, factor snapshot y cantidad base que impactó stock.
+- El bloque de integridad hace visible que inventario y caja tienen movimientos vinculados. Anular conserva la compra y compensa ambos lados; el conflicto por stock consumido conserva su explicación específica.
+- Las filas prioritarias se recomponen en dos columnas mobile. No se usan imágenes genéricas de producto ni se inventan forecast, recepción parcial o nuevas unidades.
+
+Evidencia FE-11: `/tmp/ferraro-redesign-evidence/fe11`, seis baselines y seis capturas finales; axe sin violations, proyección STAFF y denial de Compras verificados.
+
 ## Geometría y tono
 
 La UI deriva del isotipo su ritmo vertical y división en tres, sin convertirlos en patrón ornamental repetitivo. El shell es grafito y el área de trabajo clara. La identidad proviene de activo, tipografía, alineación, ritmo y detalle; el amarillo se reserva para marca, foco y selección controlada.
