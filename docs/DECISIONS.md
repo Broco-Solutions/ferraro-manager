@@ -78,3 +78,26 @@ Centralizar color, tipografía, spacing, geometría, layout, motion y z-index en
 - El wordmark continúa siendo el SVG oficial y nunca se reconstruye con Inter.
 - Los nuevos componentes no pueden consumir aliases heredados ni agregar hex fuera del archivo de tokens, salvo texto documental que exhiba el valor oficial.
 - PPF House puede sustituir fuente y tokens sin modificar primitives ni lógica de dominio.
+
+## DEC-004 — React Aria Components y Phosphor como infraestructura visual
+
+- **Fecha:** 2026-10-10
+- **Estado:** aceptada
+- **Build afectado:** FRONTEND BUILD FE-02 — Componentes base y design system
+
+### Contexto
+
+Dialog, drawer, tooltip y confirmación requieren focus trap, Escape, retorno de foco, scroll/modal semantics y comportamiento consistente con teclado/touch. Implementar esos contratos a mano ampliaría la superficie de errores. La iconografía debe ser única, tree-shakeable, legible y con variantes de peso suficientes para navegación y estado.
+
+### Decisión
+
+Usar React Aria Components 1.22.1 como capa headless para overlays, conservando inputs, selects, textareas, checkbox y botones simples como controles nativos. Reemplazar el `window.confirm` del componente compartido por `ConfirmDialog`, con cancelación enfocada por defecto y consecuencia explícita. La confirmación específica del portal migra junto a ese módulo en FE-12.
+
+Adoptar Phosphor Icons 2.1.10 como única librería de iconos, con imports individuales: `dist/ssr` para Server Components y el entrypoint normal sólo dentro de boundaries cliente. La comparación con Lucide 1.54.0 mostró que ambas opciones soportan tree shaking y SSR; Phosphor ofrece pesos más útiles para distinguir navegación/estado sin mezclar estilos. El chunk cliente que contiene el set real del showcase quedó en 28.770 bytes sin comprimir, por lo que no apareció el riesgo de bundle que justificaría cambiar a Lucide.
+
+### Consecuencias
+
+- Los primitives no contienen copy de Ferraro, rutas de dominio ni colores de marca.
+- Overlays mantienen foco, cierre por Escape/click exterior y retorno al disparador por contratos probados de React Aria.
+- `@axe-core/playwright` queda disponible para gates A/AA automatizados; no reemplaza teclado, zoom ni revisión manual.
+- No se instala ni mezcla una segunda librería de iconos.

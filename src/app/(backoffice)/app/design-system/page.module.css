@@ -207,6 +207,50 @@
   cursor: pointer;
 }
 
+.actionGrid,
+.badgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.formShowcase {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-5);
+  max-width: var(--content-default);
+  padding: var(--space-6);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.feedbackGrid,
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.cardGrid > :last-child {
+  grid-column: 1 / -1;
+}
+
+.cardGrid p {
+  margin: var(--space-2) 0 0;
+  color: var(--foreground-muted);
+}
+
+.skeletonGroup {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
 @media (max-width: 64rem) {
   .swatches,
   .statusGrid {
@@ -226,6 +270,16 @@
 
   .mark {
     width: 5.5rem;
+  }
+
+  .formShowcase,
+  .feedbackGrid,
+  .cardGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .cardGrid > :last-child {
+    grid-column: auto;
   }
 }
 

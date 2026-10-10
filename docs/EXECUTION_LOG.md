@@ -150,3 +150,14 @@ Registro resumido de la ejecución autónoma de V1. El contrato funcional contin
 - **Tests:** lint, typecheck, 35 unit, 42 integración, build y `git diff --check` verdes. Fuente cargada localmente y confirmada en navegador.
 - **Gate:** GATE 1 foundations/tipo, `approved for continued autonomous execution`; primitives e iconografía continúan en FE-02.
 - **Known issues:** aliases y hardcodes heredados continúan bajo migración controlada; preview cloud aislada aún no disponible y no fue sustituida por producción.
+
+## FRONTEND BUILD FE-02 — Componentes base y design system
+
+- **Status:** COMPLETE — approved for continued autonomous execution.
+- **Scope:** primitives P0, assets de marca, patterns de página/form, overlays headless, Phosphor y catálogo vivo ADMIN. El `window.confirm` compartido fue reemplazado por `ConfirmDialog` sin modificar server actions; el uso específico del portal migra en FE-12.
+- **Architecture:** controles simples nativos; React Aria Components 1.22.1 para dialog/drawer/tooltip/confirmación; Phosphor Icons 2.1.10 como único set con imports por entorno. Boundaries cliente limitadas a overlays, confirmación y showcase interactivo.
+- **Evidence:** cinco capturas privadas en `/tmp/ferraro-redesign-evidence/fe02`: catálogo 1440×900, 768×1024, 390×844, drawer mobile y confirmación mobile. Sin overflow horizontal ni errores de consola; aborts observados correspondieron a prefetch RSC cancelado durante navegación completa, no a respuestas fallidas.
+- **Accessibility:** 2 E2E del design system verdes; axe WCAG A/AA sin violations, Escape/cierre/retorno de foco verificados, cancelación recibe foco inicial en acción destructiva y controles táctiles parten de 44 px.
+- **Tests:** lint, typecheck, 35 unit, 42 integración, build y `git diff --check` verdes. E2E relacionado: 4/4 (catálogo/axe y presupuesto ADMIN/STAFF con confirmación real).
+- **Gate:** GATE 1 completo, `approved for continued autonomous execution`; marca, tipo, tokens, iconos, primitives y overlays habilitan FE-03/04.
+- **Known issues:** el catálogo aún se monta dentro del shell heredado; su navegación y fixed mobile se reemplazan en FE-03. Preview cloud aislada sigue pendiente y producción no fue usada.

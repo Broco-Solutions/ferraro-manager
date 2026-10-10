@@ -49,6 +49,8 @@ Los tonos derivados viven como tokens semánticos. Primitives y módulos no cons
 - Wordmark: siempre SVG oficial; nunca texto Inter/IBM Plex.
 - Iconografía: Phosphor por defecto, imports individuales. Lucide sólo reemplaza la elección completa si el spike demuestra una desventaja real de bundle, SSR o accesibilidad.
 
+En FE-02 Phosphor Icons 2.1.10 quedó aprobado como único set. Se usan imports `dist/ssr` en Server Components y el entrypoint cliente sólo en boundaries interactivos. La muestra real de acciones/estados produjo un chunk cliente de 28.770 bytes sin comprimir y no mostró problemas SSR; Lucide 1.54.0 no ofreció una mejora que justificara perder las variantes de peso de Phosphor.
+
 ## Foundations y tokens
 
 - Fuente única: `src/design-system/tokens.css`; las capas se ordenan como `reset`, `tokens`, `base`, `components`, `patterns`, `modules`, `utilities` y `overrides`.
@@ -58,6 +60,19 @@ Los tonos derivados viven como tokens semánticos. Primitives y módulos no cons
 - Aliases `--color-*` sostienen únicamente selectores heredados durante la migración. Componentes nuevos consumen tokens semánticos y FE-14 elimina aliases sin referencias.
 
 Contrastes verificados en FE-01: foreground/canvas 16.03:1; muted/canvas 5.80:1; blanco/gris 5.01:1; success 6.47:1; warning 6.60:1; danger 6.12:1; info 6.37:1 sobre sus superficies.
+
+## Componentes y patrones
+
+Contratos de producción disponibles desde FE-02:
+
+- Marca: `BrandLogo`, `BrandMark`, `BrandLockup`; encapsulan activos oficiales, variantes y mínimos.
+- Controles: `Button`, `IconButton`, `Field`, `FieldError`, `Input`, `Textarea`, `Select`, `Choice`.
+- Estado: `Badge`, `Alert`, `Spinner`, `Skeleton`, `EmptyState`.
+- Superficie: `Card` flat/raised/interactive.
+- Overlays: `Dialog`, `Drawer`, `Tooltip` integrado en `IconButton` y `ConfirmDialog`, respaldados por React Aria Components 1.22.1.
+- Página/form: `Page`, `PageHeader`, `SectionHeader`, `DetailHeader`, `DataToolbar`, `FormSection`, `FormGrid`, `FormActions`.
+
+Los controles nativos preservan semantics y autocompletado. React Aria se limita a interacción compleja. El catálogo vivo `/app/design-system` es ADMIN-only, importa los componentes productivos y muestra estados idle/loading/disabled/error, responsive y overlays; no es una implementación paralela.
 
 ## Geometría y tono
 

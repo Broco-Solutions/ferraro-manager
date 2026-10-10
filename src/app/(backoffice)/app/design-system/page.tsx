@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 
-import { brandConfig } from "@/config/brand";
+import { BrandMark } from "@/components/brand/brand-assets";
 import { requireRole } from "@/modules/identity/application/authorization";
 
 import styles from "./page.module.css";
+import { ComponentShowcase } from "./showcase";
 
 export const metadata: Metadata = { title: "Sistema de diseño" };
 
@@ -52,15 +52,7 @@ export default async function DesignSystemPage() {
             legibilidad, jerarquía y velocidad de uso diario.
           </p>
         </div>
-        <Image
-          alt=""
-          aria-hidden="true"
-          className={styles.mark}
-          height={112}
-          priority
-          src={brandConfig.assets.mark}
-          width={112}
-        />
+        <BrandMark className={styles.mark} priority size={112} />
       </header>
 
       <section className={styles.section} aria-labelledby="brand-colors">
@@ -126,6 +118,8 @@ export default async function DesignSystemPage() {
           ))}
         </div>
       </section>
+
+      <ComponentShowcase />
     </main>
   );
 }
