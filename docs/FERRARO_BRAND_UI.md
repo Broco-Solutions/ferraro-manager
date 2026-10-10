@@ -116,6 +116,17 @@ Evidencia FE-05: `/tmp/ferraro-redesign-evidence/fe05`, seis viewports obligator
 
 Evidencia FE-06: `/tmp/ferraro-redesign-evidence/fe06`, baseline y ocho capturas finales con vacío, solape, multidía, bloqueo y tres estados. Axe WCAG A/AA sin violations, 200% efectivo sin overflow y reduced motion verificado.
 
+## Relaciones, garage y catálogo
+
+- La lista de clientes es una secuencia plana, no una grilla de cards: nombre/contacto domina, garage resume vehículos reales y estado/acción cierran la fila. En mobile se recompone en dos niveles.
+- La ficha ordena contacto y estado → garage → alta de vehículo → historial → contenido ADMIN. No usa iniciales ni siluetas genéricas como identidad del vehículo; marca, modelo, versión, año y color son la identidad.
+- Vehículos activos/archivados comparten estructura y difieren por label, contraste y acción explícita. Los textos largos envuelven sin desplazar controles.
+- Catálogo ADMIN agrupa por categoría con divisores editoriales. Cada fila comunica descripción, duración, variantes, precio/a cotizar y estado sin convertir cada servicio en una card independiente.
+- Variantes exponen segmento o excepción exacta marca/modelo y prioridad, sin ocultar reglas de pricing. STAFF no accede al catálogo ni a precios.
+- Formularios de clientes, vehículos y servicios reutilizan `Field`, controles nativos, `FormSection`, `FormGrid` y `FormActions`; errores están asociados mediante `aria-describedby` y la acción mobile permanece en el flujo para no competir con la barra inferior.
+
+Evidencia FE-07: `/tmp/ferraro-redesign-evidence/fe07`, seis baselines y nueve capturas finales con estados llenos/vacíos/filtrados/archivados, duplicado sugerido y textos largos; axe A/AA sin violations.
+
 ## Geometría y tono
 
 La UI deriva del isotipo su ritmo vertical y división en tres, sin convertirlos en patrón ornamental repetitivo. El shell es grafito y el área de trabajo clara. La identidad proviene de activo, tipografía, alineación, ritmo y detalle; el amarillo se reserva para marca, foco y selección controlada.

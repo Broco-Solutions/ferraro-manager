@@ -203,3 +203,15 @@ Registro resumido de la ejecución autónoma de V1. El contrato funcional contin
 - **Tests:** lint, typecheck, 35 unit, 42 integración, build y `git diff --check` verdes. Agenda E2E 2/2; gate conjunto agenda/dashboard/portal 4/4 con roles, proyecciones y aislamiento conservados.
 - **Gate:** GATE 3 completo, `approved for continued autonomous execution`.
 - **Known issues:** preview cloud aislada no disponible; validación local sobre production build y PostgreSQL local. La página de turno sigue siendo la fuente de verdad y no se agregó drawer opcional. Producción no fue usada.
+
+## FRONTEND BUILD FE-07 — Clientes, vehículos y servicios
+
+- **Status:** COMPLETE — approved for continued autonomous execution.
+- **Scope:** listas, filtros, fichas, garage, historial, presupuestos ADMIN, formularios de cliente/vehículo y catálogo ADMIN con categorías, precio base, duración y variantes. No se agregaron capacidades CRM, marcas visuales de fabricantes, transferencias ni reglas de pricing.
+- **Evidence:** seis baselines en `/tmp/ferraro-redesign-evidence/fe07/baseline` y nueve capturas finales en `/tmp/ferraro-redesign-evidence/fe07/final`. Las seis resoluciones obligatorias se distribuyeron entre ADMIN/STAFF, lista/ficha/catálogo/form; evidencia adicional cubre archivado, duplicado sugerido, filtro sin resultados, servicio inactivo, a cotizar, variantes y datos largos. Fixtures locales reversibles eliminados al terminar.
+- **Responsive:** filas densas pasan a bloques de lectura sin perder nombre/contacto/garage/estado; ficha reordena resumen, vehículos e historial; forms compartidos pasan a una columna. Cero overflow en 1440×900, 1280×800, 1024×768, 820×1180, 768×1024 y 390×844; consola y respuestas HTTP limpias.
+- **Accessibility:** fields compartidos enlazan label/descripción/error, estados no dependen sólo de color, targets preservados y formularios mantienen controles nativos/autocomplete. Axe WCAG A/AA en 0 violations para lista STAFF y detalle de servicio ADMIN.
+- **Security:** ADMIN conserva catálogo, precios, presupuestos y portal; STAFF recibe 403 server-side en Servicios y no recibe presupuestos/portal en la ficha. Queries y proyecciones existentes no cambiaron.
+- **Tests:** lint, typecheck, 35 unit, 42 integración, build y `git diff --check` verdes. E2E clientes/servicios 2/2 con alta, vehículo, búsqueda por modelo, categoría, servicio, excepción de modelo y denegación STAFF.
+- **Gate:** GATE 4 primer corte modular, `approved for continued autonomous execution`; se completa con FE-08 a FE-12.
+- **Known issues:** el gestor visual del link privado se rediseña en FE-12 y sólo fue preservado aquí; preview cloud aislada no disponible. Producción no fue usada.
