@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
 import {
@@ -66,6 +67,10 @@ test("ADMIN creates a service and a model exception; STAFF is denied", async ({
   await page.getByLabel("Precio USD *").fill("720");
   await page.getByRole("button", { name: "Agregar variante" }).click();
   await expect(page.getByText("USD 720.00")).toBeVisible();
+  const accessibility = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(accessibility.violations).toEqual([]);
   await page.getByRole("button", { name: "Cerrar sesión" }).click();
   await expect(page).toHaveURL(/\/login$/);
 

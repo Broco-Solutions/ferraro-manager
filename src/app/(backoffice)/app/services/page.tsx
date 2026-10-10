@@ -1,10 +1,20 @@
+import {
+  ClockIcon,
+  PlusIcon,
+  SlidersHorizontalIcon,
+  WrenchIcon,
+} from "@phosphor-icons/react/dist/ssr";
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { Page, PageHeader } from "@/components/patterns/page";
+import { buttonClassName } from "@/components/ui/button";
+import { Badge } from "@/components/ui/status";
 import { requireRole } from "@/modules/identity/application/authorization";
 import { toggleServiceAction } from "@/modules/services/application/actions";
 import { listAdminCatalog } from "@/modules/services/application/service-catalog";
 import { CategoryForm } from "@/modules/services/ui/catalog-forms";
+import styles from "@/modules/services/ui/services.module.css";
 
 export const metadata: Metadata = { title: "Servicios" };
 
@@ -22,85 +32,119 @@ export default async function ServicesPage({
     (total, category) => total + category.services.length,
     0,
   );
+
   return (
-    <div className="page-stack">
-      <header className="page-header page-header-actions">
-        <div>
-          <p className="eyebrow">Catálogo comercial</p>
-          <h1>Servicios</h1>
-          <p className="page-description">
-            Precios sugeridos configurables, sin reglas ocultas.
-          </p>
-        </div>
-        <Link href="/app/services/new" className="primary-button button-link">
-          Nuevo servicio
-        </Link>
-      </header>
+    <Page className={styles.page}>
+      <PageHeader
+        actions={
+          <Link
+            className={`${buttonClassName("primary")} ${styles.headerLink}`}
+            href="/app/services/new"
+          >
+            <PlusIcon aria-hidden size={18} weight="bold" />
+            <span>Nuevo servicio</span>
+          </Link>
+        }
+        description="Precios sugeridos configurables, duración visible y excepciones explícitas."
+        eyebrow="Catálogo comercial"
+        title="Servicios"
+      />
       {notice.categorySaved ? (
-        <p className="success-banner">Categoría creada.</p>
+        <p className={styles.notice} role="status">
+          Categoría creada.
+        </p>
       ) : null}
+
       <CategoryForm />
-      <div className="results-meta">
-        <strong>{count}</strong> {count === 1 ? "servicio" : "servicios"}
+
+      <div className={styles.resultsMeta}>
+        <strong>{count}</strong>
+        <span>{count === 1 ? "servicio" : "servicios"}</span>
       </div>
+
       {catalog.length ? (
-        <div className="catalog-stack">
+        <div className={styles.catalog}>
           {catalog.map((category) => (
-            <section className="catalog-category" key={category.id}>
-              <header>
+            <section className={styles.category} key={category.id}>
+              <header className={styles.categoryHeader}>
                 <div>
-                  <p className="card-kicker">Categoría</p>
+                  <p className={styles.eyebrow}>Categoría</p>
                   <h2>{category.name}</h2>
                 </div>
-                <span>{category.services.length}</span>
+                <span
+                  aria-label={`${category.services.length} servicios`}
+                  className={styles.count}
+                >
+                  {category.services.length}
+                </span>
               </header>
               {category.services.length ? (
-                <div className="service-list">
+                <div className={styles.serviceList}>
                   {category.services.map((service) => (
                     <article
-                      className={`service-row ${service.active ? "" : "is-archived"}`}
+                      className={`${styles.serviceRow} ${
+                        service.active ? "" : styles.archived
+                      }`}
                       key={service.id}
                     >
-                      <div>
+                      <div className={styles.serviceIdentity}>
                         <strong>{service.name}</strong>
                         <small>
-                          {service.basePriceUsd
-                            ? `USD ${service.basePriceUsd.toFixed(2)}`
-                            : "A cotizar"}{" "}
-                          ·{" "}
+                          {service.internalDescription ||
+                            service.commercialDescription ||
+                            "Sin descripción cargada"}
+                        </small>
+                      </div>
+                      <div className={styles.serviceMeta}>
+                        <span>
+                          <ClockIcon aria-hidden size={16} />{" "}
                           {service.estimatedDurationMinutes
                             ? `${service.estimatedDurationMinutes} min`
                             : "Duración abierta"}
-                        </small>
+                        </span>
+                        <span>
+                          <SlidersHorizontalIcon aria-hidden size={16} />{" "}
+                          {service.variants.length}{" "}
+                          {service.variants.length === 1
+                            ? "variante"
+                            : "variantes"}
+                        </span>
                       </div>
-                      <span className="variant-count">
-                        {service.variants.length}{" "}
-                        {service.variants.length === 1
-                          ? "variante"
-                          : "variantes"}
-                      </span>
-                      <Link
-                        href={`/app/services/${service.id}`}
-                        className="text-link"
-                      >
-                        Configurar
-                      </Link>
-                      <form action={toggleServiceAction}>
-                        <input type="hidden" name="id" value={service.id} />
-                        <input
-                          type="hidden"
-                          name="active"
-                          value={String(!service.active)}
-                        />
-                        <button className="text-button">
-                          {service.active ? "Desactivar" : "Activar"}
-                        </button>
-                      </form>
+                      <strong className={styles.price}>
+                        {service.basePriceUsd
+                          ? `USD ${service.basePriceUsd.toFixed(2)}`
+                          : "A cotizar"}
+                      </strong>
+                      <div className={styles.serviceActions}>
+                        <Badge
+                          intent={service.active ? "success" : "neutral"}
+                          withIcon
+                        >
+                          {service.active ? "Activo" : "Inactivo"}
+                        </Badge>
+                        <Link
+                          className={styles.textAction}
+                          href={`/app/services/${service.id}`}
+                        >
+                          Configurar
+                        </Link>
+                        <form action={toggleServiceAction}>
+                          <input name="id" type="hidden" value={service.id} />
+                          <input
+                            name="active"
+                            type="hidden"
+                            value={String(!service.active)}
+                          />
+                          <button className={styles.textAction} type="submit">
+                            {service.active ? "Desactivar" : "Activar"}
+                          </button>
+                        </form>
+                      </div>
                     </article>
                   ))}
                 </div>
               ) : (
-                <div className="inline-empty">
+                <div className={styles.inlineEmpty}>
                   <strong>Sin servicios en esta categoría</strong>
                   <p>Podés usarla al crear el próximo servicio.</p>
                 </div>
@@ -109,8 +153,9 @@ export default async function ServicesPage({
           ))}
         </div>
       ) : (
-        <section className="empty-state">
-          <p className="eyebrow">Catálogo inicial</p>
+        <section className={styles.empty}>
+          <WrenchIcon aria-hidden size={30} />
+          <p className={styles.eyebrow}>Catálogo inicial</p>
           <h2>Creá una categoría para empezar.</h2>
           <p>
             Después vas a poder cargar servicios, precios base y variantes
@@ -118,6 +163,6 @@ export default async function ServicesPage({
           </p>
         </section>
       )}
-    </div>
+    </Page>
   );
 }

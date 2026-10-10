@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { DetailHeader, Page } from "@/components/patterns/page";
+import { Button } from "@/components/ui/button";
 import { requireRole } from "@/modules/identity/application/authorization";
 import {
   toggleServiceAction,
@@ -9,6 +11,7 @@ import {
 } from "@/modules/services/application/actions";
 import { getAdminService } from "@/modules/services/application/service-catalog";
 import { ServiceForm, VariantForm } from "@/modules/services/ui/catalog-forms";
+import styles from "@/modules/services/ui/services.module.css";
 
 export const metadata: Metadata = { title: "Configurar servicio" };
 
@@ -23,34 +26,44 @@ export default async function ServiceDetailPage({
   const [{ serviceId }, notices] = await Promise.all([params, searchParams]);
   const { service, categories } = await getAdminService(serviceId);
   if (!service) notFound();
+
   return (
-    <div className="page-stack page-narrow">
-      <Link href="/app/services" className="back-link">
+    <Page className={styles.detailPage} size="narrow">
+      <Link className={styles.backLink} href="/app/services">
         ← Servicios
       </Link>
       {notices.saved || notices.variantSaved ? (
-        <p className="success-banner">
+        <p className={styles.notice} role="status">
           Los cambios se guardaron correctamente.
         </p>
       ) : null}
-      <header className="page-header page-header-actions">
-        <div>
-          <p className="eyebrow">{service.category.name}</p>
-          <h1>{service.name}</h1>
-          <p className="page-description">
-            {service.basePriceUsd
-              ? `Base USD ${service.basePriceUsd.toFixed(2)}`
-              : "Servicio a cotizar"}
-          </p>
-        </div>
-        <form action={toggleServiceAction}>
-          <input type="hidden" name="id" value={service.id} />
-          <input type="hidden" name="active" value={String(!service.active)} />
-          <button className="ghost-button">
-            {service.active ? "Desactivar" : "Activar"}
-          </button>
-        </form>
-      </header>
+      <DetailHeader
+        actions={
+          <form action={toggleServiceAction}>
+            <input name="id" type="hidden" value={service.id} />
+            <input
+              name="active"
+              type="hidden"
+              value={String(!service.active)}
+            />
+            <Button type="submit" variant="ghost">
+              {service.active ? "Desactivar" : "Activar"}
+            </Button>
+          </form>
+        }
+        description={
+          service.basePriceUsd
+            ? `Base USD ${service.basePriceUsd.toFixed(2)} · ${
+                service.estimatedDurationMinutes
+                  ? `${service.estimatedDurationMinutes} min`
+                  : "duración abierta"
+              }`
+            : "Servicio a cotizar"
+        }
+        eyebrow={service.category.name}
+        title={service.name}
+      />
+
       <ServiceForm
         categories={categories}
         values={{
@@ -64,22 +77,30 @@ export default async function ServiceDetailPage({
           sortOrder: service.sortOrder,
         }}
       />
-      <section className="section-stack">
-        <div className="section-heading">
+
+      <section className={styles.section}>
+        <header className={styles.sectionHeader}>
           <div>
-            <p className="eyebrow">Pricing simple</p>
+            <p className={styles.eyebrow}>Pricing simple</p>
             <h2>Variantes</h2>
           </div>
-          <span>{service.variants.length}</span>
-        </div>
+          <span
+            aria-label={`${service.variants.length} variantes`}
+            className={styles.count}
+          >
+            {service.variants.length}
+          </span>
+        </header>
         {service.variants.length ? (
-          <div className="variant-list">
+          <div className={styles.variantList}>
             {service.variants.map((variant) => (
               <article
-                className={`variant-row ${variant.active ? "" : "is-archived"}`}
+                className={`${styles.variantRow} ${
+                  variant.active ? "" : styles.archived
+                }`}
                 key={variant.id}
               >
-                <div>
+                <div className={styles.variantIdentity}>
                   <strong>{variant.label}</strong>
                   <small>
                     {variant.type === "VEHICLE_CLASS"
@@ -88,16 +109,18 @@ export default async function ServiceDetailPage({
                     · prioridad {variant.priority}
                   </small>
                 </div>
-                <b>USD {variant.priceUsd.toFixed(2)}</b>
+                <strong className={styles.variantPrice}>
+                  USD {variant.priceUsd.toFixed(2)}
+                </strong>
                 <form action={toggleVariantAction}>
-                  <input type="hidden" name="id" value={variant.id} />
-                  <input type="hidden" name="serviceId" value={service.id} />
+                  <input name="id" type="hidden" value={variant.id} />
+                  <input name="serviceId" type="hidden" value={service.id} />
                   <input
-                    type="hidden"
                     name="active"
+                    type="hidden"
                     value={String(!variant.active)}
                   />
-                  <button className="text-button">
+                  <button className={styles.textAction} type="submit">
                     {variant.active ? "Desactivar" : "Activar"}
                   </button>
                 </form>
@@ -105,18 +128,18 @@ export default async function ServiceDetailPage({
             ))}
           </div>
         ) : (
-          <div className="inline-empty">
+          <div className={styles.inlineEmpty}>
             <strong>Sin variantes</strong>
             <p>El sistema sugerirá el precio base o “a cotizar”.</p>
           </div>
         )}
-        <details className="form-disclosure">
+        <details className={styles.disclosure}>
           <summary>Agregar variante</summary>
-          <div className="form-disclosure-body">
+          <div className={styles.disclosureBody}>
             <VariantForm serviceId={service.id} />
           </div>
         </details>
       </section>
-    </div>
+    </Page>
   );
 }

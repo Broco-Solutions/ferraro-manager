@@ -2,6 +2,9 @@
 
 import { useActionState, useState } from "react";
 
+import { FormActions, FormGrid, FormSection } from "@/components/patterns/page";
+import { Button } from "@/components/ui/button";
+import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import {
   createCategoryAction,
   createVariantAction,
@@ -9,11 +12,13 @@ import {
   type CatalogFormState,
 } from "@/modules/services/application/actions";
 
+import styles from "./services.module.css";
+
 const initialState: CatalogFormState = { status: "idle" };
 
 function ErrorMessage({ state }: { state: CatalogFormState }) {
   return state.message ? (
-    <p className="form-error" role="alert">
+    <p className={styles.formError} role="alert">
       {state.message}
     </p>
   ) : null;
@@ -25,16 +30,19 @@ export function CategoryForm() {
     initialState,
   );
   return (
-    <form action={action} className="inline-create-form">
-      <label className="field-group">
-        <span>Nueva categoría</span>
-        <input name="name" placeholder="Ej. Protección" required />
-      </label>
-      <input type="hidden" name="sortOrder" value="0" />
-      <button className="ghost-button" disabled={pending}>
-        {pending ? "Guardando…" : "Agregar"}
-      </button>
-      <ErrorMessage state={state} />
+    <form action={action} className={styles.categoryForm}>
+      <Field label="Nueva categoría" required>
+        <Input name="name" placeholder="Ej. Protección" required />
+      </Field>
+      <input name="sortOrder" type="hidden" value="0" />
+      <Button loading={pending} type="submit" variant="secondary">
+        Agregar
+      </Button>
+      {state.message ? (
+        <div className={styles.categoryError}>
+          <ErrorMessage state={state} />
+        </div>
+      ) : null}
     </form>
   );
 }
@@ -62,90 +70,85 @@ export function ServiceForm({
     initialState,
   );
   return (
-    <form action={action} className="entity-form">
-      {values.id ? <input type="hidden" name="id" value={values.id} /> : null}
+    <form action={action} className={styles.form}>
+      {values.id ? <input name="id" type="hidden" value={values.id} /> : null}
       <ErrorMessage state={state} />
-      <section className="form-section">
-        <div className="form-section-heading">
-          <h2>Servicio</h2>
-          <p>Nombre y categoría para toda la operación.</p>
-        </div>
-        <div className="form-grid">
-          <label className="field-group">
-            <span>Categoría *</span>
-            <select name="categoryId" defaultValue={values.categoryId} required>
+      <FormSection
+        description="Nombre y categoría para toda la operación."
+        title="Servicio"
+      >
+        <FormGrid>
+          <Field label="Categoría" required>
+            <Select defaultValue={values.categoryId} name="categoryId" required>
               <option value="">Seleccionar</option>
               {categories.map((category) => (
-                <option value={category.id} key={category.id}>
+                <option key={category.id} value={category.id}>
                   {category.name}
                 </option>
               ))}
-            </select>
-          </label>
-          <label className="field-group">
-            <span>Nombre *</span>
-            <input name="name" defaultValue={values.name} required />
-          </label>
-          <label className="field-group">
-            <span>Precio base USD</span>
-            <input
-              name="basePriceUsd"
+            </Select>
+          </Field>
+          <Field label="Nombre" required>
+            <Input defaultValue={values.name} name="name" required />
+          </Field>
+          <Field label="Precio base USD" optional>
+            <Input
               defaultValue={values.basePriceUsd ?? ""}
               inputMode="decimal"
+              name="basePriceUsd"
               placeholder="A cotizar"
             />
-          </label>
-          <label className="field-group">
-            <span>Duración estimada (min)</span>
-            <input
-              name="estimatedDurationMinutes"
+          </Field>
+          <Field label="Duración estimada (min)" optional>
+            <Input
               defaultValue={values.estimatedDurationMinutes ?? ""}
               inputMode="numeric"
+              name="estimatedDurationMinutes"
             />
-          </label>
-          <label className="field-group">
-            <span>Orden</span>
-            <input
-              name="sortOrder"
+          </Field>
+          <Field label="Orden" optional>
+            <Input
               defaultValue={values.sortOrder ?? 0}
               inputMode="numeric"
+              name="sortOrder"
             />
-          </label>
-        </div>
-      </section>
-      <section className="form-section">
-        <div className="form-section-heading">
-          <h2>Descripciones</h2>
-          <p>Una interna para el equipo y otra comercial para presupuestos.</p>
-        </div>
-        <div className="form-grid">
-          <label className="field-group field-span-2">
-            <span>Descripción interna</span>
-            <textarea
-              name="internalDescription"
+          </Field>
+        </FormGrid>
+      </FormSection>
+      <FormSection
+        description="Una interna para el equipo y otra comercial para presupuestos."
+        title="Descripciones"
+      >
+        <FormGrid>
+          <Field
+            className={styles.fieldSpan}
+            label="Descripción interna"
+            optional
+          >
+            <Textarea
               defaultValue={values.internalDescription ?? ""}
+              name="internalDescription"
               rows={3}
             />
-          </label>
-          <label className="field-group field-span-2">
-            <span>Descripción comercial</span>
-            <textarea
-              name="commercialDescription"
+          </Field>
+          <Field
+            className={styles.fieldSpan}
+            label="Descripción comercial"
+            optional
+          >
+            <Textarea
               defaultValue={values.commercialDescription ?? ""}
+              name="commercialDescription"
               rows={4}
             />
-          </label>
-        </div>
-      </section>
-      <div className="form-actions">
-        <button className="primary-button" disabled={pending}>
-          {pending
-            ? "Guardando…"
-            : values.id
-              ? "Guardar cambios"
-              : "Crear servicio"}
-        </button>
-      </div>
+          </Field>
+        </FormGrid>
+      </FormSection>
+      <FormActions>
+        <Button loading={pending} size="lg" type="submit">
+          {values.id ? "Guardar cambios" : "Crear servicio"}
+        </Button>
+      </FormActions>
     </form>
   );
 }
@@ -158,73 +161,66 @@ export function VariantForm({ serviceId }: { serviceId: string }) {
   const [type, setType] = useState<"VEHICLE_CLASS" | "MODEL_EXCEPTION">(
     "VEHICLE_CLASS",
   );
+
   return (
-    <form action={action} className="entity-form entity-form-compact">
-      <input type="hidden" name="serviceId" value={serviceId} />
+    <form action={action} className={styles.compactForm}>
+      <input name="serviceId" type="hidden" value={serviceId} />
       <ErrorMessage state={state} />
-      <div className="form-grid">
-        <label className="field-group">
-          <span>Tipo *</span>
-          <select
+      <FormGrid>
+        <Field label="Tipo" required>
+          <Select
             name="type"
-            value={type}
             onChange={(event) => setType(event.target.value as typeof type)}
+            value={type}
           >
             <option value="VEHICLE_CLASS">Segmento</option>
             <option value="MODEL_EXCEPTION">Marca/modelo exacto</option>
-          </select>
-        </label>
-        <label className="field-group">
-          <span>Etiqueta *</span>
-          <input
+          </Select>
+        </Field>
+        <Field label="Etiqueta" required>
+          <Input
             name="label"
             placeholder={
               type === "VEHICLE_CLASS" ? "Ej. SUV" : "Ej. Ford Raptor"
             }
             required
           />
-        </label>
+        </Field>
         {type === "VEHICLE_CLASS" ? (
-          <label className="field-group">
-            <span>Segmento *</span>
-            <select name="vehicleClass" required>
+          <Field label="Segmento" required>
+            <Select name="vehicleClass" required>
               <option value="">Seleccionar</option>
               <option value="SEDAN">Sedan</option>
               <option value="SUV">SUV</option>
               <option value="PICKUP">Pickup</option>
               <option value="OTHER">Otro</option>
-            </select>
-          </label>
+            </Select>
+          </Field>
         ) : (
           <>
-            <label className="field-group">
-              <span>Marca exacta *</span>
-              <input name="matchBrand" required />
-            </label>
-            <label className="field-group">
-              <span>Modelo exacto *</span>
-              <input name="matchModel" required />
-            </label>
+            <Field label="Marca exacta" required>
+              <Input name="matchBrand" required />
+            </Field>
+            <Field label="Modelo exacto" required>
+              <Input name="matchModel" required />
+            </Field>
           </>
         )}
-        <label className="field-group">
-          <span>Precio USD *</span>
-          <input name="priceUsd" inputMode="decimal" required />
-        </label>
-        <label className="field-group">
-          <span>Duración (min)</span>
-          <input name="estimatedDurationMinutes" inputMode="numeric" />
-        </label>
-        <label className="field-group">
-          <span>Prioridad</span>
-          <input name="priority" defaultValue="0" inputMode="numeric" />
-        </label>
-      </div>
-      <div className="form-actions">
-        <button className="primary-button" disabled={pending}>
-          {pending ? "Guardando…" : "Agregar variante"}
-        </button>
-      </div>
+        <Field label="Precio USD" required>
+          <Input inputMode="decimal" name="priceUsd" required />
+        </Field>
+        <Field label="Duración (min)" optional>
+          <Input inputMode="numeric" name="estimatedDurationMinutes" />
+        </Field>
+        <Field label="Prioridad" optional>
+          <Input defaultValue="0" inputMode="numeric" name="priority" />
+        </Field>
+      </FormGrid>
+      <FormActions>
+        <Button loading={pending} type="submit">
+          Agregar variante
+        </Button>
+      </FormActions>
     </form>
   );
 }
