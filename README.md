@@ -1,7 +1,7 @@
 # Ferraro Manager
- 
+
 Sistema interno de gestión para Ferraro Detail, Rosario. El contrato funcional y técnico es [`docs/FERRARO_MASTER_PLAN.md`](./docs/FERRARO_MASTER_PLAN.md); las decisiones posteriores se registran en [`docs/DECISIONS.md`](./docs/DECISIONS.md).
- 
+
 ## Requisitos
 
 - Node.js 24 LTS
@@ -41,7 +41,7 @@ Los E2E requieren Chromium (`pnpm exec playwright install chromium`) y una base 
 
 ## Ambientes
 
-Desarrollo, preview y producción deben usar bases y secretos separados. Producción aplica migraciones con `pnpm db:migrate:deploy`; nunca con `db push`. `America/Argentina/Buenos_Aires` es la zona IANA del negocio y `USD` su única moneda.
+Desarrollo, preview y producción deben usar bases y secretos separados. Producción aplica migraciones con `pnpm db:migrate:deploy`; nunca con `db push`. `America/Argentina/Buenos_Aires` es la zona IANA del negocio. USD es la moneda canónica; finanzas, presupuestos y compras admiten carga en USD o ARS con cotización manual ARS por USD y conservan el origen.
 
 El runbook de health, cleanup, backup, restore, migración y rollback está en [`docs/OPERATIONS.md`](./docs/OPERATIONS.md). La aplicación no reemplaza los backups administrados del proveedor.
 

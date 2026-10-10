@@ -98,6 +98,15 @@ El amarillo aparece como señal institucional y línea de composición. Sobre su
 
 - La operación de hoy ocupa la primera lectura después del encabezado y de los accesos rápidos: turno, hora, vehículo, cliente y servicio forman una sola fila accionable.
 - El estado vacío conserva estructura y una siguiente acción clara; no se rellena la pantalla con métricas o gráficos sin utilidad operativa.
+
+## MoneyField y datos monetarios
+
+`src/modules/money/ui/money-field.tsx` implementa el patrón compartido para importes de finanzas, presupuestos, compras y costo directo del caso. El campo conserva el lenguaje visual de `Field`, `Input` y `Select` existentes; USD es el valor inicial. Cambiar a ARS revela la cotización manual, siempre rotulada “ARS por USD”, y una ayuda de equivalente aproximado en USD. Cambiar a USD oculta la cotización. El componente presenta preview solamente: el servidor valida y calcula el monto canónico con Decimal.
+
+El label permanece asociado al input/select, las descripciones y errores usan IDs accesibles y el equivalente se anuncia como ayuda sin depender del color. La composición fluye a una columna en mobile y permite el ancho extra de importes ARS; en desktop/tablet conserva la grilla del formulario. Para presupuestos y compras la moneda aplica al documento completo. Una selección ARS mantiene visibles origen, cotización y equivalente donde aportan trazabilidad; en documentos PDF se expresa la moneda efectivamente ofertada.
+
+En el caso de servicio, el costo directo es opcional. La UI distingue “Sin imputar” (null) de un cero conocido y sólo ADMIN ve el costo y el margen. Margen positivo/negativo se acompaña de texto y monto con signo, no sólo color. Los agregados usan “Margen conocido” y “Cobertura de costos”; no se muestran como resultado neto.
+
 - ADMIN recibe un bloque financiero separado. Flujo neto usa la única superficie oscura del conjunto y es el KPI dominante; cobrado, egresos, cantidad de trabajos y saldo pendiente quedan subordinados.
 - STAFF comparte agenda, trabajos y stock, pero el servidor no le entrega KPIs, seguimientos comerciales ni accesos administrativos.
 - Desktop usa una grilla 2:1 para la jornada y mosaicos financieros; tablet colapsa la jornada a una columna y mantiene datos escaneables; mobile omite finanzas por rol y usa listas verticales con acciones rápidas en scroll horizontal.

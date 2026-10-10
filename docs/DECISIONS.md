@@ -189,3 +189,29 @@ Insertar en React PDF los paths exactos del lockup FERRARO DETAIL negro extraíd
 - El TTF queda versionado junto a los WOFF2 de interfaz y documentado por checksum; no hay fetch en runtime.
 - El PDF sigue siendo extraíble y buscable; sólo el lockup es geometría vectorial.
 - El amarillo se limita a la regla institucional; grises y estructura sostienen impresión monocroma.
+
+## DEC-009 — USD canónico, origen USD/ARS y costo directo opcional por caso
+
+- **Fecha:** 2026-10-10
+- **Estado:** aceptada
+- **Build afectado:** Money + profitability
+
+### Contexto
+
+La operación necesita registrar importes originalmente recibidos en pesos sin cambiar la base común de saldos y comparaciones en Ferraro. El margen sólo es defendible cuando existe un costo directo efectivamente imputado.
+
+### Decisión
+
+USD permanece como moneda canónica. Los flujos monetarios editables admiten únicamente USD y ARS; la cotización se ingresa manualmente y siempre significa ARS por 1 USD. No hay proveedor de FX ni cotización automática. Se conserva el importe y moneda de origen y, para ARS, la cotización usada. Los registros históricos que sólo tenían USD se interpretan como USD: el backfill copia el valor USD existente a sus campos de origen cuando aplica y deja la cotización nula; no se inventan cotizaciones.
+
+El costo directo opcional vive en `ServiceCase`, junto al importe acordado y sus revisiones, porque un caso puede reunir varios jobs y presupuesto/cobros. `directCostUsd = null` significa sin imputar; cero explícito significa costo conocido de cero. No se infiere desde movimientos de inventario ni se exige para continuar el flujo. Sólo ADMIN puede gestionarlo y ver costo/margen; STAFF y el portal no reciben esos datos.
+
+El margen conocido requiere importe acordado y costo directo informado. Se permite margen negativo y margen cero. Para agregados se muestran margen conocido, casos con costo imputado y cobertura; cobertura parcial no se presenta como ganancia neta, rentabilidad total o resultado operativo. Flujo neto y margen son métricas distintas.
+
+### Consecuencias
+
+- `exchangeRateArsPerUsd` es positiva y representa ARS/USD; la conversión y el redondeo monetario ocurren server-side con Decimal.
+- Presupuestos y compras usan una sola moneda de origen por documento; sus snapshots originales/cotización y montos USD canónicos coexisten.
+- `FinancialEntry` mantiene amountUsd canónico y reversión compensatoria con semántica monetaria trazable.
+- Migraciones aditivas preservan registros existentes; costo previo no se inventa ni se completa con cero.
+- No se amplían permisos, módulos ni el ledger de inventario.

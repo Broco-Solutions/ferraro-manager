@@ -2,10 +2,10 @@
 
 > **Contrato maestro del proyecto.** Este documento es la fuente de verdad funcional y técnica de FERRARO. Cada BUILD se planifica, implementa y acepta contra este contenido. Cualquier desviación estructural, cambio de alcance, invariante o decisión arquitectónica posterior debe explicarse y registrarse; nunca se modifica silenciosamente. Las decisiones posteriores se registran en [`docs/DECISIONS.md`](./DECISIONS.md).
 
-- **Estado:** planificación consolidada, lista para aprobación.
+- **Estado:** contrato funcional actualizado a la implementación; las decisiones posteriores se registran en `docs/DECISIONS.md`.
 - **Ubicación del negocio:** Rosario, Santa Fe, Argentina.
 - **Zona horaria IANA:** `America/Argentina/Buenos_Aires`.
-- **Moneda única:** USD.
+- **Moneda canónica:** USD. Las cargas de finanzas, presupuestos y compras pueden originarse en USD o ARS; ARS requiere cotización manual expresada como ARS por 1 USD y se conserva la trazabilidad del importe original.
 - **Alcance del documento:** producto, dominio, UX, arquitectura, seguridad, datos, testing y ejecución incremental. No constituye implementación.
 
 ---
@@ -38,7 +38,7 @@ FERRARO será el producto base. PPF HOUSE será, en el futuro, otro repositorio,
 ## 3. Assumptions
 
 - El negocio es una única empresa y una única sede operativa en V1.
-- Todo importe se expresa en USD; no hay cotización ni conversión de moneda.
+- USD es la moneda canónica de cálculos, saldos, comparaciones, KPIs, reportes y márgenes. Sólo se acepta USD/ARS como moneda de entrada; ARS se convierte server-side con cotización manual y conserva importe/cotización originales.
 - Usuarios internos: `ADMIN` y `STAFF`; los clientes no tienen cuentas tradicionales.
 - La agenda admite capacidad simultánea y no intenta optimizar recursos automáticamente.
 - La fecha y hora de negocio se interpreta siempre en `America/Argentina/Buenos_Aires`.
@@ -70,7 +70,7 @@ FERRARO será el producto base. PPF HOUSE será, en el futuro, otro repositorio,
 
 - Leads/CRM, campañas, WhatsApp automático y Google Calendar.
 - Facturación fiscal, ARCA, contabilidad formal, cuentas corrientes y payroll.
-- Cobro online, bancos, conciliación, cuotas o múltiples monedas.
+- Cobro online, bancos, conciliación, cuotas, monedas distintas de USD/ARS o integración automática de cotizaciones.
 - Portal con cuenta/contraseña tradicional o aceptación automática del presupuesto.
 - App nativa, multi-sede, multiempresa, SaaS/multitenant e IA.
 - Motor de reglas de precios o unidades físicas universal.
@@ -169,8 +169,8 @@ Se elige una cuarta forma mínima: `ServiceCase` como ancla de identidad. Contie
 | `ServiceCategory` | nombre, orden, active | Desactivar |
 | `Service` | categoryId, nombre, descripciones interna/comercial, basePriceUsd, duración, imagen, orden, active | Desactivar; históricos por snapshot |
 | `ServiceVariant` | serviceId, tipo `VEHICLE_CLASS` o `MODEL_EXCEPTION`, label/criterio explícito, priceUsd, duración opcional, prioridad | Sin motor de reglas; coincidencia explícita |
-| `ServiceCase` | clientId, vehicleId, acceptedQuoteId opcional y único, agreedAmountUsd nullable, origen, timestamps/actor | Sin estados; importe nullable significa “por definir” |
-| `ServiceCaseAmountRevision` | serviceCaseId, before/after, razón, actor, fecha | Append-only; sólo se crea al cambiar un importe ya fijado |
+| `ServiceCase` | clientId, vehicleId, acceptedQuoteId opcional y único, agreedAmountUsd nullable con origen, directCostUsd nullable con origen, origen, timestamps/actor | Sin estados; importe acordado nullable significa “por definir”; costo null significa “sin imputar” |
+| `ServiceCaseAmountRevision` | serviceCaseId, before/after USD y trazabilidad de origen, razón, actor, fecha | Append-only; sólo se crea al cambiar un importe ya fijado |
 | `Appointment` | serviceCaseId, startAt/endAt, status, notas internas, color opcional, visibleToClient | Cancelar, no borrar si tuvo actividad; portal nunca muestra notas internas |
 | `AppointmentService` | appointmentId, serviceId opcional, nombre y duración snapshot | Editable mientras está agendado; snapshot visible |
 | `AppointmentEmployee` | appointmentId, userId | Asignación opcional |
@@ -181,16 +181,16 @@ Se elige una cuarta forma mínima: `ServiceCase` como ancla de identidad. Contie
 | `JobMaterialConsumption` | jobId, inventoryItemId, quantityBase, unit snapshot, estado | Corrección mediante movimientos compensatorios |
 | `JobPhoto` | jobId, object keys, MIME, tamaño, dimensiones, type opcional, order, visibleToClient, cover | Metadata DB; binarios fuera de PostgreSQL |
 | `InventoryCategory` | nombre, active | Desactivar |
-| `InventoryItem` | categoría, supplier preferido opcional, nombre, SKU, costHint, baseUnit, currentStock, minimumStock, active, notas | Base unit inmutable tras primer movimiento |
+| `InventoryItem` | categoría, supplier preferido opcional, nombre, SKU, `costHintUsd` canónico opcional, baseUnit, currentStock, minimumStock, active, notas | Base unit inmutable tras primer movimiento; hint interno en USD, no es costo imputado al caso |
 | `PurchasePresentation` | itemId, nombre (“rollo 15 m”), factorToBase, active | Factor explícito; preservar snapshot en compra |
 | `Supplier` | nombre, contacto, phone, email, notas, active | Desactivar |
-| `Purchase` | supplierId, businessDate, reference, notas, totalUsd, status, actor | `POSTED` o `VOIDED`; numeración humana |
-| `PurchaseItem` | purchaseId, itemId, presentationId opcional, snapshots de nombres/unidad/factor, quantityPurchased, quantityBase, unitCostUsd, totalUsd | Inmutable después de postear; reversar compra |
+| `Purchase` | supplierId, businessDate, reference, notas, totalUsd canónico y moneda/importe/cotización de origen, status, actor | `POSTED` o `VOIDED`; numeración humana |
+| `PurchaseItem` | purchaseId, itemId, presentationId opcional, snapshots de nombres/unidad/factor y costos USD/origen, quantityPurchased, quantityBase | Inmutable después de postear; reversar compra |
 | `InventoryMovement` | itemId, type, signedQuantityBase, occurredAt, purchaseItemId o consumptionId opcional, reversalOfId, actor, note | Ledger append-only |
 | `FinancialCategory` | nombre, direction permitida, orden, active | Configurable por ADMIN |
-| `FinancialEntry` | direction, type, amountUsd positivo, occurredAt, categoryId, method opcional, serviceCaseId/purchaseId opcional, reversalOfId, descripción, actor | Ledger de caja append-only; reversiones compensatorias |
-| `Quote` | clientId, vehicleId, number, status, fechas, notes/terms, subtotal/discount/total snapshots, templateVersion | Emitido/aceptado no se reescribe; el caso referencia al único quote aceptado |
-| `QuoteItem` | quoteId, serviceId opcional, nombre/descripcion/cantidad/precio/descuento/total snapshots, orden | Snapshot completo |
+| `FinancialEntry` | direction, type, amountUsd canónico positivo, moneda/importe/cotización de origen, occurredAt, categoryId, method opcional, serviceCaseId/purchaseId opcional, reversalOfId, descripción, actor | Ledger de caja append-only; reversiones compensatorias preservan la semántica monetaria |
+| `Quote` | clientId, vehicleId, number, status, fechas, moneda/cotización de origen, notes/terms, subtotal/discount/total snapshots en origen y USD, templateVersion | Emitido/aceptado no se reescribe; el caso referencia al único quote aceptado |
+| `QuoteItem` | quoteId, serviceId opcional, nombre/descripcion/cantidad/precio/descuento/total snapshots en origen y USD, orden | Snapshot completo |
 | `ClientShareLink` | clientId, tokenHash, passwordHash opcional, expiresAt, revokedAt, lastAccessAt, actor | Token crudo nunca en DB; sólo ADMIN administra |
 | `IdempotencyKey` | key, operation, actor, requestHash, result reference, expiresAt | Protege mutaciones financieras/stock críticas |
 
@@ -249,7 +249,7 @@ La cardinalidad `ServiceCase`–`Quote` representa como máximo un presupuesto a
 
 ## 11. Invariants
 
-1. Toda moneda operativa es USD y usa decimal exacto.
+1. USD es la moneda canónica. La entrada sólo admite `USD`/`ARS`; para ARS la cotización manual siempre significa ARS por USD y usa decimal exacto.
 2. Dinero usa `Decimal(19,2)`; cantidades y factores nunca usan floating point binario.
 3. Todo cálculo/redondeo monetario ocurre en servidor con regla única: redondeo comercial a 2 decimales por ítem y total verificable.
 4. Todo vehículo pertenece exactamente a un cliente.
@@ -264,10 +264,10 @@ La cardinalidad `ServiceCase`–`Quote` representa como máximo un presupuesto a
 13. El saldo es derivado: importe acordado menos cobros netos; nunca es fuente persistida independiente.
 14. Sin importe acordado el estado es “Importe por definir”, nunca saldo cero.
 15. Reversar un cobro modifica cobros netos mediante asiento compensatorio y no borra historia.
-16. Un presupuesto aceptado copia su total al importe acordado del caso una sola vez; cambios posteriores del catálogo o presupuesto no lo alteran.
+16. Un presupuesto aceptado copia su total USD canónico y su trazabilidad de origen al importe acordado del caso una sola vez; cambios posteriores del catálogo o presupuesto no lo alteran.
 17. Cambiar un importe acordado ya definido requiere ADMIN, motivo y revisión append-only.
 18. Servicios e ítems desactivados conservan históricos.
-19. QuoteItem, JobService y PurchaseItem preservan snapshots definidos.
+19. QuoteItem, JobService y PurchaseItem preservan snapshots definidos, incluidos importes originales y cotización cuando corresponda.
 20. Todo cambio de stock deja un `InventoryMovement`.
 21. El stock actual debe coincidir con la suma del ledger; cualquier reparación es un ajuste trazable.
 22. Consumo de trabajo genera movimiento negativo; corrección genera compensación, no edición silenciosa.
@@ -294,6 +294,8 @@ La cardinalidad `ServiceCase`–`Quote` representa como máximo un presupuesto a
 | Cliente/vehículo | `Client`, `Vehicle` | Historial no se copia a otros clientes |
 | Continuidad comercial | `ServiceCase` | Quote, appointment y job no compiten por identidad |
 | Importe acordado | `ServiceCase.agreedAmountUsd` | Se origina opcionalmente en quote aceptado; no se lee del precio actual |
+| Costo directo | `ServiceCase.directCostUsd` nullable | ADMIN lo imputa explícitamente; null significa no informado y nunca se deriva de stock |
+| Origen monetario | Campos `sourceCurrency`, `sourceAmount`, `exchangeRateArsPerUsd` del registro aplicable | USD es canónico; ARS conserva importe original y cotización manual |
 | Cobrado neto | Suma de `FinancialEntry` de cobro menos devoluciones/reversiones del caso | No guardar `paidAmount` mutable |
 | Saldo | `agreedAmountUsd - netReceipts` | Nullable/indefinido si no hay importe acordado |
 | Agenda | `Appointment` y `CalendarBlock` | Pago no valida ni cambia agenda |
@@ -301,8 +303,8 @@ La cardinalidad `ServiceCase`–`Quote` representa como máximo un presupuesto a
 | Precio actual de catálogo | `Service`/`ServiceVariant` | No reescribe documentos |
 | Presupuesto histórico | `Quote` + `QuoteItem` snapshots | Catálogo sólo ayuda a crear |
 | Stock actual | `InventoryItem.currentStock`, validado contra `InventoryMovement` | Campo agregado para lectura; ledger explica cada cambio |
-| Compra | `Purchase` + `PurchaseItem` | Egreso vinculado único y movimientos derivados atómicos |
-| Caja interna | `FinancialEntry` | No hay tabla paralela de Payment/Income que duplique el hecho |
+| Compra | `Purchase` + `PurchaseItem` | Egreso vinculado único y movimientos derivados atómicos; origen y cotización quedan snapshotteados |
+| Caja interna | `FinancialEntry` | No hay tabla paralela de Payment/Income; saldos/KPIs suman `amountUsd` canónico |
 | Visibilidad portal | `ClientShareLink.clientId` + flags publicables | Nunca consultas globales filtradas después en cliente |
 
 ## 13. Architecture
@@ -478,7 +480,7 @@ Mobile usa agenda diaria tipo lista/timeline, selector horizontal de fecha y acc
 
 `Job` es el hecho operativo de que el trabajo se realizó. Puede nacer desde turno o de forma directa. Desde turno, “Marcar como realizado” abre una hoja/página corta con servicios precargados, empleados, consumos, notas y fotos opcionales; se puede guardar el trabajo primero y completar fotos después.
 
-El job no tiene estado de pago, total ni saldo propios. Esa información pertenece al caso y sólo la ve ADMIN. `JobService` guarda nombre y descripción snapshot; los costos de materiales se consultan históricamente desde compra/movimientos, no se incrustan en la UI operativa.
+El job no tiene estado de pago, total ni saldo propios. Esa información pertenece al caso y sólo la ve ADMIN. El costo directo opcional también vive en `ServiceCase`, porque el monto comercial acordado y su revisión ya son del caso que puede abarcar varios turnos o trabajos. No es obligatorio, no se completa con cero ni se infiere de inventario; null significa sin imputar y cero explícito significa costo conocido igual a cero. `JobService` guarda nombre y descripción snapshot; los costos de materiales se consultan históricamente desde compra/movimientos, no se imputan automáticamente al caso.
 
 Un job creado por error se anula mediante marca y reversión de consumos; no se borra si produjo stock o exposición al cliente. El detalle usa timeline, servicios, equipo, materiales y galería.
 
@@ -511,9 +513,11 @@ La compra se edita sólo como draft si se decide habilitar drafts. Una compra po
 
 V1 considera la compra pagada al registrarla. Cuentas a pagar quedan fuera del alcance y no se simulan con estados ambiguos.
 
+Una compra usa una sola moneda de origen USD o ARS. Para ARS ADMIN informa la cotización ARS/USD; cada importe original y cotización quedan preservados junto a los costos y total USD canónicos. El egreso asociado y el ledger de stock mantienen sus contratos actuales.
+
 ## 26. Finance Architecture
 
-`FinancialEntry` es el único ledger simple de caja. Tiene dirección `INFLOW`/`OUTFLOW`, tipo (`CUSTOMER_PAYMENT`, `CUSTOMER_REFUND`, `PURCHASE`, `MANUAL_INCOME`, `MANUAL_EXPENSE`, `REVERSAL`), monto USD positivo, fecha, categoría, método opcional y origen.
+`FinancialEntry` es el único ledger simple de caja. Tiene dirección `INFLOW`/`OUTFLOW`, tipo (`CUSTOMER_PAYMENT`, `CUSTOMER_REFUND`, `PURCHASE`, `MANUAL_INCOME`, `MANUAL_EXPENSE`, `REVERSAL`), monto USD canónico positivo y, para entradas manuales en ARS, moneda/importe/cotización originales; fecha, categoría, método opcional y origen. La cotización es ARS por USD. El cálculo definitivo ocurre server-side. Reversiones son compensatorias y conservan la trazabilidad monetaria de su operación original.
 
 Los cobros/señas son entradas `CUSTOMER_PAYMENT` obligatoriamente ligadas a un `ServiceCase`. Las devoluciones o correcciones son salidas/entradas compensatorias enlazadas al asiento original. El cobrado neto del caso se calcula por entradas menos salidas de cliente válidas. No existe tabla `Payment` paralela ni un ingreso adicional al completar el job.
 
@@ -526,13 +530,17 @@ El importe acordado es nullable y vive en `ServiceCase`. Puede provenir de un qu
 
 Un saldo negativo se muestra como “saldo a favor” y no se corrige automáticamente. Métodos iniciales: transferencia, efectivo y otro; son opcionales. Finanzas no intenta conciliación bancaria ni devengamiento contable.
 
+El costo directo se carga opcionalmente en `ServiceCase` en USD o ARS y se guarda en USD más su origen. El margen por caso sólo existe cuando hay importe acordado y costo informado: `agreedAmountUsd - directCostUsd`; el porcentaje usa el importe acordado como denominador cuando es mayor que cero. El margen puede ser negativo; igualdad produce margen cero. Si falta costo, margen y porcentaje no se calculan. En agregado se muestra “Margen conocido” y “Costos imputados” (casos con costo sobre casos del período); sólo con cobertura del 100% se conoce el costo directo de todos los casos incluidos. Esto no constituye ganancia neta ni resultado operativo.
+
+Flujo neto mide entradas y salidas de caja del período; margen compara importes acordados con costos directos imputados de trabajos/casos. Son métricas separadas y sólo ADMIN puede ver costo y margen. STAFF y el portal no reciben sus campos en sus proyecciones.
+
 ## 27. Quotes Architecture
 
-Estados: `DRAFT`, `SENT`, `ACCEPTED`, `REJECTED`, `EXPIRED`. `EXPIRED` puede derivarse visualmente de `validUntil` para evitar un job automático; se persiste sólo si hace falta filtrar consistentemente. Un draft es editable. Una versión emitida/aceptada queda bloqueada; para cambiarla se duplica o crea revisión.
+Estados: `DRAFT`, `SENT`, `ACCEPTED`, `REJECTED`, `EXPIRED`. `EXPIRED` puede derivarse visualmente de `validUntil` para evitar un job automático; se persiste sólo si hace falta filtrar consistentemente. Un draft es editable. Una versión emitida/aceptada queda bloqueada; para cambiarla se duplica o crea revisión. Cada presupuesto usa una sola moneda de origen USD o ARS; si es ARS, conserva importes/cotización originales y también los totales USD canónicos. Sus PDFs muestran la moneda ofertada y el equivalente USD sin presentar engañosamente el original como USD.
 
 Cada item snapshottea nombre, descripción, cantidad, precio unitario, descuento y total. El quote snapshottea subtotal, descuento global y total. El servidor recalcula todos los valores y rechaza discrepancias.
 
-Aceptar presupuesto crea o vincula un único `ServiceCase` y copia `Quote.totalUsd` a `agreedAmountUsd`. “Convertir en turno” reutiliza ese caso, cliente, vehículo y servicios. Si el caso ya tiene importe, no se sobrescribe silenciosamente. El presupuesto no registra cobro por sí mismo.
+Aceptar presupuesto crea o vincula un único `ServiceCase` y copia `Quote.totalUsd` y la trazabilidad de origen a `agreedAmountUsd`. “Convertir en turno” reutiliza ese caso, cliente, vehículo y servicios. Si el caso ya tiene importe, no se sobrescribe silenciosamente. El presupuesto no registra cobro por sí mismo.
 
 ## 28. PDF Architecture
 
@@ -599,6 +607,8 @@ No se agregan gráficos si una lista o comparación numérica habilita mejor una
 | Cobrado | Suma `INFLOW CUSTOMER_PAYMENT` menos devoluciones del período | FinancialEntry | Mes actual + comparación anterior | Caja real recibida | Baja |
 | Egresos | Suma de outflows válidos del período | FinancialEntry | Mes actual | Control de salida real | Baja |
 | Flujo neto | Cobrado + otros ingresos − egresos | FinancialEntry | Mes actual | Pulso financiero interno, no utilidad contable | Baja |
+| Margen conocido | Suma del margen de casos del período con importe acordado y costo directo informado | ServiceCase + Job | Mes | Margen parcial explícito; no es ganancia neta | Media |
+| Cobertura de costos | Casos con costo directo informado / casos del período considerados | ServiceCase + Job | Mes | Indica completitud del margen conocido | Baja |
 | Trabajos realizados | Conteo de jobs no anulados | Job | Día/mes | Volumen operativo | Baja |
 | Ticket acordado promedio | Suma de importes definidos / casos con job del período | ServiceCase + Job | Mes | Valor comercial, distinto de caja | Media |
 | Saldo pendiente realizado | Suma `max(agreed-net,0)` en casos con job | ServiceCase + FinancialEntry + Job | Actual | Seguimiento de cobro sin bloquear operación | Media |
@@ -618,11 +628,10 @@ No se agregan gráficos si una lista o comparación numérica habilita mejor una
 
 | Nombre | Descripción y fórmula | Fuente | Período | Utilidad | Complejidad |
 |---|---|---|---|---|---|
-| Margen estimado por caso | Acordado − consumo valorizado − otros costos directos | Case, inventory costing | Por caso | Rentabilidad aproximada | Alta; requiere política de costo |
 | Productividad empleado | Trabajo/horas reales | Jobs/time tracking | Mes | Sólo útil con carga confiable | Alta |
 | Forecast | Agenda futura valorizada | Cases/Appointments | 30/60 días | Planificación | Media, puede confundir con caja |
 
-“Cobrado”, “acordado” y “saldo” nunca se presentan como sinónimos. Los KPIs monetarios son sólo ADMIN.
+“Cobrado”, “acordado”, “saldo”, “flujo neto” y “margen conocido” nunca se presentan como sinónimos. Los KPIs monetarios son sólo ADMIN. No se etiqueta el margen como ganancia neta, rentabilidad total o resultado definitivo; cobertura parcial debe ser visible.
 
 ## 33. UX Principles
 
@@ -674,7 +683,7 @@ Persistencia en URL para listados compartibles; preferencias locales sólo cuand
 
 - Zod define input del command; cliente y servidor comparten forma cuando conviene, pero servidor siempre revalida.
 - React Hook Form para listas dinámicas, presupuestos y compras; formularios nativos/server actions para casos simples.
-- Campos monetarios aceptan texto localizado, normalizan de forma explícita y muestran USD.
+- Campos monetarios aceptan texto localizado y normalizan de forma explícita en servidor. Los flujos con monto editable admiten USD o ARS; al elegir ARS solicitan cotización manual ARS/USD y muestran un preview USD que no sustituye el cálculo de servidor.
 - Fechas/horas se editan en zona del negocio y se convierten una sola vez a instante UTC.
 - Selects grandes son buscables; navegación de teclado y labels reales obligatorios.
 - Errores de dominio vuelven por campo o mensaje global tipado; no se filtran detalles internos.

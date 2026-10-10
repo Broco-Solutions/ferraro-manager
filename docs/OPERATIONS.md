@@ -42,6 +42,9 @@ Objetivos iniciales razonables para un negocio pequeño: RPO ≤ 24 h y RTO ≤ 
 ## Migración y rollback
 
 - Las migraciones son versionadas y sólo se aplican con `prisma migrate deploy`; nunca con `db push`.
+- Money + profitability agrega `20261010120000_money_profitability` y `20261010140000_money_consistency_constraints`. Ejecutar `pnpm db:generate` y revisar/aplicar ambas con `pnpm db:migrate:deploy` primero en una base aislada de preview o copia restaurada. La primera agrega campos de origen/backfills compatibles: importes USD existentes se interpretan como USD, se copia el USD existente a `sourceAmount` donde aplica, la cotización queda `NULL` y `directCostUsd` queda `NULL`; no se crean cotizaciones ni costos históricos ficticios. La segunda añade checks de consistencia. Confirmar con `pnpm prisma migrate status` que no queden migraciones pendientes, y probar la app anterior/nueva según la estrategia expand/contract antes de release.
+- No se requiere ninguna variable de entorno nueva. La cotización ARS/USD se captura en cada operación/doc con moneda ARS; no hay FX externo.
+- El rollback operativo consiste en volver al artifact de aplicación compatible y diagnosticar. No borrar columnas, reescribir `_prisma_migrations` ni revertir el backfill automáticamente: una reversión de esquema podría perder trazabilidad ya capturada. La recuperación de datos requiere backup/restauración aislada y decisión explícita.
 - V1 usa cambios compatibles/expand-contract. Antes de migrar, confirmar backup recuperable y revisar el SQL.
 - Si falla el deploy de aplicación pero la migración compatible ya fue aplicada, volver al artifact anterior y diagnosticar; no revertir datos a ciegas.
 - Si una migración modifica datos de forma incorrecta, detener escrituras, preservar evidencia y restaurar en un ambiente aislado antes de decidir recuperación. No editar `_prisma_migrations` manualmente.
