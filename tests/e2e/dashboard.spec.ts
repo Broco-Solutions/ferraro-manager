@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
 import {
@@ -35,12 +36,26 @@ async function cleanup() {
       select: { id: true },
     });
     const caseIds = cases.map((item) => item.id);
+    const appointments = await prisma.appointment.findMany({
+      where: { serviceCaseId: { in: caseIds } },
+      select: { id: true },
+    });
+    const appointmentIds = appointments.map((item) => item.id);
     const jobs = await prisma.job.findMany({
       where: { serviceCaseId: { in: caseIds } },
       select: { id: true },
     });
     const jobIds = jobs.map((item) => item.id);
     await prisma.quote.deleteMany({ where: { clientId: { in: clientIds } } });
+    await prisma.appointmentEmployee.deleteMany({
+      where: { appointmentId: { in: appointmentIds } },
+    });
+    await prisma.appointmentService.deleteMany({
+      where: { appointmentId: { in: appointmentIds } },
+    });
+    await prisma.appointment.deleteMany({
+      where: { id: { in: appointmentIds } },
+    });
     await prisma.jobService.deleteMany({ where: { jobId: { in: jobIds } } });
     await prisma.job.deleteMany({ where: { id: { in: jobIds } } });
     await prisma.serviceCase.deleteMany({ where: { id: { in: caseIds } } });
@@ -86,6 +101,16 @@ test.beforeAll(async () => {
         data: { clientId, vehicleId, origin: "DIRECT_JOB" },
       })
     ).id;
+    const appointmentStart = new Date();
+    appointmentStart.setUTCHours(15, 0, 0, 0);
+    await prisma.appointment.create({
+      data: {
+        serviceCaseId: caseId,
+        startAt: appointmentStart,
+        endAt: new Date(appointmentStart.getTime() + 3 * 60 * 60 * 1000),
+        services: { create: { serviceId, nameSnapshot: "M3 Protection E2E" } },
+      },
+    });
     await prisma.job.create({
       data: {
         serviceCaseId: caseId,
@@ -120,6 +145,10 @@ test("dashboard and search adapt their projections to ADMIN and STAFF", async ({
     page.getByRole("heading", { name: "¿Qué pasa hoy en Ferraro?" }),
   ).toBeVisible();
   await expect(page.getByText("Cobrado este mes")).toBeVisible();
+  const adminAxe = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(adminAxe.violations).toEqual([]);
   await page.keyboard.press("Control+k");
   const adminSearch = page.getByLabel("Buscar en Ferraro");
   await expect(adminSearch).toBeFocused();
@@ -144,6 +173,10 @@ test("dashboard and search adapt their projections to ADMIN and STAFF", async ({
     staffPage.getByRole("heading", { name: "¿Qué pasa hoy en Ferraro?" }),
   ).toBeVisible();
   await expect(staffPage.getByText("Cobrado este mes")).toHaveCount(0);
+  const staffAxe = await new AxeBuilder({ page: staffPage })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(staffAxe.violations).toEqual([]);
   await staffPage.getByLabel("Buscar en Ferraro").fill("M3");
   await staffPage.getByLabel("Buscar en Ferraro").press("Enter");
   await expect(

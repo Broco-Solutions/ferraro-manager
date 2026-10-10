@@ -94,6 +94,17 @@ El mapa de iconos usa exclusivamente Phosphor regular/bold en cajas ópticas de 
 
 El amarillo aparece como señal institucional y línea de composición. Sobre superficie clara, labels pequeños usan `--focus-ring` (6.52:1), no el amarillo oficial de 1.35:1.
 
+## Dashboard operativo
+
+- La operación de hoy ocupa la primera lectura después del encabezado y de los accesos rápidos: turno, hora, vehículo, cliente y servicio forman una sola fila accionable.
+- El estado vacío conserva estructura y una siguiente acción clara; no se rellena la pantalla con métricas o gráficos sin utilidad operativa.
+- ADMIN recibe un bloque financiero separado. Flujo neto usa la única superficie oscura del conjunto y es el KPI dominante; cobrado, egresos, cantidad de trabajos y saldo pendiente quedan subordinados.
+- STAFF comparte agenda, trabajos y stock, pero el servidor no le entrega KPIs, seguimientos comerciales ni accesos administrativos.
+- Desktop usa una grilla 2:1 para la jornada y mosaicos financieros; tablet colapsa la jornada a una columna y mantiene datos escaneables; mobile omite finanzas por rol y usa listas verticales con acciones rápidas en scroll horizontal.
+- DashboardSection, Kpi y DashboardEmpty son patrones locales del módulo: consumen tokens y primitives compartidos, pero no se promueven a componentes genéricos hasta existir un segundo consumidor real.
+
+Evidencia FE-05: `/tmp/ferraro-redesign-evidence/fe05`, seis viewports obligatorios combinados entre ADMIN y STAFF, sin overflow y con axe WCAG A/AA en cero violations.
+
 ## Geometría y tono
 
 La UI deriva del isotipo su ritmo vertical y división en tres, sin convertirlos en patrón ornamental repetitivo. El shell es grafito y el área de trabajo clara. La identidad proviene de activo, tipografía, alineación, ritmo y detalle; el amarillo se reserva para marca, foco y selección controlada.

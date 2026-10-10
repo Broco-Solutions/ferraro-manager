@@ -182,3 +182,13 @@ Registro resumido de la ejecución autónoma de V1. El contrato funcional contin
 - **Tests:** lint, typecheck, 35 unit, 42 integración, build y `git diff --check` verdes. Auth/auth-ui 7/7 y design-system 2/2 en ejecuciones finales; submitting, invalid credentials, 403, 404 y toast cubiertos.
 - **Gate:** GATE 2 completo, `approved for continued autonomous execution`; shell, navegación, login y estados habilitan migración modular.
 - **Known issues:** preview cloud aislada no disponible; Better Auth Preview URL continúa pendiente de validación cloud. Producción no fue usada.
+
+## FRONTEND BUILD FE-05 — Dashboard
+
+- **Status:** COMPLETE — approved for continued autonomous execution.
+- **Scope:** dashboard operativo reordenado alrededor de la jornada: turnos de hoy y próximos primero, accesos rápidos por rol, actividad/stock como soporte y seguimiento administrativo separado. Para ADMIN, flujo neto es el KPI financiero principal; cobrado y egresos permanecen secundarios. No se agregaron métricas, gráficos, queries ni reglas de negocio.
+- **Evidence:** seis capturas privadas en `/tmp/ferraro-redesign-evidence/fe05`, cubriendo ADMIN en 1440×900, 1280×800 y 1024×768, y STAFF en 820×1180, 768×1024 y 390×844. Estados vacíos, jerarquía financiera, sidebar/tablet/mobile y barra inferior fueron inspeccionados sin clipping ni overflow horizontal.
+- **Accessibility:** dashboard ADMIN y STAFF con axe WCAG A/AA en 0 violations; headings, landmarks, `time`, enlaces completos, targets y foco preservados. La información financiera no existe para STAFF. Consola limpia; requests RSC cancelados al cerrar contextos corresponden a prefetch abortado, no a respuestas de aplicación fallidas.
+- **Tests:** lint, typecheck, 35 unit, 42 integración, build y `git diff --check` verdes. E2E relacionado dashboard/search ADMIN/STAFF 1/1, con proyecciones por rol y axe en ambas sesiones.
+- **Gate:** GATE 3 dashboard parcial, `approved for continued autonomous execution`; se completa con agenda en FE-06.
+- **Known issues:** evidencia cloud aislada no disponible; validación en production build local con PostgreSQL local y datos E2E sintéticos. Producción no fue usada.
