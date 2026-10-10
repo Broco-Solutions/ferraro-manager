@@ -6,6 +6,7 @@ import {
   saveCalendarBlockAction,
   type SchedulingFormState,
 } from "@/modules/scheduling/application/actions";
+import styles from "@/modules/scheduling/ui/calendar.module.css";
 
 const initialState: SchedulingFormState = { status: "idle" };
 
@@ -21,19 +22,19 @@ export function BlockForm({
     initialState,
   );
   return (
-    <form action={action} className="entity-form">
+    <form action={action} className={styles.form}>
       {state.message ? (
-        <p className="form-error" role="alert">
+        <p className={styles.error} role="alert">
           {state.message}
         </p>
       ) : null}
-      <section className="form-section">
-        <div className="form-section-heading">
+      <section className={styles.formSection}>
+        <div className={styles.formSectionHeading}>
           <h2>Bloqueo</h2>
           <p>Impide nuevas reservas dentro del rango.</p>
         </div>
-        <div className="form-grid">
-          <label className="field-group field-span-2">
+        <div className={styles.formGrid}>
+          <label className={`${styles.field} ${styles.fieldSpan}`}>
             <span>Motivo *</span>
             <input
               name="reason"
@@ -41,7 +42,7 @@ export function BlockForm({
               required
             />
           </label>
-          <label className="field-group">
+          <label className={styles.field}>
             <span>Inicio *</span>
             <input
               type="datetime-local"
@@ -50,7 +51,7 @@ export function BlockForm({
               required
             />
           </label>
-          <label className="field-group">
+          <label className={styles.field}>
             <span>Fin *</span>
             <input
               type="datetime-local"
@@ -59,18 +60,18 @@ export function BlockForm({
               required
             />
           </label>
-          <label className="toggle-field field-span-2">
+          <label className={`${styles.toggle} ${styles.fieldSpan}`}>
             <input type="checkbox" name="allDay" />
             <span>Mostrar como día completo</span>
           </label>
-          <label className="field-group field-span-2">
+          <label className={`${styles.field} ${styles.fieldSpan}`}>
             <span>Notas internas</span>
             <textarea name="notes" rows={3} />
           </label>
         </div>
       </section>
-      <div className="form-actions">
-        <button className="primary-button" disabled={pending}>
+      <div className={styles.formActions}>
+        <button className={styles.submit} disabled={pending}>
           {pending ? "Guardando…" : "Crear bloqueo"}
         </button>
       </div>

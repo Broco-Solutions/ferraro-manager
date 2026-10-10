@@ -6,6 +6,7 @@ import {
   saveAppointmentAction,
   type SchedulingFormState,
 } from "@/modules/scheduling/application/actions";
+import styles from "@/modules/scheduling/ui/calendar.module.css";
 
 const initialState: SchedulingFormState = { status: "idle" };
 
@@ -67,29 +68,29 @@ export function AppointmentForm({
   const isEdit = Boolean(values.id);
 
   return (
-    <form action={action} className="entity-form">
+    <form action={action} className={styles.form}>
       {values.id ? <input type="hidden" name="id" value={values.id} /> : null}
       {idempotencyKey ? (
         <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
       ) : null}
       {state.message ? (
-        <p className="form-error" role="alert">
+        <p className={styles.error} role="alert">
           {state.message}
         </p>
       ) : null}
-      <section className="form-section">
-        <div className="form-section-heading">
+      <section className={styles.formSection}>
+        <div className={styles.formSectionHeading}>
           <h2>Vehículo</h2>
           <p>El caso comercial se crea automáticamente.</p>
         </div>
         {isEdit ? (
-          <div className="appointment-identity">
+          <div className={styles.identity}>
             <strong>{values.clientLabel}</strong>
             <span>{values.vehicleLabel}</span>
           </div>
         ) : (
-          <div className="form-grid">
-            <label className="field-group">
+          <div className={styles.formGrid}>
+            <label className={styles.field}>
               <span>Cliente *</span>
               <select
                 name="clientId"
@@ -111,7 +112,7 @@ export function AppointmentForm({
                 ))}
               </select>
             </label>
-            <label className="field-group">
+            <label className={styles.field}>
               <span>Vehículo *</span>
               <select
                 name="vehicleId"
@@ -130,13 +131,13 @@ export function AppointmentForm({
           </div>
         )}
       </section>
-      <section className="form-section">
-        <div className="form-section-heading">
+      <section className={styles.formSection}>
+        <div className={styles.formSectionHeading}>
           <h2>Horario</h2>
           <p>La agenda admite turnos simultáneos y de varios días.</p>
         </div>
-        <div className="form-grid">
-          <label className="field-group">
+        <div className={styles.formGrid}>
+          <label className={styles.field}>
             <span>Inicio *</span>
             <input
               type="datetime-local"
@@ -145,7 +146,7 @@ export function AppointmentForm({
               required
             />
           </label>
-          <label className="field-group">
+          <label className={styles.field}>
             <span>Fin *</span>
             <input
               type="datetime-local"
@@ -156,15 +157,15 @@ export function AppointmentForm({
           </label>
         </div>
       </section>
-      <section className="form-section">
-        <div className="form-section-heading">
+      <section className={styles.formSection}>
+        <div className={styles.formSectionHeading}>
           <h2>Servicios</h2>
           <p>Opcionales; se guardan como snapshot del turno.</p>
         </div>
-        <div className="choice-grid">
+        <div className={styles.choiceGrid}>
           {options.services.length ? (
             options.services.map((service) => (
-              <label className="choice-card" key={service.id}>
+              <label className={styles.choice} key={service.id}>
                 <input
                   type="checkbox"
                   name="serviceIds"
@@ -183,20 +184,20 @@ export function AppointmentForm({
               </label>
             ))
           ) : (
-            <p className="muted-copy">
+            <p className={styles.muted}>
               No hay servicios activos. Podés agendar igual.
             </p>
           )}
         </div>
       </section>
-      <section className="form-section">
-        <div className="form-section-heading">
+      <section className={styles.formSection}>
+        <div className={styles.formSectionHeading}>
           <h2>Responsables</h2>
           <p>Asignación opcional del equipo.</p>
         </div>
-        <div className="choice-grid">
+        <div className={styles.choiceGrid}>
           {options.employees.map((employee) => (
-            <label className="choice-card" key={employee.id}>
+            <label className={styles.choice} key={employee.id}>
               <input
                 type="checkbox"
                 name="employeeIds"
@@ -210,13 +211,13 @@ export function AppointmentForm({
           ))}
         </div>
       </section>
-      <section className="form-section">
-        <div className="form-section-heading">
+      <section className={styles.formSection}>
+        <div className={styles.formSectionHeading}>
           <h2>Detalles</h2>
           <p>Las notas son siempre internas.</p>
         </div>
-        <div className="form-grid">
-          <label className="field-group field-span-2">
+        <div className={styles.formGrid}>
+          <label className={`${styles.field} ${styles.fieldSpan}`}>
             <span>Notas internas</span>
             <textarea
               name="internalNotes"
@@ -224,7 +225,7 @@ export function AppointmentForm({
               rows={4}
             />
           </label>
-          <label className="toggle-field field-span-2">
+          <label className={`${styles.toggle} ${styles.fieldSpan}`}>
             <input
               type="checkbox"
               name="visibleToClient"
@@ -234,8 +235,8 @@ export function AppointmentForm({
           </label>
         </div>
       </section>
-      <div className="form-actions">
-        <button className="primary-button" disabled={pending}>
+      <div className={styles.formActions}>
+        <button className={styles.submit} disabled={pending}>
           {pending ? "Guardando…" : isEdit ? "Guardar turno" : "Crear turno"}
         </button>
       </div>

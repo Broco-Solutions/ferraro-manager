@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { BlockForm } from "@/modules/scheduling/ui/block-form";
+import styles from "@/modules/scheduling/ui/calendar.module.css";
 import { getBusinessDateKey } from "@/shared/date-time/business-time";
 
 export const metadata: Metadata = { title: "Bloquear agenda" };
@@ -17,15 +18,20 @@ export default async function NewBlockPage({
       ? params.date
       : getBusinessDateKey(new Date());
   return (
-    <div className="page-stack page-narrow">
-      <Link href={`/app/calendar?view=day&date=${date}`} className="back-link">
+    <div className={styles.formPage}>
+      <Link
+        className={styles.backLink}
+        href={`/app/calendar?view=day&date=${date}`}
+      >
         ← Agenda
       </Link>
-      <header className="page-header">
+      <header className={styles.formHero}>
         <div>
-          <p className="eyebrow">Indisponibilidad</p>
+          <p className={styles.eyebrow}>Indisponibilidad</p>
           <h1>Bloquear agenda</h1>
-          <p className="page-description">No crea cliente, turno ni trabajo.</p>
+          <p className={styles.description}>
+            No crea cliente, turno ni trabajo.
+          </p>
         </div>
       </header>
       <BlockForm startLocal={`${date}T09:00`} endLocal={`${date}T18:00`} />

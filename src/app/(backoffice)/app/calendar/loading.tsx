@@ -1,13 +1,16 @@
+import { Skeleton } from "@/components/ui/feedback";
+import styles from "@/modules/scheduling/ui/calendar.module.css";
+
 export default function CalendarLoading() {
   return (
-    <div className="page-stack" aria-busy="true" aria-label="Cargando agenda">
-      <div className="skeleton skeleton-title" />
-      <div className="skeleton skeleton-filter" />
-      <div className="calendar-skeleton">
-        <div className="skeleton skeleton-row" />
-        <div className="skeleton skeleton-row" />
-        <div className="skeleton skeleton-row" />
-      </div>
+    <div
+      aria-busy="true"
+      aria-label="Cargando agenda"
+      className={styles.loading}
+    >
+      <Skeleton height="3.5rem" width="16rem" />
+      <Skeleton height="3rem" />
+      <Skeleton className={styles.loadingCalendar} />
     </div>
   );
 }

@@ -7,6 +7,7 @@ import {
   listJobOptions,
 } from "@/modules/jobs/application/job-service";
 import { JobForm } from "@/modules/jobs/ui/job-form";
+import styles from "@/modules/scheduling/ui/calendar.module.css";
 import { formatBusinessDateTimeInput } from "@/shared/date-time/business-time";
 
 export const metadata: Metadata = { title: "Completar trabajo" };
@@ -27,15 +28,18 @@ export default async function CompleteAppointmentPage({
     redirect(`/app/calendar/${appointment.id}`);
   const vehicle = appointment.serviceCase.vehicle;
   return (
-    <div className="page-stack page-narrow">
-      <Link href={`/app/calendar/${appointment.id}`} className="back-link">
+    <div className={styles.formPage}>
+      <Link
+        className={styles.backLink}
+        href={`/app/calendar/${appointment.id}`}
+      >
         ← Turno
       </Link>
-      <header className="page-header">
+      <header className={styles.formHero}>
         <div>
-          <p className="eyebrow">Desde agenda</p>
+          <p className={styles.eyebrow}>Desde agenda</p>
           <h1>Marcar como realizado</h1>
-          <p className="page-description">
+          <p className={styles.description}>
             Confirmá qué se hizo. El cobro es independiente.
           </p>
         </div>
