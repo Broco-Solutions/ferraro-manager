@@ -11,6 +11,25 @@ Este runbook cubre la preparación y recuperación operativa de Ferraro Manager 
 5. Verificar login ADMIN/STAFF, portal aislado, PDF, upload privado y `/api/health`.
 6. Confirmar que el bucket no tenga acceso público y que CORS sólo acepte POST desde el origen de la app.
 
+## Reanudación del release bloqueado
+
+El release `2e029cafa85567edc7731de6e46f9983c3d919bd` está mergeado en `main`, pero el deployment de producción quedó `BLOCKED` por la atribución del committer `rcoirini@brocosolutions.com` en Vercel. No sortear este control modificando membresías, cuentas, integración Git, protección de deployments o infraestructura.
+
+Cuando el acceso quede resuelto:
+
+1. Comprobar que el committer/cuenta GitHub ya está admitido por Vercel.
+2. Verificar que `main` contiene el código money + profitability en `2e029cafa85567edc7731de6e46f9983c3d919bd`.
+3. Ejecutar o esperar el redeploy/latest deployment de `main` mediante la integración normal.
+4. Verificar que el build termine correctamente y el deployment llegue a `READY`.
+5. Verificar que el deployment ejecute `prisma migrate deploy` correctamente.
+6. Confirmar que queden aplicadas estas migraciones: `20261010120000_money_profitability`, `20261010140000_money_consistency_constraints` y `20261010160000_direct_cost_consistency`.
+7. Abrir `https://ferraro-manager.vercel.app` y comprobar que responde la versión nueva.
+8. Hacer el smoke test de login ADMIN, dashboard, agenda, clientes, trabajos, finanzas, presupuestos, compras, inventario, USD/ARS, cotización ARS, costo directo, margen conocido y cobertura.
+9. Revisar logs de build y runtime, además de errores 5xx.
+10. Registrar el release como completado en `docs/EXECUTION_LOG.md` sólo después de confirmar todas las verificaciones.
+
+El próximo checkpoint es **PENDIENTE DE ACCESO VERCEL**. No volver a implementar la feature, recrear el merge, rehacer migraciones ni resetear `main`.
+
 ## Health y observabilidad
 
 - `GET /api/health` comprueba conectividad de PostgreSQL y responde `200 {"status":"ok"}` o `503 {"status":"unavailable"}` sin revelar detalles.
