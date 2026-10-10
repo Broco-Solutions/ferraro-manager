@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import sharp from "sharp";
 
@@ -19,6 +20,37 @@ import {
 const marker = "Portal E2E";
 let clientA = "";
 let clientB = "";
+const evidenceViewports = [
+  ["1440x900", 1440, 900],
+  ["1280x800", 1280, 800],
+  ["1024x768", 1024, 768],
+  ["820x1180", 820, 1180],
+  ["768x1024", 768, 1024],
+  ["390x844", 390, 844],
+] as const;
+
+async function captureEvidence(page: Page) {
+  if (!process.env.FE_EVIDENCE_DIR) return;
+  for (const [name, width, height] of evidenceViewports) {
+    await page.setViewportSize({ width, height });
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            document.documentElement.scrollWidth <=
+            document.documentElement.clientWidth,
+        ),
+      )
+      .toBe(true);
+    await page.evaluate(() => {
+      (document.activeElement as HTMLElement | null)?.blur();
+      window.scrollTo(0, 0);
+    });
+    await page.screenshot({
+      path: `${process.env.FE_EVIDENCE_DIR}/portal-${name}.png`,
+    });
+  }
+}
 
 async function login(page: Page, role: "admin" | "staff") {
   await resetE2EAuthRateLimit();
@@ -205,7 +237,7 @@ test("ADMIN shares an isolated portal and regeneration/revocation invalidate acc
   browser,
   request,
 }) => {
-  test.setTimeout(60_000);
+  test.setTimeout(90_000);
   await login(page, "admin");
   await page.goto(`/app/clients/${clientA}`);
   await expect(
@@ -246,6 +278,16 @@ test("ADMIN shares an isolated portal and regeneration/revocation invalidate acc
     .getByAltText("Foto 1 del trabajo")
     .getAttribute("src");
   expect((await request.get(photoSource!)).status()).toBe(401);
+  const accessibility = await new AxeBuilder({ page: clientPage })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(accessibility.violations).toEqual([]);
+  await clientPage
+    .getByRole("button", { name: "Ampliar foto 1 del trabajo" })
+    .click();
+  await expect(clientPage.getByRole("dialog")).toBeVisible();
+  await clientPage.keyboard.press("Escape");
+  await captureEvidence(clientPage);
 
   await page.getByRole("button", { name: "Regenerar link" }).click();
   await expect(page.getByText(/Link regenerado/)).toBeVisible();
@@ -264,8 +306,11 @@ test("ADMIN shares an isolated portal and regeneration/revocation invalidate acc
     clientPage.getByRole("heading", { name: "Porsche 911 GT3" }).first(),
   ).toBeVisible();
 
-  page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Revocar acceso" }).click();
+  await page
+    .getByRole("alertdialog")
+    .getByRole("button", { name: "Revocar acceso" })
+    .click();
   await expect(page.getByText("Link revocado inmediatamente.")).toBeVisible();
   await clientPage.reload();
   await expect(

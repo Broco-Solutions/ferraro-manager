@@ -1,15 +1,17 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 
+import { BrandLockup } from "@/components/brand/brand-assets";
 import { brandConfig } from "@/config/brand";
 import {
   getPortalProjection,
   resolvePortalLink,
 } from "@/modules/portal/application/portal-service";
 import { getPortalSession } from "@/modules/portal/application/portal-session";
+import { PortalGallery } from "@/modules/portal/ui/portal-gallery";
 import { PortalUnlockForm } from "@/modules/portal/ui/portal-unlock-form";
+import styles from "@/modules/portal/ui/portal.module.css";
 import {
   formatBusinessDate,
   formatBusinessDateTime,
@@ -24,16 +26,13 @@ export const dynamic = "force-dynamic";
 
 function PortalFrame({ children }: { children: ReactNode }) {
   return (
-    <main className="client-portal-shell">
-      <header className="client-portal-header">
-        <span className="client-portal-mark">{brandConfig.mark}</span>
-        <div>
-          <strong>{brandConfig.shortName.toUpperCase()}</strong>
-          <small>{brandConfig.location}</small>
-        </div>
+    <main className={styles.shell}>
+      <header className={styles.header}>
+        <BrandLockup className={styles.lockup} priority />
+        <span className={styles.privateLabel}>Espacio privado</span>
       </header>
       {children}
-      <footer className="client-portal-footer">
+      <footer className={styles.footer}>
         <span>{brandConfig.businessName}</span>
         <small>Detalle, protección y cuidado.</small>
       </footer>
@@ -51,8 +50,8 @@ export default async function ClientPortalPage({
   if (!link) {
     return (
       <PortalFrame>
-        <section className="portal-access-card">
-          <p className="eyebrow">Acceso privado</p>
+        <section className={styles.access}>
+          <p className={styles.eyebrow}>Acceso privado</p>
           <h1>Este link ya no está disponible.</h1>
           <p>
             Pedile a Ferraro un nuevo acceso si necesitás consultar tu
@@ -71,8 +70,8 @@ export default async function ClientPortalPage({
   if (!sessionMatches) {
     return (
       <PortalFrame>
-        <section className="portal-access-card">
-          <p className="eyebrow">Acceso privado</p>
+        <section className={styles.access}>
+          <p className={styles.eyebrow}>Acceso privado</p>
           <h1>Tu historial Ferraro.</h1>
           <p>Ingresá la contraseña que recibiste junto con este link.</p>
           <PortalUnlockForm token={token} />
@@ -86,24 +85,23 @@ export default async function ClientPortalPage({
 
   return (
     <PortalFrame>
-      <section className="portal-hero">
-        <p className="eyebrow">Espacio privado</p>
+      <section className={styles.hero}>
+        <p className={styles.eyebrow}>Espacio privado</p>
         <h1>Hola, {portal.displayName}.</h1>
         <p>Tu garage y el trabajo realizado por Ferraro, en un solo lugar.</p>
       </section>
 
-      <section className="portal-section">
-        <div className="portal-section-heading">
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
           <div>
-            <p className="eyebrow">Garage</p>
+            <p className={styles.eyebrow}>Garage</p>
             <h2>Tus vehículos</h2>
           </div>
-          <span>{portal.vehicles.length}</span>
+          <span className={styles.count}>{portal.vehicles.length}</span>
         </div>
-        <div className="portal-vehicle-grid">
+        <div className={styles.vehicles}>
           {portal.vehicles.map((vehicle) => (
-            <article key={vehicle.id}>
-              <span>{vehicle.brand.slice(0, 1)}</span>
+            <article className={styles.vehicle} key={vehicle.id}>
               <div>
                 <h3>
                   {vehicle.brand} {vehicle.model}
@@ -119,18 +117,18 @@ export default async function ClientPortalPage({
         </div>
       </section>
 
-      <section className="portal-section portal-appointments">
-        <div className="portal-section-heading">
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
           <div>
-            <p className="eyebrow">Próximamente</p>
+            <p className={styles.eyebrow}>Próximamente</p>
             <h2>Próximos turnos</h2>
           </div>
-          <span>{portal.appointments.length}</span>
+          <span className={styles.count}>{portal.appointments.length}</span>
         </div>
         {portal.appointments.length ? (
-          <div className="portal-appointment-list">
+          <div className={styles.appointments}>
             {portal.appointments.map((appointment) => (
-              <article key={appointment.id}>
+              <article className={styles.appointment} key={appointment.id}>
                 <time>{formatBusinessDateTime(appointment.startAt)}</time>
                 <strong>
                   {appointment.serviceCase.vehicle.brand}{" "}
@@ -145,26 +143,26 @@ export default async function ClientPortalPage({
             ))}
           </div>
         ) : (
-          <div className="portal-empty">
+          <div className={styles.empty}>
             <strong>Sin próximos turnos</strong>
             <p>Cuando coordinemos una nueva visita, aparecerá acá.</p>
           </div>
         )}
       </section>
 
-      <section className="portal-section">
-        <div className="portal-section-heading">
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
           <div>
-            <p className="eyebrow">Historial</p>
+            <p className={styles.eyebrow}>Historial</p>
             <h2>Trabajos realizados</h2>
           </div>
-          <span>{portal.jobs.length}</span>
+          <span className={styles.count}>{portal.jobs.length}</span>
         </div>
         {portal.jobs.length ? (
-          <div className="portal-job-list">
+          <div className={styles.jobs}>
             {portal.jobs.map((job) => (
-              <article key={job.id}>
-                <header>
+              <article className={styles.job} key={job.id}>
+                <header className={styles.jobHeader}>
                   <div>
                     <time>{formatBusinessDate(job.performedAt)}</time>
                     <h3>
@@ -174,7 +172,7 @@ export default async function ClientPortalPage({
                   </div>
                   <span>{job.photos.length} fotos</span>
                 </header>
-                <ul>
+                <ul className={styles.services}>
                   {job.services.length ? (
                     job.services.map((service) => (
                       <li key={service.id}>
@@ -189,31 +187,13 @@ export default async function ClientPortalPage({
                   )}
                 </ul>
                 {job.photos.length ? (
-                  <div className="portal-photo-grid">
-                    {job.photos.map((photo, index) => (
-                      <a
-                        key={photo.id}
-                        href={`/api/client/photos/${photo.id}/preview`}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        <Image
-                          src={`/api/client/photos/${photo.id}/thumbnail`}
-                          alt={`Foto ${index + 1} del trabajo`}
-                          width={480}
-                          height={480}
-                          unoptimized
-                          loading={index === 0 ? "eager" : "lazy"}
-                        />
-                      </a>
-                    ))}
-                  </div>
+                  <PortalGallery photos={job.photos} />
                 ) : null}
               </article>
             ))}
           </div>
         ) : (
-          <div className="portal-empty">
+          <div className={styles.empty}>
             <strong>Tu historial comienza acá</strong>
             <p>Los trabajos realizados aparecerán en este espacio.</p>
           </div>

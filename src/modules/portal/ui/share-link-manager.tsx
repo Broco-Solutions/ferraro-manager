@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 
+import { ConfirmDialog } from "@/components/ui/overlays";
 import {
   createShareLinkAction,
   regenerateShareLinkAction,
@@ -144,16 +145,13 @@ export function ShareLinkManager({
             {active ? "Regenerar link" : "Reactivar con link nuevo"}
           </button>
           {active ? (
-            <button
-              className="danger-button"
-              disabled={pending}
-              onClick={() => {
-                if (window.confirm("¿Revocar el acceso privado ahora?"))
-                  run(() => revokeShareLinkAction(clientId));
-              }}
-            >
-              Revocar acceso
-            </button>
+            <ConfirmDialog
+              confirmLabel="Revocar acceso"
+              description="El cliente perderá acceso inmediatamente. El historial y las fotos no se eliminan."
+              onConfirm={() => run(() => revokeShareLinkAction(clientId))}
+              title="¿Revocar el acceso privado?"
+              triggerLabel={pending ? "Procesando…" : "Revocar acceso"}
+            />
           ) : null}
         </div>
       )}
