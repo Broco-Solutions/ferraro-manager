@@ -179,6 +179,17 @@ Evidencia FE-11: `/tmp/ferraro-redesign-evidence/fe11`, seis baselines y seis ca
 
 Evidencia FE-12: `/tmp/ferraro-redesign-evidence/fe12`, seis baselines y seis finales. Aislamiento adversarial, headers, password, regeneración, revocación, foto 401 anónima, axe y Escape verificados localmente.
 
+## Hardening responsive y accesible
+
+- Matriz cerrada: 1440×900, 1280×800, 1024×768, 820×1180, 768×1024 y 390×844 para ADMIN/STAFF, más portal en los seis tamaños.
+- Reflow a 200% se valida a 640 CSS px con DPR 2; no existe overflow del documento. Scroll horizontal queda reservado al canvas semanal de agenda y a acciones rápidas explícitas.
+- `prefers-reduced-motion: reduce` desactiva transiciones/animaciones no esenciales. No se añadieron animaciones decorativas.
+- Teclado: skip link, foco visible, Ctrl/Cmd+K, navegación, fecha/vistas, Dialog/Drawer/Confirm/Lightbox con Escape y retorno, y formularios nativos.
+- Ningún estado depende sólo de color. Badges usan icono/texto, movimientos usan signo/tipo, agenda usa forma/icono/texto y foco supera contraste AA.
+- El crawl local de 36 combinaciones registra título presente, cero overflow, cero page errors y cero 5xx. Axe final registra cero violations en todas las superficies representativas.
+
+Evidencia FE-13: `/tmp/ferraro-redesign-evidence/fe13/final`, incluyendo `crawl-report.json`, capturas por rol/viewport y zoom 200%.
+
 ## Geometría y tono
 
 La UI deriva del isotipo su ritmo vertical y división en tres, sin convertirlos en patrón ornamental repetitivo. El shell es grafito y el área de trabajo clara. La identidad proviene de activo, tipografía, alineación, ritmo y detalle; el amarillo se reserva para marca, foco y selección controlada.

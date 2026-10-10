@@ -245,7 +245,9 @@ export function PhotoUploader({ jobId }: { jobId: string }) {
                     {item.progress}%
                   </progress>
                 ) : null}
-                <span className={`${styles.status} ${item.status === "done" ? styles.done : ""} ${item.status === "error" ? styles.error : ""}`}>
+                <span
+                  className={`${styles.status} ${item.status === "done" ? styles.done : ""} ${item.status === "error" ? styles.error : ""}`}
+                >
                   {item.status === "ready"
                     ? "Lista para subir"
                     : item.status === "uploading"

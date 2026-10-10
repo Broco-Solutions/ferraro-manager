@@ -31,7 +31,7 @@ test("ADMIN can sign in, enter the protected admin route and sign out", async ({
   await login(page, e2eUsers.admin);
   await page.getByRole("link", { name: "Administración" }).click();
   await expect(
-    page.getByRole("heading", { name: "Área administrativa protegida" }),
+    page.getByRole("heading", { name: "Administración" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Cerrar sesión" }).click();
   await expect(page).toHaveURL(/\/login$/);

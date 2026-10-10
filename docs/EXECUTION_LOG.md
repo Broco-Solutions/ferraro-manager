@@ -273,3 +273,15 @@ Registro resumido de la ejecución autónoma de V1. El contrato funcional contin
 - **Tests:** lint, typecheck, 35 unit, 42 integración, build y `git diff --check` verdes. Gate relacionado dashboard/search/portal 2/2; portal separado 1/1 con password, headers no-store/no-referrer/noindex, regeneración y revocación inmediata.
 - **Gate:** GATE 5 portal parcial, `approved for continued autonomous execution` para validación local.
 - **Known issues:** DB/auth/storage Preview aislados no están disponibles. Por regla del plan, persistencia remota y Better Auth Preview no se declaran cerrados; producción no fue usada.
+
+## FRONTEND BUILD FE-13 — Responsive, accesibilidad y hardening visual
+
+- **Status:** COMPLETE — GATE 5 local approved for continued autonomous execution.
+- **Scope:** auditoría transversal de seis viewports, 200% efectivo, reduced motion, roles, portal, teclado, metadata, axe, overflow, consola/respuestas y suite completa. No se añadieron features ni cambios de dominio.
+- **Findings/fixes:** la suite total detectó dos selectores/sincronizaciones E2E tras cambios legítimos: heading de Administración y ejecución de axe antes de metadata Next. Se actualizaron a heading real y espera explícita de `<title>`; no se ocultaron reglas ni se redujo cobertura.
+- **Evidence:** 12 capturas ADMIN/STAFF + zoom en `/tmp/ferraro-redesign-evidence/fe13/final`; `crawl-report.json` contiene 36 combinaciones ruta/rol/viewport con 0 overflow, 0 páginas sin título, 0 page errors y 0 respuestas 5xx. Viewports: 1440×900, 1280×800, 1024×768, 820×1180, 768×1024 y 390×844.
+- **Zoom/motion:** emulación 200% efectiva a 640 CSS px/DPR 2, sin overflow; `prefers-reduced-motion: reduce` verdadero en todo el crawl. Focus trap/Escape/retorno, navegación mobile, shortcuts, formularios y agenda por teclado están cubiertos por E2E.
+- **Accessibility:** axe WCAG 2 A/AA, 2.1 y 2.2 AA en login, design system, dashboard ADMIN/STAFF, clientes, agenda, trabajos, finanzas, inventario, compras, servicios, presupuestos y portal: 0 violations en ejecuciones finales.
+- **Tests:** suite E2E completa 25/25 verde (1.1 min), 35 unit y 42 integración verdes; lint, typecheck, build y `git diff --check` verdes. No hay `window.confirm`, segunda librería de iconos, Tailwind ni errores de consola de aplicación.
+- **Gate:** GATE 5 QA local, `approved for continued autonomous execution`; FE-14 habilitado.
+- **Known issues:** validación cloud de Preview/Auth/storage continúa pendiente y no se sustituye por producción. No quedan issues críticos/altos; la deuda de CSS legacy/aliases se aborda en FE-14.

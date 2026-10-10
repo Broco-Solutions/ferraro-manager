@@ -16,7 +16,11 @@ export default async function NewJobPage() {
       <Link href="/app/jobs" className="back-link">
         ← Trabajos
       </Link>
-      <PageHeader eyebrow="Registro directo" title="Nuevo trabajo" description="Documentá lo efectivamente realizado sin turno previo. El registro no genera un cobro automático." />
+      <PageHeader
+        eyebrow="Registro directo"
+        title="Nuevo trabajo"
+        description="Documentá lo efectivamente realizado sin turno previo. El registro no genera un cobro automático."
+      />
       {options.clients.length ? (
         <JobForm
           options={options}

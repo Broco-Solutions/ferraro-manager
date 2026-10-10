@@ -54,7 +54,9 @@ export function PhotoGallery({
         <ImageIcon aria-hidden="true" size={26} weight="duotone" />
         <div>
           <strong>Sin fotos todavía</strong>
-          <p>Las imágenes son privadas hasta que se publiquen explícitamente.</p>
+          <p>
+            Las imágenes son privadas hasta que se publiquen explícitamente.
+          </p>
         </div>
       </div>
     );
@@ -67,7 +69,10 @@ export function PhotoGallery({
         return (
           <article className={styles.card} key={photo.id}>
             <DialogTrigger>
-              <AriaButton className={styles.frame} aria-label={`Ampliar ${label.toLowerCase()}`}>
+              <AriaButton
+                className={styles.frame}
+                aria-label={`Ampliar ${label.toLowerCase()}`}
+              >
                 <Image
                   src={`/api/photos/${photo.id}/thumbnail`}
                   alt={label}
@@ -79,7 +84,11 @@ export function PhotoGallery({
                 <span className={styles.zoom}>Ampliar</span>
                 <span className={styles.badges}>
                   {photo.isCover ? <span>Portada</span> : null}
-                  <span className={photo.visibleToClient ? styles.public : styles.private}>
+                  <span
+                    className={
+                      photo.visibleToClient ? styles.public : styles.private
+                    }
+                  >
                     {photo.visibleToClient ? "Visible al cliente" : "Privada"}
                   </span>
                 </span>
@@ -91,7 +100,11 @@ export function PhotoGallery({
                       <>
                         <div className={styles.lightboxHeader}>
                           <Heading slot="title">{label}</Heading>
-                          <AriaButton aria-label="Cerrar imagen" className={styles.close} onPress={close}>
+                          <AriaButton
+                            aria-label="Cerrar imagen"
+                            className={styles.close}
+                            onPress={close}
+                          >
                             <XIcon aria-hidden="true" size={22} weight="bold" />
                           </AriaButton>
                         </div>
@@ -111,7 +124,10 @@ export function PhotoGallery({
             </DialogTrigger>
 
             <div className={styles.meta}>
-              <form action={updatePhotoStageAction} className={styles.stageForm}>
+              <form
+                action={updatePhotoStageAction}
+                className={styles.stageForm}
+              >
                 <input type="hidden" name="jobId" value={jobId} />
                 <input type="hidden" name="photoId" value={photo.id} />
                 <label>
@@ -132,35 +148,64 @@ export function PhotoGallery({
                 <form action={togglePhotoVisibilityAction}>
                   <input type="hidden" name="jobId" value={jobId} />
                   <input type="hidden" name="photoId" value={photo.id} />
-                  <input type="hidden" name="visibleToClient" value={photo.visibleToClient ? "false" : "true"} />
-                  <button aria-label={photo.visibleToClient ? "Ocultar al cliente" : "Publicar al cliente"}>
-                    {photo.visibleToClient ? <EyeSlashIcon aria-hidden="true" /> : <EyeIcon aria-hidden="true" />}
-                    <span>{photo.visibleToClient ? "Ocultar" : "Publicar"}</span>
+                  <input
+                    type="hidden"
+                    name="visibleToClient"
+                    value={photo.visibleToClient ? "false" : "true"}
+                  />
+                  <button
+                    aria-label={
+                      photo.visibleToClient
+                        ? "Ocultar al cliente"
+                        : "Publicar al cliente"
+                    }
+                  >
+                    {photo.visibleToClient ? (
+                      <EyeSlashIcon aria-hidden="true" />
+                    ) : (
+                      <EyeIcon aria-hidden="true" />
+                    )}
+                    <span>
+                      {photo.visibleToClient ? "Ocultar" : "Publicar"}
+                    </span>
                   </button>
                 </form>
                 {!photo.isCover ? (
                   <form action={setCoverPhotoAction}>
                     <input type="hidden" name="jobId" value={jobId} />
                     <input type="hidden" name="photoId" value={photo.id} />
-                    <button aria-label="Usar como portada"><StarIcon aria-hidden="true" /><span>Portada</span></button>
+                    <button aria-label="Usar como portada">
+                      <StarIcon aria-hidden="true" />
+                      <span>Portada</span>
+                    </button>
                   </form>
                 ) : null}
                 <form action={movePhotoAction}>
                   <input type="hidden" name="jobId" value={jobId} />
                   <input type="hidden" name="photoId" value={photo.id} />
                   <input type="hidden" name="direction" value="UP" />
-                  <button aria-label="Mover foto antes" disabled={index === 0}><ArrowUpIcon aria-hidden="true" /></button>
+                  <button aria-label="Mover foto antes" disabled={index === 0}>
+                    <ArrowUpIcon aria-hidden="true" />
+                  </button>
                 </form>
                 <form action={movePhotoAction}>
                   <input type="hidden" name="jobId" value={jobId} />
                   <input type="hidden" name="photoId" value={photo.id} />
                   <input type="hidden" name="direction" value="DOWN" />
-                  <button aria-label="Mover foto después" disabled={index === photos.length - 1}><ArrowDownIcon aria-hidden="true" /></button>
+                  <button
+                    aria-label="Mover foto después"
+                    disabled={index === photos.length - 1}
+                  >
+                    <ArrowDownIcon aria-hidden="true" />
+                  </button>
                 </form>
                 <form action={deletePhotoAction}>
                   <input type="hidden" name="jobId" value={jobId} />
                   <input type="hidden" name="photoId" value={photo.id} />
-                  <ConfirmButton className={styles.delete} message="¿Eliminar esta foto del trabajo?">
+                  <ConfirmButton
+                    className={styles.delete}
+                    message="¿Eliminar esta foto del trabajo?"
+                  >
                     Eliminar
                   </ConfirmButton>
                 </form>

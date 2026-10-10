@@ -41,39 +41,51 @@ export default async function JobsPage({
         eyebrow="Historial real"
         title="Trabajos"
         description="Servicios efectivamente realizados, materiales utilizados y registro visual de cada vehículo."
-        actions={<Link href="/app/jobs/new" className={buttonClassName("primary")}><PlusIcon aria-hidden="true" />Nuevo trabajo</Link>}
+        actions={
+          <Link href="/app/jobs/new" className={buttonClassName("primary")}>
+            <PlusIcon aria-hidden="true" />
+            Nuevo trabajo
+          </Link>
+        }
       />
       <DataToolbar>
-      <form className="filter-bar" role="search">
-        <label className="search-field">
-          <span className="sr-only">Buscar trabajos</span>
-          <input
-            name="q"
-            defaultValue={params.q}
-            placeholder="Cliente, vehículo o servicio"
-          />
-        </label>
-        <label className="compact-field">
-          <span>Estado</span>
-          <select name="status" defaultValue={status}>
-            <option value="active">Realizados</option>
-            <option value="voided">Anulados</option>
-            <option value="all">Todos</option>
-          </select>
-        </label>
-        <button className="ghost-button">Aplicar</button>
-        {filtered ? (
-          <Link href="/app/jobs" className="text-link">
-            Limpiar
-          </Link>
-        ) : null}
-      </form>
+        <form className="filter-bar" role="search">
+          <label className="search-field">
+            <span className="sr-only">Buscar trabajos</span>
+            <input
+              name="q"
+              defaultValue={params.q}
+              placeholder="Cliente, vehículo o servicio"
+            />
+          </label>
+          <label className="compact-field">
+            <span>Estado</span>
+            <select name="status" defaultValue={status}>
+              <option value="active">Realizados</option>
+              <option value="voided">Anulados</option>
+              <option value="all">Todos</option>
+            </select>
+          </label>
+          <button className="ghost-button">Aplicar</button>
+          {filtered ? (
+            <Link href="/app/jobs" className="text-link">
+              Limpiar
+            </Link>
+          ) : null}
+        </form>
       </DataToolbar>
-      <div className={styles.meta}><strong>{result.total}</strong> {result.total === 1 ? "trabajo documentado" : "trabajos documentados"}</div>
+      <div className={styles.meta}>
+        <strong>{result.total}</strong>{" "}
+        {result.total === 1 ? "trabajo documentado" : "trabajos documentados"}
+      </div>
       {result.items.length ? (
         <section className={styles.list} aria-label="Resultados de trabajos">
           {result.items.map((job) => (
-            <Link href={`/app/jobs/${job.id}`} className={styles.row} key={job.id}>
+            <Link
+              href={`/app/jobs/${job.id}`}
+              className={styles.row}
+              key={job.id}
+            >
               <span className={styles.date}>
                 <strong>{formatBusinessDate(job.performedAt)}</strong>
               </span>

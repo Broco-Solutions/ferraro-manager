@@ -144,6 +144,7 @@ test("dashboard and search adapt their projections to ADMIN and STAFF", async ({
   await expect(
     page.getByRole("heading", { name: "¿Qué pasa hoy en Ferraro?" }),
   ).toBeVisible();
+  await expect(page).toHaveTitle(/Inicio/);
   await expect(page.getByText("Cobrado este mes")).toBeVisible();
   const adminAxe = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
@@ -172,6 +173,7 @@ test("dashboard and search adapt their projections to ADMIN and STAFF", async ({
   await expect(
     staffPage.getByRole("heading", { name: "¿Qué pasa hoy en Ferraro?" }),
   ).toBeVisible();
+  await expect(staffPage).toHaveTitle(/Inicio/);
   await expect(staffPage.getByText("Cobrado este mes")).toHaveCount(0);
   const staffAxe = await new AxeBuilder({ page: staffPage })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])

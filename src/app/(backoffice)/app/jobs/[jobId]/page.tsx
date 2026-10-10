@@ -71,24 +71,26 @@ export default async function JobDetailPage({
         eyebrow={job.voidedAt ? "Trabajo anulado" : "Trabajo realizado"}
         title={`${vehicle.brand} ${vehicle.model}`}
         description={`${job.serviceCase.client.displayName} · ${formatBusinessDateTime(job.performedAt)}`}
-        actions={<>
-          {session.user.role === "ADMIN" ? (
-            <Link
-              href={`/app/finance/cases/${job.serviceCaseId}`}
-              className={buttonClassName("primary")}
-            >
-              Ver cobros
-            </Link>
-          ) : null}
-          {job.originAppointment ? (
-            <Link
-              href={`/app/calendar/${job.originAppointment.id}`}
-              className={buttonClassName("secondary")}
-            >
-              Ver turno
-            </Link>
-          ) : null}
-        </>}
+        actions={
+          <>
+            {session.user.role === "ADMIN" ? (
+              <Link
+                href={`/app/finance/cases/${job.serviceCaseId}`}
+                className={buttonClassName("primary")}
+              >
+                Ver cobros
+              </Link>
+            ) : null}
+            {job.originAppointment ? (
+              <Link
+                href={`/app/calendar/${job.originAppointment.id}`}
+                className={buttonClassName("secondary")}
+              >
+                Ver turno
+              </Link>
+            ) : null}
+          </>
+        }
       />
       <section className={styles.summary} aria-label="Resumen del trabajo">
         <div>
@@ -150,7 +152,9 @@ export default async function JobDetailPage({
             <p className="eyebrow">Materiales</p>
             <h2>Consumos del trabajo</h2>
           </div>
-          <span className={styles.count}>{job.materialConsumptions.length}</span>
+          <span className={styles.count}>
+            {job.materialConsumptions.length}
+          </span>
         </div>
         {!job.voidedAt ? (
           inventoryItems.length ? (
@@ -191,11 +195,11 @@ export default async function JobDetailPage({
                   key={consumption.id}
                 >
                   <div className={styles.consumptionMain}>
-                      <strong>{consumption.item.name}</strong>
-                      <span>
-                        {consumption.quantityBase.toFixed(3)}{" "}
-                        {consumption.unitSnapshot}
-                      </span>
+                    <strong>{consumption.item.name}</strong>
+                    <span>
+                      {consumption.quantityBase.toFixed(3)}{" "}
+                      {consumption.unitSnapshot}
+                    </span>
                   </div>
                   <Badge intent={active ? "success" : "neutral"} withIcon>
                     {replaced ? "Corregido" : reversed ? "Anulado" : "Activo"}
