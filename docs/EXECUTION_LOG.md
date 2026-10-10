@@ -261,3 +261,15 @@ Registro resumido de la ejecución autónoma de V1. El contrato funcional contin
 - **Tests:** lint, typecheck, 35 unit, 42 integración, build y `git diff --check` verdes. Inventory/purchases E2E 2/2: categoría, artículo, ajuste, presentación 1=15 m, compra 2 rollos→+30 m, egreso USD 1200 y denegaciones.
 - **Gate:** GATE 4 módulos operativos/comerciales completo, `approved for continued autonomous execution`.
 - **Known issues:** preview cloud aislada no disponible; validación local reversible, sin producción.
+
+## FRONTEND BUILD FE-12 — Búsqueda, administración y portal
+
+- **Status:** COMPLETE LOCAL / CLOUD PERSISTENCE PENDING — approved for continued autonomous execution.
+- **Scope:** resultados globales agrupados, administración honesta con capacidades existentes, gestor de acceso privado y portal cliente mobile-first con garage, turnos, trabajos y galería. No se agregó command palette, acciones administrativas ni información financiera.
+- **Portal:** lockup DETAIL oficial, composición editorial separada del backoffice y lightbox React Aria sobre endpoints de portal. Se eliminó el último `window.confirm`; revocación usa confirmación accesible con consecuencia explícita.
+- **Evidence:** seis baselines en `/tmp/ferraro-redesign-evidence/fe12/baseline` y portal poblado en los seis viewports en `/tmp/ferraro-redesign-evidence/fe12/final`. Estados invalid/password/full y regenerado/revocado cubiertos por E2E; sin overflow horizontal.
+- **Privacy/accessibility:** fixture adversarial con dos clientes homónimos/teléfono igual confirma aislamiento; no aparecen vehículo B, turno oculto, notas internas ni foto ajena. Request sin sesión al thumbnail portal devuelve 401. Axe WCAG A/AA/2.2 AA en 0 violations; lightbox cierra con Escape.
+- **Search/roles:** dashboard/search E2E confirma que ADMIN recibe presupuestos y STAFF no, mientras ambos mantienen clientes/vehículos/trabajos/servicios según proyección existente. STAFF no recibe gestor de portal.
+- **Tests:** lint, typecheck, 35 unit, 42 integración, build y `git diff --check` verdes. Gate relacionado dashboard/search/portal 2/2; portal separado 1/1 con password, headers no-store/no-referrer/noindex, regeneración y revocación inmediata.
+- **Gate:** GATE 5 portal parcial, `approved for continued autonomous execution` para validación local.
+- **Known issues:** DB/auth/storage Preview aislados no están disponibles. Por regla del plan, persistencia remota y Better Auth Preview no se declaran cerrados; producción no fue usada.

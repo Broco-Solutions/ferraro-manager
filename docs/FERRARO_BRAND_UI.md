@@ -168,6 +168,17 @@ Evidencia FE-10: `/tmp/ferraro-redesign-evidence/fe10`, seis baselines y seis ca
 
 Evidencia FE-11: `/tmp/ferraro-redesign-evidence/fe11`, seis baselines y seis capturas finales; axe sin violations, proyección STAFF y denial de Compras verificados.
 
+## Búsqueda, administración y portal privado
+
+- Búsqueda agrupa clientes, vehículos, trabajos, servicios y presupuestos en secciones planas de dos columnas/una mobile. El total y los grupos se derivan de la proyección server-side del rol.
+- Administración enumera sólo control de acceso y catálogo visual, las capacidades realmente existentes. No promete usuarios, auditoría o settings no implementados.
+- El portal no replica el dashboard: usa una página editorial mobile-first con lockup FERRARO DETAIL, saludo, garage oscuro, próximos turnos, historial y fotos publicadas.
+- Vehículos se identifican por marca/modelo/datos reales, sin iniciales decorativas ni stock photography. Fotos abren en lightbox accesible y siguen pasando por endpoints portal autorizados.
+- Link inválido/revocado, password, empty y full comparten marco de marca. El documento usa `noindex`, `no-store` y `no-referrer`; ninguna nota interna, precio, URL firmada u object key aparece en la proyección.
+- El gestor ADMIN muestra protección, vencimiento y último acceso; crear/regenerar/revocar son acciones explícitas. Revocar usa `ConfirmDialog`, no confirmación nativa.
+
+Evidencia FE-12: `/tmp/ferraro-redesign-evidence/fe12`, seis baselines y seis finales. Aislamiento adversarial, headers, password, regeneración, revocación, foto 401 anónima, axe y Escape verificados localmente.
+
 ## Geometría y tono
 
 La UI deriva del isotipo su ritmo vertical y división en tres, sin convertirlos en patrón ornamental repetitivo. El shell es grafito y el área de trabajo clara. La identidad proviene de activo, tipografía, alineación, ritmo y detalle; el amarillo se reserva para marca, foco y selección controlada.
