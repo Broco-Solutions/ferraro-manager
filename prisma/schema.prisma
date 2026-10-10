@@ -12,6 +12,11 @@ enum UserRole {
   STAFF
 }
 
+enum SourceCurrency {
+  USD
+  ARS
+}
+
 enum VehicleClass {
   SEDAN
   SUV
@@ -303,6 +308,13 @@ model ServiceCase {
   vehicleId        String                      @db.Uuid
   origin           ServiceCaseOrigin
   agreedAmountUsd  Decimal?                    @db.Decimal(19, 2)
+  agreedSourceCurrency SourceCurrency?
+  agreedSourceAmount Decimal?                  @db.Decimal(19, 2)
+  agreedExchangeRateArsPerUsd Decimal?          @db.Decimal(19, 6)
+  directCostUsd    Decimal?                    @db.Decimal(19, 2)
+  directCostSourceCurrency SourceCurrency?
+  directCostSourceAmount Decimal?              @db.Decimal(19, 2)
+  directCostExchangeRateArsPerUsd Decimal?       @db.Decimal(19, 6)
   acceptedQuoteId  String?                     @unique @db.Uuid
   createdAt        DateTime                    @default(now()) @db.Timestamptz(3)
   updatedAt        DateTime                    @updatedAt @db.Timestamptz(3)
@@ -326,6 +338,9 @@ model ServiceCaseAmountRevision {
   serviceCaseId     String      @db.Uuid
   previousAmountUsd Decimal?    @db.Decimal(19, 2)
   newAmountUsd      Decimal     @db.Decimal(19, 2)
+  sourceCurrency    SourceCurrency @default(USD)
+  sourceAmount      Decimal        @db.Decimal(19, 2)
+  exchangeRateArsPerUsd Decimal?   @db.Decimal(19, 6)
   reason            String
   createdAt         DateTime    @default(now()) @db.Timestamptz(3)
   createdById       String?     @db.Uuid
@@ -360,6 +375,9 @@ model FinancialEntry {
   direction     FinancialDirection
   type          FinancialEntryType
   amountUsd     Decimal            @db.Decimal(19, 2)
+  sourceCurrency SourceCurrency    @default(USD)
+  sourceAmount   Decimal           @db.Decimal(19, 2)
+  exchangeRateArsPerUsd Decimal?    @db.Decimal(19, 6)
   occurredAt    DateTime           @db.Timestamptz(3)
   description   String?
   paymentMethod PaymentMethod?
@@ -507,6 +525,9 @@ model Purchase {
   reference      String?
   notes          String?
   totalUsd       Decimal         @db.Decimal(19, 2)
+  sourceCurrency SourceCurrency @default(USD)
+  sourceTotal    Decimal        @db.Decimal(19, 2)
+  exchangeRateArsPerUsd Decimal? @db.Decimal(19, 6)
   status         PurchaseStatus  @default(POSTED)
   postedAt       DateTime        @default(now()) @db.Timestamptz(3)
   voidedAt       DateTime?       @db.Timestamptz(3)
@@ -537,6 +558,8 @@ model PurchaseItem {
   quantityPurchased        Decimal               @db.Decimal(19, 3)
   quantityBase             Decimal               @db.Decimal(19, 3)
   unitCostUsd              Decimal               @db.Decimal(19, 2)
+  sourceUnitCost           Decimal               @db.Decimal(19, 2)
+  sourceTotal              Decimal               @db.Decimal(19, 2)
   totalUsd                 Decimal               @db.Decimal(19, 2)
   sortOrder                Int                   @default(0)
   purchase                 Purchase              @relation(fields: [purchaseId], references: [id], onDelete: Restrict)
@@ -570,6 +593,11 @@ model Quote {
   subtotalUsd         Decimal      @db.Decimal(19, 2)
   discountUsd         Decimal      @default(0) @db.Decimal(19, 2)
   totalUsd            Decimal      @db.Decimal(19, 2)
+  sourceCurrency      SourceCurrency @default(USD)
+  sourceSubtotal      Decimal        @db.Decimal(19, 2)
+  sourceDiscount      Decimal        @db.Decimal(19, 2)
+  sourceTotal         Decimal        @db.Decimal(19, 2)
+  exchangeRateArsPerUsd Decimal?      @db.Decimal(19, 6)
   templateVersion     Int          @default(1)
   pdfArtifactKey      String?
   pdfSha256           String?
@@ -604,6 +632,9 @@ model QuoteItem {
   unitPriceUsd        Decimal  @db.Decimal(19, 2)
   discountUsd         Decimal  @default(0) @db.Decimal(19, 2)
   totalUsd            Decimal  @db.Decimal(19, 2)
+  sourceUnitPrice     Decimal  @db.Decimal(19, 2)
+  sourceDiscount      Decimal  @db.Decimal(19, 2)
+  sourceTotal         Decimal  @db.Decimal(19, 2)
   sortOrder           Int      @default(0)
   quote               Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
   service             Service? @relation(fields: [serviceId], references: [id], onDelete: SetNull)

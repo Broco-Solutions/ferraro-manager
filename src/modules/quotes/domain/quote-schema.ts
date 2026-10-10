@@ -29,29 +29,45 @@ export const quoteItemSchema = z.object({
   discountUsd: money.default("0"),
 });
 
-export const quoteInputSchema = z.object({
-  clientId: z.string().uuid(),
-  vehicleId: z.string().uuid(),
-  issuedOn: dateKey,
-  validUntil: z
-    .string()
-    .trim()
-    .transform((value) => value || undefined)
-    .pipe(dateKey.optional()),
-  notes: z
-    .string()
-    .trim()
-    .max(3_000)
-    .transform((value) => value || undefined)
-    .optional(),
-  terms: z
-    .string()
-    .trim()
-    .max(5_000)
-    .transform((value) => value || undefined)
-    .optional(),
-  discountUsd: money.default("0"),
-  items: z.array(quoteItemSchema).min(1).max(50),
-});
+export const quoteInputSchema = z
+  .object({
+    currency: z.enum(["USD", "ARS"]).default("USD"),
+    exchangeRateArsPerUsd: z.string().optional().or(z.literal("")),
+    clientId: z.string().uuid(),
+    vehicleId: z.string().uuid(),
+    issuedOn: dateKey,
+    validUntil: z
+      .string()
+      .trim()
+      .transform((value) => value || undefined)
+      .pipe(dateKey.optional()),
+    notes: z
+      .string()
+      .trim()
+      .max(3_000)
+      .transform((value) => value || undefined)
+      .optional(),
+    terms: z
+      .string()
+      .trim()
+      .max(5_000)
+      .transform((value) => value || undefined)
+      .optional(),
+    discountUsd: money.default("0"),
+    items: z.array(quoteItemSchema).min(1).max(50),
+  })
+  .superRefine((value, context) => {
+    if (value.currency === "ARS") {
+      const valid =
+        /^\d{1,12}(?:\.\d{1,6})?$/.test(value.exchangeRateArsPerUsd ?? "") &&
+        !/^0(?:\.0+)?$/.test(value.exchangeRateArsPerUsd ?? "");
+      if (!valid)
+        context.addIssue({
+          code: "custom",
+          path: ["exchangeRateArsPerUsd"],
+          message: "Ingresá una cotización ARS/USD mayor a cero.",
+        });
+    }
+  });
 
 export type QuoteInput = z.infer<typeof quoteInputSchema>;
