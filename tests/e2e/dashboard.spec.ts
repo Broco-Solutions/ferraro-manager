@@ -128,6 +128,9 @@ test.beforeAll(async () => {
         status: "DRAFT",
         issuedOn: new Date("2026-10-03T00:00:00Z"),
         subtotalUsd: "850",
+        sourceSubtotal: "850",
+        sourceDiscount: "0",
+        sourceTotal: "850",
         totalUsd: "850",
       },
     });

@@ -119,13 +119,16 @@ test("ADMIN sets an agreed amount and records a deposit without operational stat
   await login(page, e2eUsers.admin);
   await page.goto(`/app/finance/cases/${caseId}`);
   await expect(page.getByText("Importe por definir")).toBeVisible();
-  await page.getByLabel("Nuevo importe USD *").fill("1000");
+  await page.getByLabel("Nuevo importe (USD) *").fill("1000");
   await page.getByLabel("Motivo *").fill("Alcance acordado E2E");
   await page.getByRole("button", { name: "Actualizar" }).click();
   await expect(page.getByText("Importe acordado actualizado.")).toBeVisible();
   await page.getByRole("link", { name: "Registrar cobro" }).click();
-  await page.getByLabel("Monto USD *").fill("250");
+  const paymentAmount = page.getByLabel("Importe (USD) *");
+  await paymentAmount.fill("250");
+  await expect(paymentAmount).toHaveValue("250");
   await page.getByLabel("Método").selectOption("TRANSFER");
+  await expect(paymentAmount).toHaveValue("250");
   await page.getByRole("button", { name: "Registrar movimiento" }).click();
   await expect(
     page.getByText(
@@ -161,6 +164,26 @@ test("ADMIN sets an agreed amount and records a deposit without operational stat
     .analyze();
   expect(accessibility.violations).toEqual([]);
   await captureEvidence(page);
+});
+
+test("ADMIN records ARS and sees the canonical USD equivalent", async ({
+  page,
+}) => {
+  await login(page, e2eUsers.admin);
+  await page.goto(`/app/finance/new?caseId=${caseId}`);
+  await page.getByLabel("Moneda").selectOption("ARS");
+  await expect(page.getByLabel("Cotización ARS/USD *")).toBeVisible();
+  await page.getByLabel("Moneda").selectOption("USD");
+  await expect(page.getByLabel("Cotización ARS/USD *")).toBeHidden();
+  await page.getByLabel("Moneda").selectOption("ARS");
+  await page.getByLabel("Importe (ARS) *").fill("780000");
+  await page.getByLabel("Cotización ARS/USD *").fill("1560");
+  await expect(page.getByText("≈ USD 500,00")).toBeVisible();
+  await page.getByRole("button", { name: "Registrar movimiento" }).click();
+  await expect(page.getByText("+ USD 500.00", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("ARS 780000.00 · 1 USD = ARS 1560"),
+  ).toBeVisible();
 });
 
 test("STAFF is denied finance routes and receives no financial navigation", async ({

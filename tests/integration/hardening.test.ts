@@ -36,6 +36,8 @@ describe("production readiness checks", () => {
           vehicleId,
           origin: "DIRECT_APPOINTMENT",
           agreedAmountUsd: "100.00",
+          agreedSourceCurrency: "USD",
+          agreedSourceAmount: "100.00",
         },
       })
     ).id;
@@ -45,6 +47,7 @@ describe("production readiness checks", () => {
           direction: "INFLOW",
           type: "CUSTOMER_PAYMENT",
           amountUsd: "30.00",
+          sourceAmount: "30.00",
           occurredAt: new Date(),
           serviceCaseId,
         },
@@ -52,6 +55,7 @@ describe("production readiness checks", () => {
           direction: "OUTFLOW",
           type: "CUSTOMER_REFUND",
           amountUsd: "10.00",
+          sourceAmount: "10.00",
           occurredAt: new Date(),
           serviceCaseId,
         },

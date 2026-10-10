@@ -11,7 +11,9 @@ import {
   recordFinancialEntry,
   reverseFinancialEntry,
   setAgreedAmount,
+  setDirectCost,
 } from "@/modules/finance/application/finance-service";
+import { profitability } from "@/modules/money/domain/money";
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) throw new Error("DATABASE_URL is required");
@@ -94,9 +96,131 @@ describe("finance, deposits and balances", () => {
     expect(summary?.balanceUsd).toBeNull();
   });
 
+  it("converts ARS entries and preserves original data through reversal", async () => {
+    const isolatedCaseId = (
+      await prisma.serviceCase.create({
+        data: {
+          clientId,
+          vehicleId,
+          origin: "DIRECT_JOB",
+          createdById: actorId,
+        },
+      })
+    ).id;
+    const created = await recordFinancialEntry(
+      {
+        kind: "CUSTOMER_PAYMENT",
+        currency: "ARS",
+        amount: "780000",
+        exchangeRateArsPerUsd: "1560",
+        occurredLocal: "2026-10-02T12:00",
+        serviceCaseId: isolatedCaseId,
+        idempotencyKey: randomUUID(),
+      },
+      { id: actorId },
+    );
+    entryIds.push(created.id);
+    const original = await prisma.financialEntry.findUniqueOrThrow({
+      where: { id: created.id },
+    });
+    expect(original.amountUsd.toFixed(2)).toBe("500.00");
+    expect(original.sourceAmount.toFixed(2)).toBe("780000.00");
+    expect(original.exchangeRateArsPerUsd?.toString()).toBe("1560");
+    const reversed = await reverseFinancialEntry(
+      { entryId: created.id, reason: "Prueba de reversión" },
+      { id: actorId },
+    );
+    entryIds.push(reversed.id);
+    const correction = await prisma.financialEntry.findUniqueOrThrow({
+      where: { id: reversed.id },
+    });
+    expect(correction.sourceCurrency).toBe("ARS");
+    expect(correction.sourceAmount.toFixed(2)).toBe("780000.00");
+    expect(correction.exchangeRateArsPerUsd?.toString()).toBe("1560");
+    await prisma.financialEntry.deleteMany({
+      where: { serviceCaseId: isolatedCaseId },
+    });
+    await prisma.serviceCase.delete({ where: { id: isolatedCaseId } });
+  });
+
+  it("keeps direct cost nullable, accepts zero, ARS, and negative margin", async () => {
+    const isolatedCaseId = (
+      await prisma.serviceCase.create({
+        data: {
+          clientId,
+          vehicleId,
+          origin: "DIRECT_JOB",
+          createdById: actorId,
+        },
+      })
+    ).id;
+    expect(
+      (
+        await prisma.serviceCase.findUniqueOrThrow({
+          where: { id: isolatedCaseId },
+        })
+      ).directCostUsd,
+    ).toBeNull();
+    await setAgreedAmount(
+      {
+        serviceCaseId: isolatedCaseId,
+        currency: "USD",
+        amount: "1000",
+        reason: "Acuerdo de prueba",
+      },
+      { id: actorId },
+    );
+    await setDirectCost({
+      serviceCaseId: isolatedCaseId,
+      currency: "ARS",
+      amount: "1872000",
+      exchangeRateArsPerUsd: "1560",
+    });
+    let saved = await prisma.serviceCase.findUniqueOrThrow({
+      where: { id: isolatedCaseId },
+    });
+    expect(saved.directCostUsd?.toFixed(2)).toBe("1200.00");
+    expect(
+      profitability(
+        saved.agreedAmountUsd,
+        saved.directCostUsd,
+      )?.marginUsd.toFixed(2),
+    ).toBe("-200.00");
+    await setDirectCost({
+      serviceCaseId: isolatedCaseId,
+      currency: "USD",
+      amount: "0",
+    });
+    saved = await prisma.serviceCase.findUniqueOrThrow({
+      where: { id: isolatedCaseId },
+    });
+    expect(saved.directCostUsd?.toFixed(2)).toBe("0.00");
+    await setDirectCost({
+      serviceCaseId: isolatedCaseId,
+      currency: "USD",
+      amount: "",
+    });
+    expect(
+      (
+        await prisma.serviceCase.findUniqueOrThrow({
+          where: { id: isolatedCaseId },
+        })
+      ).directCostUsd,
+    ).toBeNull();
+    await prisma.serviceCaseAmountRevision.deleteMany({
+      where: { serviceCaseId: isolatedCaseId },
+    });
+    await prisma.serviceCase.delete({ where: { id: isolatedCaseId } });
+  });
+
   it("supports a deposit, partials, work with debt, final payment and reversal", async () => {
     await setAgreedAmount(
-      { serviceCaseId: caseId, amountUsd: "1000", reason: "Alcance acordado" },
+      {
+        serviceCaseId: caseId,
+        currency: "USD",
+        amount: "1000",
+        reason: "Alcance acordado",
+      },
       { id: actorId },
     );
 
@@ -104,7 +228,8 @@ describe("finance, deposits and balances", () => {
     const deposit = await recordFinancialEntry(
       {
         kind: "CUSTOMER_PAYMENT",
-        amountUsd: "200",
+        currency: "USD",
+        amount: "200",
         occurredLocal: "2026-10-02T10:00",
         serviceCaseId: caseId,
         paymentMethod: "TRANSFER",
@@ -117,7 +242,8 @@ describe("finance, deposits and balances", () => {
       recordFinancialEntry(
         {
           kind: "CUSTOMER_PAYMENT",
-          amountUsd: "200",
+          currency: "USD",
+          amount: "200",
           occurredLocal: "2026-10-02T10:00",
           serviceCaseId: caseId,
           paymentMethod: "TRANSFER",
@@ -144,7 +270,8 @@ describe("finance, deposits and balances", () => {
     const partial = await recordFinancialEntry(
       {
         kind: "CUSTOMER_PAYMENT",
-        amountUsd: "300",
+        currency: "USD",
+        amount: "300",
         occurredLocal: "2026-10-03T13:00",
         serviceCaseId: caseId,
         paymentMethod: "CASH",
@@ -168,7 +295,8 @@ describe("finance, deposits and balances", () => {
     const finalPayment = await recordFinancialEntry(
       {
         kind: "CUSTOMER_PAYMENT",
-        amountUsd: "800",
+        currency: "USD",
+        amount: "800",
         occurredLocal: "2026-10-04T09:00",
         serviceCaseId: caseId,
         paymentMethod: "TRANSFER",
@@ -187,7 +315,8 @@ describe("finance, deposits and balances", () => {
     const refund = await recordFinancialEntry(
       {
         kind: "CUSTOMER_REFUND",
-        amountUsd: "50",
+        currency: "USD",
+        amount: "50",
         occurredLocal: "2026-10-05T11:00",
         serviceCaseId: caseId,
         paymentMethod: "TRANSFER",
@@ -209,7 +338,8 @@ describe("finance, deposits and balances", () => {
     const expense = await recordFinancialEntry(
       {
         kind: "MANUAL_EXPENSE",
-        amountUsd: "120.50",
+        currency: "USD",
+        amount: "120.50",
         occurredLocal: "2026-10-31T23:30",
         categoryId,
         description: "Campaña local",

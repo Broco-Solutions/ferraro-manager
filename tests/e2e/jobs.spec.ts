@@ -48,7 +48,15 @@ async function captureEvidence(page: Page) {
   if (!directory) return;
   for (const [name, width, height] of evidenceViewports) {
     await page.setViewportSize({ width, height });
-    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            document.documentElement.scrollWidth <=
+            document.documentElement.clientWidth,
+        ),
+      )
+      .toBe(true);
     await page.evaluate(() => {
       (document.activeElement as HTMLElement | null)?.blur();
       window.scrollTo(0, 0);
@@ -132,6 +140,9 @@ async function cleanup() {
     });
     await prisma.appointment.deleteMany({
       where: { id: { in: appointmentIds } },
+    });
+    await prisma.serviceCaseAmountRevision.deleteMany({
+      where: { serviceCaseId: { in: caseIds } },
     });
     await prisma.serviceCase.deleteMany({ where: { id: { in: caseIds } } });
     const services = await prisma.service.findMany({
@@ -318,9 +329,13 @@ test("STAFF records consumptions and private photos from the job", async ({
   await expect(
     page.getByRole("button", { name: "Ocultar al cliente" }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Ampliar foto 1 del trabajo" }).click();
+  await page
+    .getByRole("button", { name: "Ampliar foto 1 del trabajo" })
+    .click();
   await expect(page.getByRole("dialog")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Foto 1 del trabajo" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Foto 1 del trabajo" }),
+  ).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toBeHidden();
   const accessibility = await new AxeBuilder({ page })
@@ -328,4 +343,63 @@ test("STAFF records consumptions and private photos from the job", async ({
     .analyze();
   expect(accessibility.violations).toEqual([]);
   await captureEvidence(page);
+});
+
+test("ADMIN records optional ARS direct cost and STAFF never receives profitability", async ({
+  page,
+}) => {
+  await resetE2EAuthRateLimit();
+  await page.goto("/login");
+  await page.getByLabel("Email").fill(e2eUsers.admin.email);
+  await page
+    .getByRole("textbox", { name: "Contraseña" })
+    .fill(e2eUsers.admin.password);
+  await page.getByRole("button", { name: "Ingresar" }).click();
+  await expect(page).toHaveURL(/\/app$/);
+  const prisma = createTestPrisma();
+  const job = await prisma.job.findFirstOrThrow({
+    where: { serviceCaseId: caseId },
+    select: { id: true },
+  });
+  await prisma.$disconnect();
+
+  await page.goto(`/app/finance/cases/${caseId}`);
+  await page.getByLabel("Nuevo importe (USD) *").fill("1000");
+  await page.getByLabel("Motivo *").fill("Importe acordado E2E");
+  await page.getByRole("button", { name: "Actualizar" }).click();
+  await page.goto(`/app/jobs/${job.id}`);
+  await page.getByLabel("Costo directo (USD)").fill("1000");
+  await page.getByRole("button", { name: "Guardar costo" }).click();
+  await expect(page.getByText("USD 0.00")).toBeVisible();
+  await expect(page.getByText("0.00%")).toBeVisible();
+  await page.getByLabel("Moneda").selectOption("ARS");
+  await page.getByLabel("Costo directo (ARS)").fill("1872000");
+  await page.getByLabel("Cotización ARS/USD *").fill("1560");
+  await page.getByRole("button", { name: "Guardar costo" }).click();
+  await expect(page.getByLabel("Moneda")).toHaveValue("ARS");
+  await expect(page.getByText("USD -200.00")).toBeVisible();
+  await expect(page.getByText("-20.00%")).toBeVisible();
+  await captureEvidence(page);
+  await expect(page.getByLabel("Moneda")).toHaveValue("ARS");
+  const accessibility = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(accessibility.violations).toEqual([]);
+
+  await page.getByLabel("Costo directo (ARS)").fill("");
+  await page.getByRole("button", { name: "Guardar costo" }).click();
+  await expect(page.getByText("Sin imputar")).toBeVisible();
+  await expect(
+    page
+      .getByText("Margen", { exact: true })
+      .locator("..")
+      .getByText("—", { exact: true }),
+  ).toBeVisible();
+
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.getByRole("button", { name: "Cerrar sesión" }).click();
+  await login(page);
+  await page.goto(`/app/jobs/${job.id}`);
+  await expect(page.getByText("Rentabilidad")).toHaveCount(0);
+  await expect(page.getByText("Costo directo")).toHaveCount(0);
 });

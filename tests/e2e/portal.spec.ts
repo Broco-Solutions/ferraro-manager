@@ -278,6 +278,9 @@ test("ADMIN shares an isolated portal and regeneration/revocation invalidate acc
   await expect(clientPage.getByText("Audi RS 6")).toHaveCount(0);
   await expect(clientPage.getByText("Turno oculto A")).toHaveCount(0);
   await expect(clientPage.getByText("secreto interno")).toHaveCount(0);
+  await expect(clientPage.getByText("Costo directo")).toHaveCount(0);
+  await expect(clientPage.getByText("Rentabilidad")).toHaveCount(0);
+  await expect(clientPage.getByText(/ARS\/USD|Cotización ARS/)).toHaveCount(0);
   const photoSource = await clientPage
     .getByAltText("Foto 1 del trabajo")
     .getAttribute("src");
