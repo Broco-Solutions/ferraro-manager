@@ -74,6 +74,16 @@ Contratos de producción disponibles desde FE-02:
 
 Los controles nativos preservan semantics y autocompletado. React Aria se limita a interacción compleja. El catálogo vivo `/app/design-system` es ADMIN-only, importa los componentes productivos y muestra estados idle/loading/disabled/error, responsive y overlays; no es una implementación paralela.
 
+## Shell y navegación
+
+- Desktop amplio: sidebar grafito de 280 px con logo oficial inverso, grupos Operación/Comercial/Insumos/Administración, activo con superficie + línea amarilla + `aria-current`, cuenta y salida.
+- Desktop compacto: 72 px, isotipo oficial, labels accesibles y tooltip por foco; preferencia persistida localmente sin afectar autorización.
+- Tablet 768–1024: compacto forzado para preservar ancho operativo.
+- Mobile: header claro con logo oficial, búsqueda y drawer; barra inferior de cinco destinos operativos con icono, texto y activo no dependiente sólo del color.
+- Contenido: ancho máximo 90 rem, gutters responsive, topbar de búsqueda sticky, breadcrumbs semánticos y skip link al `main`.
+
+El mapa de iconos usa exclusivamente Phosphor regular/bold en cajas ópticas de 20–24 px. La navegación se filtra en servidor mediante `getNavigationForRole`; CSS nunca oculta una capacidad como mecanismo de seguridad.
+
 ## Geometría y tono
 
 La UI deriva del isotipo su ritmo vertical y división en tres, sin convertirlos en patrón ornamental repetitivo. El shell es grafito y el área de trabajo clara. La identidad proviene de activo, tipografía, alineación, ritmo y detalle; el amarillo se reserva para marca, foco y selección controlada.

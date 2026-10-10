@@ -55,10 +55,10 @@ test("STAFF has operational navigation and receives 403 on an ADMIN route", asyn
 test("mobile navigation closes after changing route", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await login(page, e2eUsers.staff);
-  const menu = page.locator("details.mobile-menu");
-  await menu.locator("summary").click();
-  await expect(menu).toHaveAttribute("open", "");
+  await page.getByRole("button", { name: "Abrir menú" }).click();
+  const menu = page.getByRole("dialog", { name: "Menú" });
+  await expect(menu).toBeVisible();
   await menu.getByRole("link", { name: "Agenda" }).click();
   await expect(page).toHaveURL(/\/app\/calendar/);
-  await expect(menu).not.toHaveAttribute("open", "");
+  await expect(menu).toHaveCount(0);
 });

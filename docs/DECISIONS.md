@@ -101,3 +101,26 @@ Adoptar Phosphor Icons 2.1.10 como única librería de iconos, con imports indiv
 - Overlays mantienen foco, cierre por Escape/click exterior y retorno al disparador por contratos probados de React Aria.
 - `@axe-core/playwright` queda disponible para gates A/AA automatizados; no reemplaza teclado, zoom ni revisión manual.
 - No se instala ni mezcla una segunda librería de iconos.
+
+## DEC-005 — Shell responsive con navegación derivada del rol
+
+- **Fecha:** 2026-10-10
+- **Estado:** aceptada
+- **Build afectado:** FRONTEND BUILD FE-03 — Shell, navegación e iconografía
+
+### Contexto
+
+El shell heredado usaba puntos genéricos, no marcaba la ruta activa, comprimía una sidebar intermedia y resolvía mobile con `<details>`. La nueva navegación debe conservar exactamente los destinos filtrados en servidor, funcionar sin JavaScript y evitar que la preferencia visual se confunda con autorización.
+
+### Decisión
+
+Mantener `getNavigationForRole` como única fuente de destinos y añadir allí sólo metadata presentacional (`group` e `icon`). El Server Component `AppShell` filtra por rol antes de pasar datos serializables a un `ShellFrame` cliente acotado. Desktop usa sidebar de 280 px, colapsable a 72 px; tablet fuerza el modo compacto por CSS; mobile usa header, drawer React Aria y cinco accesos rápidos.
+
+La preferencia desktop se guarda por dispositivo en `localStorage` y se consume mediante `useSyncExternalStore`, con snapshot servidor expandido. Ruta activa, label accesible, tooltip/fallback `title`, breadcrumbs, skip link y enlaces reales sobreviven independientemente del estado visual.
+
+### Consecuencias
+
+- Colapsar la sidebar no cambia permisos, rutas ni HTML entregado según rol.
+- ADMIN y STAFF comparten estructura, pero STAFF nunca recibe enlaces de finanzas, compras o administración.
+- El drawer controla foco, Escape, scrim y retorno mediante React Aria; no se conserva el patrón `<details>`.
+- Search backend y destinos permanecen intactos; sólo cambian composición, iconos y ergonomía.

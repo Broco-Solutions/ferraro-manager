@@ -161,3 +161,14 @@ Registro resumido de la ejecución autónoma de V1. El contrato funcional contin
 - **Tests:** lint, typecheck, 35 unit, 42 integración, build y `git diff --check` verdes. E2E relacionado: 4/4 (catálogo/axe y presupuesto ADMIN/STAFF con confirmación real).
 - **Gate:** GATE 1 completo, `approved for continued autonomous execution`; marca, tipo, tokens, iconos, primitives y overlays habilitan FE-03/04.
 - **Known issues:** el catálogo aún se monta dentro del shell heredado; su navegación y fixed mobile se reemplazan en FE-03. Preview cloud aislada sigue pendiente y producción no fue usada.
+
+## FRONTEND BUILD FE-03 — Shell, navegación e iconografía
+
+- **Status:** COMPLETE — approved for continued autonomous execution.
+- **Scope:** shell completo, navegación agrupada por rol, activo inequívoco, sidebar 280/72 persistida, tablet compacta, header/drawer/bottom-nav mobile, breadcrumbs, skip link y búsqueda integrada. No cambiaron destinos, queries ni autorización.
+- **Evidence:** ocho capturas privadas en `/tmp/ferraro-redesign-evidence/fe03`: ADMIN/STAFF en los seis viewports obligatorios, ADMIN 1440 colapsada y drawer STAFF 390. Sin overflow horizontal ni errores de consola.
+- **Security:** items derivados de `getNavigationForRole` en servidor; STAFF sin Finanzas/Compras/Administración en drawer, bottom-nav, DOM no-JS ni navegación desktop. Las rutas continúan autorizadas server-side.
+- **Accessibility:** landmarks y `aria-current`, links reales sin JS, skip link, nombre accesible en compacto, tooltip por foco, targets 44 px, Escape y retorno de foco del drawer. Axe A/AA del catálogo integrado: 0 violations.
+- **Tests:** lint, typecheck, 35 unit, 42 integración, build y `git diff --check` verdes. E2E relacionado auth/design-system/shell: 8/8, incluido axe A/AA.
+- **Gate:** GATE 2 shell, `approved for continued autonomous execution`; GATE 2 completo se cierra junto con login/estados en FE-04.
+- **Known issues:** evidencia preview cloud integrada no disponible; validación local product build cubre el shell. Estilos globales heredados sin consumidores se retiran en FE-14.
