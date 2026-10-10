@@ -215,3 +215,23 @@ El margen conocido requiere importe acordado y costo directo informado. Se permi
 - `FinancialEntry` mantiene amountUsd canónico y reversión compensatoria con semántica monetaria trazable.
 - Migraciones aditivas preservan registros existentes; costo previo no se inventa ni se completa con cero.
 - No se amplían permisos, módulos ni el ledger de inventario.
+
+## DEC-010 — Invariante de procedencia para costo directo
+
+- **Fecha:** 2026-10-10
+- **Estado:** aceptada
+- **Build afectado:** Cierre técnico Money + profitability
+
+### Contexto
+
+La primera migración de money + profitability ya distinguía el costo directo no imputado de un costo conocido y exigía la metadata básica de moneda. Faltaba reforzar en PostgreSQL la igualdad entre el costo USD y su origen cuando la carga nació en USD.
+
+### Decisión
+
+La migración incremental `20261010160000_direct_cost_consistency` reemplaza exclusivamente `service_cases_direct_cost_currency_check`. El estado sin costo sigue siendo las cuatro columnas `NULL`. Para USD, `directCostSourceAmount` debe ser igual a `directCostUsd` y la cotización debe ser `NULL`. Para ARS se requieren importe de origen, costo USD y cotización positiva. Los importes de costo canónico y de origen no pueden ser negativos; el cero explícito permanece válido.
+
+### Consecuencias
+
+- No hay backfill ni conversión de `NULL` a cero: la DB local existente no contenía costos directos que requirieran corrección.
+- La aplicación mantiene su validación Decimal server-side y ahora la persistencia rechaza estados parciales, cotizaciones ausentes e importes negativos.
+- La constraint es compatible con los registros históricos sin costo y no altera permisos, cálculos de margen ni el flujo operativo.

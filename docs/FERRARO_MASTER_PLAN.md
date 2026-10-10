@@ -530,7 +530,7 @@ El importe acordado es nullable y vive en `ServiceCase`. Puede provenir de un qu
 
 Un saldo negativo se muestra como “saldo a favor” y no se corrige automáticamente. Métodos iniciales: transferencia, efectivo y otro; son opcionales. Finanzas no intenta conciliación bancaria ni devengamiento contable.
 
-El costo directo se carga opcionalmente en `ServiceCase` en USD o ARS y se guarda en USD más su origen. El margen por caso sólo existe cuando hay importe acordado y costo informado: `agreedAmountUsd - directCostUsd`; el porcentaje usa el importe acordado como denominador cuando es mayor que cero. El margen puede ser negativo; igualdad produce margen cero. Si falta costo, margen y porcentaje no se calculan. En agregado se muestra “Margen conocido” y “Costos imputados” (casos con costo sobre casos del período); sólo con cobertura del 100% se conoce el costo directo de todos los casos incluidos. Esto no constituye ganancia neta ni resultado operativo.
+El costo directo se carga opcionalmente en `ServiceCase` en USD o ARS y se guarda en USD más su origen. El estado no imputado tiene sus cuatro campos de costo en `NULL`; nunca se representa como cero. La DB exige que USD conserve el mismo importe de origen y no tenga cotización, y que ARS tenga importe de origen, costo USD y cotización positiva; ambos importes admiten cero explícito y rechazan negativos. El margen por caso sólo existe cuando hay importe acordado y costo informado: `agreedAmountUsd - directCostUsd`; el porcentaje usa el importe acordado como denominador cuando es mayor que cero. El margen puede ser negativo; igualdad produce margen cero. Si falta costo, margen y porcentaje no se calculan. En agregado se muestra “Margen conocido” y “Costos imputados” (casos con costo sobre casos del período); sólo con cobertura del 100% se conoce el costo directo de todos los casos incluidos. Esto no constituye ganancia neta ni resultado operativo.
 
 Flujo neto mide entradas y salidas de caja del período; margen compara importes acordados con costos directos imputados de trabajos/casos. Son métricas separadas y sólo ADMIN puede ver costo y margen. STAFF y el portal no reciben sus campos en sus proyecciones.
 
@@ -718,6 +718,7 @@ La lógica de dominio no contiene “Ferraro” hardcodeado. Los tokens CSS se g
 - Headers de seguridad, HTTPS, cookies seguras y secretos fuera del repositorio.
 - Rate limits en login, portal y generación/upload sensibles.
 - Dependencias actualizadas deliberadamente; análisis automático en CI.
+- Auditoría del 2026-10-10: `braces@3.0.3` conserva un advisory alto dev-only (`GHSA-vfj7-8cjw-p6xm`) por la cadena de lint de Next; `pnpm audit --prod` no reporta vulnerabilidades. La versión corregida declarada (`3.0.4`) aún no está publicada, por lo que no se fuerza un override ni un upgrade mayor; se reevalúa al existir release corregido.
 - Logs sin passwords, tokens, URLs firmadas, notas privadas ni PII completa.
 - Backoffice no indexable; portal usa token fuerte y políticas de cache privadas/no-store.
 
