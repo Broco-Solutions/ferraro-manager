@@ -107,6 +107,9 @@ export default async function PurchasesPage({
               <strong className={styles.money}>
                 USD {purchase.totalUsd.toFixed(2)}
               </strong>
+              {purchase.sourceCurrency === "ARS" ? (
+                <small>ARS {purchase.sourceTotal.toFixed(2)}</small>
+              ) : null}
               <Badge
                 intent={purchase.status === "POSTED" ? "success" : "danger"}
                 withIcon

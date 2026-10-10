@@ -189,6 +189,35 @@ test("ADMIN posts one purchase into stock and cash while STAFF is denied", async
     .analyze();
   expect(accessibility.violations).toEqual([]);
   await captureEvidence(page);
+  await page.goto("/app/purchases/new");
+  await page.getByLabel("Proveedor *").selectOption({ label: supplierName });
+  await page.getByLabel("Artículo *").selectOption({ label: itemName });
+  await page.getByLabel("Cantidad *").fill("1");
+  await page.getByLabel("Moneda de compra").selectOption("ARS");
+  await page.getByLabel("Cotización ARS/USD *").fill("1560");
+  await page.getByLabel("Costo unitario ARS *").fill("780000");
+  await page.getByRole("button", { name: "Registrar compra" }).click();
+  await expect(page.getByText("Egreso USD 500.00")).toBeVisible();
+  const prisma = createTestPrisma();
+  try {
+    const purchase = await prisma.purchase.findFirstOrThrow({
+      where: { supplier: { name: supplierName }, sourceCurrency: "ARS" },
+      include: { items: true },
+    });
+    const item = await prisma.inventoryItem.findFirstOrThrow({
+      where: { name: itemName },
+    });
+    const entry = await prisma.financialEntry.findUniqueOrThrow({
+      where: { purchaseId: purchase.id },
+    });
+    expect(purchase.totalUsd.toFixed(2)).toBe("500.00");
+    expect(purchase.sourceTotal.toFixed(2)).toBe("780000.00");
+    expect(purchase.items[0]?.sourceUnitCost.toFixed(2)).toBe("780000.00");
+    expect(entry.amountUsd.toFixed(2)).toBe("500.00");
+    expect(item.currentStock.toFixed(3)).toBe("31.000");
+  } finally {
+    await prisma.$disconnect();
+  }
   await page.getByRole("button", { name: "Cerrar sesión" }).click();
 
   await login(page, e2eUsers.staff);

@@ -90,18 +90,26 @@ export default async function PurchaseDetailPage({
                 </small>
               </div>
               <span>
-                {item.quantityPurchased.toFixed(3)} × USD{" "}
-                {item.unitCostUsd.toFixed(2)}
+                {item.quantityPurchased.toFixed(3)} × {purchase.sourceCurrency}{" "}
+                {item.sourceUnitCost.toFixed(2)}
               </span>
               <span>
                 +{item.quantityBase.toFixed(3)}{" "}
                 {unitSymbol(item.baseUnitSnapshot)}
               </span>
-              <strong>USD {item.totalUsd.toFixed(2)}</strong>
+              <strong>
+                {purchase.sourceCurrency} {item.sourceTotal.toFixed(2)}
+              </strong>
             </article>
           ))}
         </div>
       </section>
+      {purchase.sourceCurrency === "ARS" ? (
+        <p>
+          1 USD = ARS {purchase.exchangeRateArsPerUsd?.toString()} · Total
+          canónico USD {purchase.totalUsd.toFixed(2)}
+        </p>
+      ) : null}
       <section
         className={styles.integrity}
         aria-label="Integridad de movimientos"

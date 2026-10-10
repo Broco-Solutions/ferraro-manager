@@ -47,6 +47,8 @@ export async function postPurchaseAction(
     const result = await postPurchase(
       {
         supplierId: value(formData, "supplierId"),
+        currency: value(formData, "currency") as "USD" | "ARS",
+        exchangeRateArsPerUsd: value(formData, "exchangeRateArsPerUsd"),
         businessDate: value(formData, "businessDate"),
         reference: value(formData, "reference"),
         notes: value(formData, "notes"),

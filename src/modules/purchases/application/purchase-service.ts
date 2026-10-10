@@ -12,6 +12,7 @@ import {
   type PurchaseInput,
 } from "@/modules/purchases/domain/purchase-schema";
 import { businessLocalDateTimeToUtc } from "@/shared/date-time/business-time";
+import { normalizeMoneyInput } from "@/modules/money/domain/money";
 
 interface Actor {
   id: string;
@@ -136,13 +137,29 @@ export async function postPurchase(input: PurchaseInput, actor: Actor) {
           : undefined;
         if (line.presentationId && presentation?.itemId !== item.id)
           throw new Error("PRESENTATION_ITEM_MISMATCH");
+        const sourceCost = normalizeMoneyInput({
+          currency: data.currency,
+          amount: line.unitCostUsd,
+          exchangeRateArsPerUsd: data.exchangeRateArsPerUsd,
+        });
         const values = calculatePurchaseLine({
           quantityPurchased: line.quantityPurchased,
           factorToBase: presentation?.factorToBase ?? "1",
-          unitCostUsd: line.unitCostUsd,
+          unitCostUsd: sourceCost.amountUsd,
         });
+        const sourceTotal = new Prisma.Decimal(line.quantityPurchased)
+          .mul(sourceCost.sourceAmount)
+          .toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP);
+        const convertedTotal = normalizeMoneyInput({
+          currency: data.currency,
+          amount: sourceTotal.toFixed(2),
+          exchangeRateArsPerUsd: data.exchangeRateArsPerUsd,
+        }).amountUsd;
         return {
           ...values,
+          totalUsd: convertedTotal,
+          sourceUnitCost: sourceCost.sourceAmount,
+          sourceTotal,
           sortOrder,
           item,
           presentationId: presentation?.id ?? null,
@@ -151,6 +168,10 @@ export async function postPurchase(input: PurchaseInput, actor: Actor) {
         };
       });
       const totalUsd = sumPurchaseTotal(lines);
+      const sourceTotal = lines.reduce(
+        (sum, line) => sum.plus(line.sourceTotal),
+        new Prisma.Decimal(0),
+      );
       const year = Number(data.businessDate.slice(0, 4));
       const number = await nextPurchaseNumber(tx, year);
       const purchase = await tx.purchase.create({
@@ -161,6 +182,10 @@ export async function postPurchase(input: PurchaseInput, actor: Actor) {
           reference: data.reference,
           notes: data.notes,
           totalUsd,
+          sourceCurrency: data.currency,
+          sourceTotal,
+          exchangeRateArsPerUsd:
+            data.currency === "ARS" ? data.exchangeRateArsPerUsd : null,
           createdById: actor.id,
         },
         select: { id: true },
@@ -179,6 +204,8 @@ export async function postPurchase(input: PurchaseInput, actor: Actor) {
             quantityPurchased: line.quantityPurchased,
             quantityBase: line.quantityBase,
             unitCostUsd: line.unitCostUsd,
+            sourceUnitCost: line.sourceUnitCost,
+            sourceTotal: line.sourceTotal,
             totalUsd: line.totalUsd,
             sortOrder: line.sortOrder,
           },
@@ -208,6 +235,10 @@ export async function postPurchase(input: PurchaseInput, actor: Actor) {
           direction: "OUTFLOW",
           type: "PURCHASE",
           amountUsd: totalUsd,
+          sourceCurrency: data.currency,
+          sourceAmount: sourceTotal,
+          exchangeRateArsPerUsd:
+            data.currency === "ARS" ? data.exchangeRateArsPerUsd : null,
           occurredAt: businessLocalDateTimeToUtc(`${data.businessDate}T12:00`),
           description: `Compra ${number}`,
           purchaseId: purchase.id,
@@ -269,6 +300,9 @@ export async function voidPurchase(
           select: {
             id: true,
             amountUsd: true,
+            sourceCurrency: true,
+            sourceAmount: true,
+            exchangeRateArsPerUsd: true,
             reversedBy: { select: { id: true } },
           },
         },
@@ -327,6 +361,9 @@ export async function voidPurchase(
         direction: "INFLOW",
         type: "REVERSAL",
         amountUsd: purchase.financialEntry.amountUsd,
+        sourceCurrency: purchase.financialEntry.sourceCurrency,
+        sourceAmount: purchase.financialEntry.sourceAmount,
+        exchangeRateArsPerUsd: purchase.financialEntry.exchangeRateArsPerUsd,
         occurredAt: new Date(),
         description: `Anulación ${purchase.number}: ${reason}`,
         reversalOfId: purchase.financialEntry.id,
@@ -383,6 +420,9 @@ export async function listPurchases(options: {
         number: true,
         businessDate: true,
         totalUsd: true,
+        sourceCurrency: true,
+        sourceTotal: true,
+        exchangeRateArsPerUsd: true,
         status: true,
         supplier: { select: { name: true } },
         _count: { select: { items: true } },
@@ -406,6 +446,9 @@ export async function getPurchaseDetail(id: string) {
       reference: true,
       notes: true,
       totalUsd: true,
+      sourceCurrency: true,
+      sourceTotal: true,
+      exchangeRateArsPerUsd: true,
       status: true,
       voidedAt: true,
       voidReason: true,
@@ -414,6 +457,9 @@ export async function getPurchaseDetail(id: string) {
         select: {
           id: true,
           amountUsd: true,
+          sourceCurrency: true,
+          sourceAmount: true,
+          exchangeRateArsPerUsd: true,
           reversedBy: { select: { id: true } },
         },
       },
@@ -427,6 +473,8 @@ export async function getPurchaseDetail(id: string) {
           quantityPurchased: true,
           quantityBase: true,
           unitCostUsd: true,
+          sourceUnitCost: true,
+          sourceTotal: true,
           totalUsd: true,
           inventoryMovement: {
             select: { id: true, reversedBy: { select: { id: true } } },

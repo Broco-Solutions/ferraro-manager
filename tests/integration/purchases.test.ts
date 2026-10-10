@@ -30,6 +30,7 @@ let itemId = "";
 let presentationId = "";
 let supplierId = "";
 let purchaseId = "";
+const purchaseIds: string[] = [];
 
 describe("suppliers and atomic purchases", () => {
   beforeAll(async () => {
@@ -87,7 +88,7 @@ describe("suppliers and atomic purchases", () => {
     await prisma.idempotencyKey.deleteMany({
       where: {
         OR: [
-          { resultReference: purchaseId },
+          { resultReference: { in: purchaseIds } },
           { resultReference: { in: movements.map((movement) => movement.id) } },
         ],
       },
@@ -96,9 +97,14 @@ describe("suppliers and atomic purchases", () => {
       where: { reversalOfId: { not: null }, itemId },
     });
     await prisma.inventoryMovement.deleteMany({ where: { itemId } });
-    if (purchaseId) {
+    if (purchaseIds.length) {
       const finance = await prisma.financialEntry.findMany({
-        where: { OR: [{ purchaseId }, { reversalOf: { purchaseId } }] },
+        where: {
+          OR: [
+            { purchaseId: { in: purchaseIds } },
+            { reversalOf: { purchaseId: { in: purchaseIds } } },
+          ],
+        },
         select: { id: true, reversalOfId: true },
       });
       await prisma.financialEntry.deleteMany({
@@ -110,9 +116,13 @@ describe("suppliers and atomic purchases", () => {
           },
         },
       });
-      await prisma.financialEntry.deleteMany({ where: { purchaseId } });
-      await prisma.purchaseItem.deleteMany({ where: { purchaseId } });
-      await prisma.purchase.delete({ where: { id: purchaseId } });
+      await prisma.financialEntry.deleteMany({
+        where: { purchaseId: { in: purchaseIds } },
+      });
+      await prisma.purchaseItem.deleteMany({
+        where: { purchaseId: { in: purchaseIds } },
+      });
+      await prisma.purchase.deleteMany({ where: { id: { in: purchaseIds } } });
     }
     await prisma.purchasePresentation.delete({ where: { id: presentationId } });
     await prisma.inventoryItem.delete({ where: { id: itemId } });
@@ -127,6 +137,7 @@ describe("suppliers and atomic purchases", () => {
     const input = {
       supplierId,
       businessDate: "2026-10-03",
+      currency: "USD" as const,
       reference: "FAC-10",
       notes: "Ingreso principal",
       idempotencyKey: key,
@@ -136,6 +147,7 @@ describe("suppliers and atomic purchases", () => {
     };
     const purchase = await postPurchase(input, { id: actorId });
     purchaseId = purchase.id;
+    purchaseIds.push(purchase.id);
     await expect(postPurchase(input, { id: actorId })).resolves.toMatchObject({
       id: purchase.id,
       replayed: true,
@@ -217,5 +229,41 @@ describe("suppliers and atomic purchases", () => {
       where: { id: restore.id },
     });
     expect(restoreMovement.type).toBe("ADJUSTMENT_IN");
+  });
+
+  it("posts ARS purchase costs in USD while retaining source values and stock movement", async () => {
+    const purchase = await postPurchase(
+      {
+        supplierId,
+        businessDate: "2026-10-05",
+        currency: "ARS",
+        exchangeRateArsPerUsd: "1560",
+        idempotencyKey: randomUUID(),
+        items: [
+          {
+            itemId,
+            presentationId: "",
+            quantityPurchased: "1",
+            unitCostUsd: "780000",
+          },
+        ],
+      },
+      { id: actorId },
+    );
+    purchaseIds.push(purchase.id);
+    const detail = await getPurchaseDetail(purchase.id);
+    const entry = await prisma.financialEntry.findUniqueOrThrow({
+      where: { purchaseId: purchase.id },
+    });
+    const inventory = await prisma.inventoryItem.findUniqueOrThrow({
+      where: { id: itemId },
+    });
+    expect(detail?.totalUsd.toFixed(2)).toBe("500.00");
+    expect(detail?.sourceTotal.toFixed(2)).toBe("780000.00");
+    expect(detail?.items[0]?.sourceUnitCost.toFixed(2)).toBe("780000.00");
+    expect(entry.amountUsd.toFixed(2)).toBe("500.00");
+    expect(entry.sourceCurrency).toBe("ARS");
+    expect(entry.sourceAmount.toFixed(2)).toBe("780000.00");
+    expect(inventory.currentStock.toFixed(3)).toBe("1.000");
   });
 });

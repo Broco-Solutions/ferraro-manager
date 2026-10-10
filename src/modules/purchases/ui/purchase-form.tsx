@@ -52,6 +52,8 @@ export function PurchaseForm({
     initialState,
   );
   const [lines, setLines] = useState<Line[]>(() => [newLine()]);
+  const [currency, setCurrency] = useState<"USD" | "ARS">("USD");
+  const [exchangeRate, setExchangeRate] = useState("");
   const idempotencyKey = useMemo(() => crypto.randomUUID(), []);
 
   function updateLine(key: string, patch: Partial<Line>) {
@@ -120,6 +122,34 @@ export function PurchaseForm({
             <span>Referencia</span>
             <input name="reference" placeholder="Factura o remito opcional" />
           </label>
+          <label className="field-group">
+            <span>Moneda de compra</span>
+            <select
+              name="currency"
+              value={currency}
+              onChange={(event) =>
+                setCurrency(event.target.value as "USD" | "ARS")
+              }
+            >
+              <option value="USD">USD</option>
+              <option value="ARS">ARS</option>
+            </select>
+          </label>
+          {currency === "ARS" ? (
+            <label className="field-group">
+              <span>Cotización ARS/USD *</span>
+              <input
+                name="exchangeRateArsPerUsd"
+                value={exchangeRate}
+                onChange={(event) => setExchangeRate(event.target.value)}
+                inputMode="decimal"
+                required
+              />
+              <small>Pesos argentinos por 1 USD.</small>
+            </label>
+          ) : (
+            <input type="hidden" name="exchangeRateArsPerUsd" value="" />
+          )}
           <label className="field-group field-span-2">
             <span>Observaciones</span>
             <textarea name="notes" rows={2} />
@@ -221,7 +251,7 @@ export function PurchaseForm({
                     />
                   </label>
                   <label>
-                    <span>Costo unitario USD *</span>
+                    <span>Costo unitario {currency} *</span>
                     <input
                       value={line.unitCostUsd}
                       onChange={(event) =>
@@ -239,7 +269,9 @@ export function PurchaseForm({
                     Stock: +{baseQuantity.toFixed(3)}{" "}
                     {item?.baseUnit ?? "unidad base"}
                   </span>
-                  <strong>USD {lineTotal.toFixed(2)}</strong>
+                  <strong>
+                    {currency} {lineTotal.toFixed(2)}
+                  </strong>
                 </footer>
               </article>
             );
@@ -258,7 +290,15 @@ export function PurchaseForm({
       <div className="purchase-total-bar">
         <div>
           <small>Total compra</small>
-          <strong>USD {total.toFixed(2)}</strong>
+          <strong>
+            {currency} {total.toFixed(2)}
+          </strong>
+          {currency === "ARS" && Number(exchangeRate) > 0 ? (
+            <small>
+              Equivalente estimado · USD{" "}
+              {(total / Number(exchangeRate)).toFixed(2)}
+            </small>
+          ) : null}
         </div>
         <button className="primary-button" disabled={pending || total <= 0}>
           {pending ? "Registrando…" : "Registrar compra"}
