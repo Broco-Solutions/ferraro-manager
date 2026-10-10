@@ -127,3 +127,15 @@ Registro resumido de la ejecución autónoma de V1. El contrato funcional contin
 - **Migrations:** ninguna nueva. Restore drill local aplicó desde cero las migraciones versionadas sobre un schema aislado y verificó 38 tablas; el procedimiento productivo exige DB/restauración aislada del proveedor.
 - **Decisions:** ninguna nueva. DEC-002 se precisó para usar POST prefirmado con política de MIME/tamaño exactos y cleanup de intents expirados.
 - **Known issues:** ningún issue crítico/alto de código. Antes de producción falta el gate humano y validar un restore real con los proveedores contratados de DB/storage.
+
+## FRONTEND BUILD FE-00 — Auditoría y extracción de marca
+
+- **Status:** COMPLETE — approved for continued autonomous execution.
+- **Base:** `feat/ferraro-frontend-redesign` en `0cabbab`, idéntica a `origin/main` al iniciar; working tree limpio.
+- **Scope:** auditoría de 39 rutas, 9 loadings, 247 selectores globales y UI por rol; extracción de ocho SVG oficiales desde el PDF vectorial, manifiesto y checksums.
+- **Evidence:** 18 capturas privadas en `/tmp/ferraro-redesign-evidence/fe00` para login, dashboard ADMIN y STAFF en los seis viewports obligatorios; contact sheet de assets en `/tmp/ferraro-brand-audit/optimized-contact.png`.
+- **Tests:** lint, typecheck, 35 unit, 42 integración, build y `git diff --check` verdes. Prisma local aislado con 17 migraciones al día.
+- **Security:** STAFF sin contenido financiero en HTML visible; baseline sin overflow horizontal mobile. No se usó producción ni servicios cloud.
+- **Assets:** paths preservados; no autotrace, no fuente web para el wordmark; comparación manual páginas 1–5 aprobada internamente.
+- **Gate:** GATE 1 marca, `approved for continued autonomous execution`; tokens, fuente, iconos y primitives continúan en FE-01/02.
+- **Known issues:** preview/DB/auth/storage cloud aislados todavía no provisionados; no bloquean trabajo local y quedan sin declarar como validados.
