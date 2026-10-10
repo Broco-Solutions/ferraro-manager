@@ -147,3 +147,24 @@ La página de turno sigue siendo la fuente de verdad. No se implementan drawer, 
 - Los estados incluyen texto e icono además de color; bloqueo usa trama y label explícito.
 - La continuidad multidía se recorta visualmente por jornada, pero conserva y anuncia el rango real.
 - Una futura librería sólo se evalúa si aparece una necesidad funcional aprobada que el render actual no pueda resolver de forma accesible y mantenible.
+
+## DEC-007 — Galería autorizada sin URLs persistentes en cliente
+
+- **Fecha:** 2026-10-10
+- **Estado:** aceptada con validación cloud pendiente
+- **Build afectado:** FRONTEND BUILD FE-08 — Trabajos, consumos y fotografías
+
+### Contexto
+
+El módulo ya almacena objetos privados y sirve variantes mediante endpoints que verifican sesión/portal. El rediseño necesita lightbox, estados de visibilidad y controles de orden sin trasladar autorización al cliente ni revelar object keys o URLs firmadas persistentes.
+
+### Decisión
+
+Mantener intacto el flujo de intents, confirmación, procesamiento y endpoints privados. La galería recibe sólo metadata serializable autorizada por el Server Component y construye `thumbnail`/`preview` contra rutas internas. React Aria controla el lightbox y el servidor sigue resolviendo toda mutación mediante server actions existentes. La foto permanece privada por defecto y la publicación requiere una acción textual explícita.
+
+### Consecuencias
+
+- El HTML no contiene claves de storage ni URLs firmadas reutilizables.
+- Abrir, ordenar, publicar, elegir portada o eliminar no modifica el contrato de privacidad existente.
+- El lightbox hereda focus trap, Escape y retorno de foco; los botones mantienen nombres accesibles aun cuando el layout muestre sólo iconos.
+- La implementación queda validada con filesystem local. No se declara persistencia remota completa hasta disponer de storage Preview aislado; producción no se usa como sustituto.

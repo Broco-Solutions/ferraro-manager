@@ -215,3 +215,15 @@ Registro resumido de la ejecución autónoma de V1. El contrato funcional contin
 - **Tests:** lint, typecheck, 35 unit, 42 integración, build y `git diff --check` verdes. E2E clientes/servicios 2/2 con alta, vehículo, búsqueda por modelo, categoría, servicio, excepción de modelo y denegación STAFF.
 - **Gate:** GATE 4 primer corte modular, `approved for continued autonomous execution`; se completa con FE-08 a FE-12.
 - **Known issues:** el gestor visual del link privado se rediseña en FE-12 y sólo fue preservado aquí; preview cloud aislada no disponible. Producción no fue usada.
+
+## FRONTEND BUILD FE-08 — Trabajos, consumos y fotografías
+
+- **Status:** COMPLETE LOCAL / CLOUD PERSISTENCE PENDING — approved for continued autonomous execution.
+- **Scope:** historial, alta y detalle de trabajos; servicios snapshot, consumos/correcciones/anulación y galería privada con upload, progreso, etapa, portada, orden, publicación y eliminación. El lightbox React Aria reemplaza la apertura en pestaña y conserva foco/Escape. No cambiaron contratos, stock, procesamiento, storage ni autorización.
+- **Evidence:** seis baselines de lista vacía en `/tmp/ferraro-redesign-evidence/fe08/baseline` y seis capturas finales del detalle poblado en `/tmp/ferraro-redesign-evidence/fe08/final`, para 1440×900, 1280×800, 1024×768, 820×1180, 768×1024 y 390×844. Fixtures locales reversibles cubrieron turno convertido, snapshot, corrección, 1 foto y visibilidad privada/pública; fueron eliminadas por teardown.
+- **Responsive:** historial recompone filas sin perder fecha/vehículo/cliente/servicios/estado; resumen 3→2→1, galería 4→3→2→1 y queue compacta. Los seis viewports pasan chequeo programático de overflow horizontal.
+- **Accessibility:** estado por texto/icono/color; controles de galería nombrados; modal con título, focus trap, Escape y retorno; progreso live y alt contextual. Axe WCAG A/AA/2.2 AA en 0 violations después de corregir el contraste heredado del disclosure.
+- **Security:** thumbnail/preview continúan detrás de endpoints autorizados; acceso anónimo devuelve 401; foto privada por defecto y publicación explícita verificadas. STAFF accede a operación, no a cobros ADMIN.
+- **Tests:** lint, typecheck, 35 unit, 42 integración, build y `git diff --check` verdes. E2E jobs 2/2: turno→trabajo, consumo→corrección con movimientos compensatorios, upload local, privacidad, publicación y lightbox por teclado.
+- **Gate:** GATE 4 continúa, `approved for continued autonomous execution` para la validación local.
+- **Known issues:** no existe storage Preview persistente y aislado; por regla del plan, la persistencia remota de FE-08 no se declara cerrada. Producción no fue usada. El procesamiento se validó exclusivamente con filesystem local y datos sintéticos.

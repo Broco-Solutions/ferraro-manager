@@ -127,6 +127,17 @@ Evidencia FE-06: `/tmp/ferraro-redesign-evidence/fe06`, baseline y ocho capturas
 
 Evidencia FE-07: `/tmp/ferraro-redesign-evidence/fe07`, seis baselines y nueve capturas finales con estados llenos/vacíos/filtrados/archivados, duplicado sugerido y textos largos; axe A/AA sin violations.
 
+## Trabajos, trazabilidad y media
+
+- La lista de trabajos usa una secuencia editorial densa: fecha, vehículo/cliente, servicios snapshot y estado forman una única entrada. En mobile se recompone, nunca se convierte en una cuadrícula de cards.
+- El detalle sigue el orden operativo identidad → origen/estado/equipo → servicios → notas → consumos → fotos → anulación. Los snapshots y movimientos conservan su naturaleza histórica; la UI no los presenta como datos editables normales.
+- Consumos activos, corregidos y anulados muestran label e icono además de color. La corrección continúa creando movimientos compensatorios; la presentación no oculta el registro reemplazado.
+- La galería usa 4 columnas amplias, 3 intermedias, 2 tablet y 1 mobile. Cada foto exhibe portada y privacidad, incluye controles con nombre accesible y abre un lightbox React Aria con focus trap, Escape y retorno de foco.
+- Fotos nuevas permanecen privadas. Publicar al cliente es una acción explícita; thumbnail y preview se solicitan por endpoints autorizados y nunca se exponen object keys ni URLs firmadas en el markup.
+- El uploader conserva validación MIME/tamaño, progreso live, retry y procesamiento de variantes existentes. La UI muestra queue local, pero no introduce edición, before/after automático ni procesamiento nuevo.
+
+Evidencia FE-08: `/tmp/ferraro-redesign-evidence/fe08`, seis baselines y seis capturas finales; E2E local cubre upload, acceso anónimo 401, publicación, corrección de consumo, lightbox y axe sin violations. La persistencia cloud continúa pendiente hasta existir storage Preview aislado.
+
 ## Geometría y tono
 
 La UI deriva del isotipo su ritmo vertical y división en tres, sin convertirlos en patrón ornamental repetitivo. El shell es grafito y el área de trabajo clara. La identidad proviene de activo, tipografía, alineación, ritmo y detalle; el amarillo se reserva para marca, foco y selección controlada.
