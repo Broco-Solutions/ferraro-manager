@@ -206,9 +206,32 @@ La UI deriva del isotipo su ritmo vertical y división en tres, sin convertirlos
 
 Ferraro conserva ownership de assets y composición institucional. Los primitives sólo consumen contratos semánticos. Para PPF House se sustituyen manifiesto, `brand.config`, tokens, fuente, login y slots de PDF; no se copian assets Ferraro, auth, DB, storage ni datos.
 
+### Ownership
+
+- `public/brand/` y su manifiesto pertenecen a Ferraro; ningún primitive importa un SVG por ruta directa fuera de `BrandLogo`, `BrandMark` o `BrandLockup`.
+- `src/config/brand.ts` concentra nombre, copy institucional, location, assets y configuración documental.
+- `src/design-system/tokens.css` posee contratos semánticos. Los componentes consumen `--foreground`, `--surface-*`, `--primary`, estados, spacing y geometría; no “amarillo Ferraro” como dependencia funcional.
+- `src/components/ui/` y `src/components/patterns/` son portables. Los módulos de dominio, auth, permisos, DB, storage y datos no forman parte del paquete visual.
+- CSS Modules pertenecen a su superficie. `globals.css` conserva únicamente foundations/compatibilidad para formularios y details aún compartidos; FE-14 retiró 941 líneas muertas verificadas.
+
+### Swap controlado a PPF House
+
+1. Reemplazar `public/brand/manifest.json` y activos con paths oficiales propios, preservando los contratos de `Brand*`.
+2. Crear configuración PPF House equivalente a `brand.ts`; reemplazar nombre, location, copy y metadata sin bifurcar primitives.
+3. Sustituir tokens `--brand-*`, tipografía local/licencia/manifiesto y validar contrastes semánticos AA.
+4. Rediseñar únicamente slots de marca en login, shell, portal y PDF. No copiar geometría/lockup Ferraro ni hardcodear PPF House en primitives.
+5. Repetir gates: catálogo 1440/768/390, shell por rol, seis viewports, axe, 200%, reduced motion, PDF color/grises y portal adversarial.
+6. Mantener repositorio/infra/auth/DB/storage separados. Esta guía porta el sistema visual, no convierte el producto en multiempresa ni runtime theming.
+
+### Artefactos y licencias
+
+- Checksums de SVG oficiales: `public/brand/manifest.json`.
+- Checksums/licencia de Inter WOFF2/TTF: `src/design-system/fonts/manifest.json` y `OFL-Inter.txt`.
+- Baselines visuales: artifacts privados `/tmp/ferraro-redesign-evidence`, retención objetivo 14 días; no se versionan imágenes.
+
 ## Deuda y evidencia pendiente
 
 - Preview cloud aislada, DB preview, Better Auth preview y storage persistente todavía no están disponibles/verificados en esta ejecución.
 - Las capturas de Playwright permanecen como artifacts privados con retención objetivo de 14 días; no se versionan.
 - La validación de persistencia remota de fotos en FE-08/FE-12 quedará explícitamente pendiente si no se provisiona storage preview aislado.
-- Los aliases visuales heredados y los hex previos permanecen hasta migrar cada consumidor; no deben recibir usos nuevos y se auditan para su eliminación en FE-14.
+- Catorce aliases `--color-*` sostienen formularios y details globales todavía compartidos. No tienen usos nuevos y deben retirarse módulo por módulo cuando esas superficies migren; eliminarlos masivamente en FE-14 habría elevado riesgo sin valor visual.

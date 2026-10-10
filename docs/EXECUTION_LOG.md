@@ -285,3 +285,15 @@ Registro resumido de la ejecución autónoma de V1. El contrato funcional contin
 - **Tests:** suite E2E completa 25/25 verde (1.1 min), 35 unit y 42 integración verdes; lint, typecheck, build y `git diff --check` verdes. No hay `window.confirm`, segunda librería de iconos, Tailwind ni errores de consola de aplicación.
 - **Gate:** GATE 5 QA local, `approved for continued autonomous execution`; FE-14 habilitado.
 - **Known issues:** validación cloud de Preview/Auth/storage continúa pendiente y no se sustituye por producción. No quedan issues críticos/altos; la deuda de CSS legacy/aliases se aborda en FE-14.
+
+## FRONTEND BUILD FE-14 — Limpieza, documentación y portabilidad
+
+- **Status:** COMPLETE — approved for final human review.
+- **Cleanup:** se eliminaron 941 líneas de CSS global sin consumidores: listas/detalles migrados de trabajos, presupuestos, inventario, compras y finanzas; uploader/galerías antiguas; portal/search legacy y media queries huérfanas. `globals.css` bajó de 70.542 bytes/3.823 líneas a 52.497 bytes/2.889 líneas antes del format final, sin borrar forms/details compartidos aún activos.
+- **Ownership:** `docs/FERRARO_BRAND_UI.md` define límites de assets, config, tokens, primitives, módulos y servicios; incluye procedimiento de swap a PPF House sin assets Ferraro, multiempresa ni runtime theming.
+- **Assets/licenses:** manifiesto final de SVG sigue en `public/brand/manifest.json`; se añadió `src/design-system/fonts/manifest.json` con versión, OFL y SHA-256 de WOFF2/TTF. El PDF y UI no dependen de red.
+- **Accessibility finding:** el primer cierre E2E alcanzó el skeleton de Inventario durante axe y expuso `aria-label` sobre un `div` genérico. El patrón se corrigió en los ocho loading backoffice con `role="status"`, `aria-busy` y texto `sr-only`; la suite completa posterior confirma la corrección sin silenciar reglas.
+- **Verification:** lint, typecheck, build y `git diff --check` verdes después del cleanup; 35/35 unit, 42/42 integración y 25/25 E2E Chromium verdes. El cierre vuelve a cubrir login, ADMIN, STAFF, portal, agenda, formularios, fotos, PDF, roles y axe.
+- **Evidence:** seis capturas post-cleanup en `/tmp/ferraro-redesign-evidence/fe14/final`, 1440×900, 1280×800, 1024×768, 820×1180, 768×1024 y 390×844. Inspección desktop/mobile, 0 overflow del documento, 0 page errors y 0 respuestas 5xx.
+- **Gate:** FE-00 a FE-14 completos; GATE 5 local aprobado. Release/merge a `main` requieren revisión humana separada.
+- **Known issues:** Preview cloud aislada sigue no disponible; persistencia remota FE-08/12 y Better Auth Preview quedan pendientes reales. Los 14 aliases `--color-*` permanecen sólo en consumers globales activos; owner: frontend, retiro incremental al migrar esos forms/details, sin fecha de release bloqueante.
