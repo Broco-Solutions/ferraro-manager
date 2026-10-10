@@ -118,12 +118,18 @@ test("ADMIN sets an agreed amount and records a deposit without operational stat
 }) => {
   await login(page, e2eUsers.admin);
   await page.goto(`/app/finance/cases/${caseId}`);
+  await expect(
+    page.locator('[data-money-field][data-hydrated="true"]').first(),
+  ).toBeVisible();
   await expect(page.getByText("Importe por definir")).toBeVisible();
   await page.getByLabel("Nuevo importe (USD) *").fill("1000");
   await page.getByLabel("Motivo *").fill("Alcance acordado E2E");
   await page.getByRole("button", { name: "Actualizar" }).click();
   await expect(page.getByText("Importe acordado actualizado.")).toBeVisible();
   await page.getByRole("link", { name: "Registrar cobro" }).click();
+  await expect(
+    page.locator('[data-money-field][data-hydrated="true"]'),
+  ).toBeVisible();
   const paymentAmount = page.getByLabel("Importe (USD) *");
   await paymentAmount.fill("250");
   await expect(paymentAmount).toHaveValue("250");
@@ -171,14 +177,28 @@ test("ADMIN records ARS and sees the canonical USD equivalent", async ({
 }) => {
   await login(page, e2eUsers.admin);
   await page.goto(`/app/finance/new?caseId=${caseId}`);
-  await page.getByLabel("Moneda").selectOption("ARS");
+  const currency = page.getByLabel("Moneda");
+  await currency.selectOption("ARS");
+  await expect(currency).toHaveValue("ARS");
   await expect(page.getByLabel("Cotización ARS/USD *")).toBeVisible();
-  await page.getByLabel("Moneda").selectOption("USD");
+  await currency.selectOption("USD");
+  await expect(currency).toHaveValue("USD");
   await expect(page.getByLabel("Cotización ARS/USD *")).toBeHidden();
-  await page.getByLabel("Moneda").selectOption("ARS");
+  await currency.selectOption("ARS");
   await page.getByLabel("Importe (ARS) *").fill("780000");
   await page.getByLabel("Cotización ARS/USD *").fill("1560");
   await expect(page.getByText("≈ USD 500,00")).toBeVisible();
+  await page.setViewportSize({ width: 640, height: 900 });
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          document.documentElement.scrollWidth <=
+          document.documentElement.clientWidth,
+      ),
+    )
+    .toBe(true);
+  await page.setViewportSize({ width: 1280, height: 800 });
   await page.getByRole("button", { name: "Registrar movimiento" }).click();
   await expect(page.getByText("+ USD 500.00", { exact: true })).toBeVisible();
   await expect(

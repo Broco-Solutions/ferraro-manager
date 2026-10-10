@@ -1,6 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
+
+const subscribeToNothing = () => () => {};
+const getClientHydrationSnapshot = () => true;
+const getServerHydrationSnapshot = () => false;
 
 export function MoneyField({
   currencyName = "currency",
@@ -24,6 +28,11 @@ export function MoneyField({
   const [currency, setCurrency] = useState<"USD" | "ARS">(initialCurrency);
   const [amount, setAmount] = useState(initialAmount);
   const [rate, setRate] = useState(initialRate);
+  const hydrated = useSyncExternalStore(
+    subscribeToNothing,
+    getClientHydrationSnapshot,
+    getServerHydrationSnapshot,
+  );
   const preview = useMemo(() => {
     if (currency !== "ARS" || !amount || !rate) return null;
     const source = Number(amount);
@@ -37,7 +46,11 @@ export function MoneyField({
   }, [currency, amount, rate]);
 
   return (
-    <div className="money-field">
+    <div
+      className="money-field"
+      data-money-field
+      data-hydrated={hydrated ? "true" : "false"}
+    >
       <label className="field-group">
         <span>Moneda</span>
         <select
