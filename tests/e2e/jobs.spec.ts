@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import sharp from "sharp";
 
@@ -14,6 +15,14 @@ const clientName = "Trabajo E2E Cliente";
 const serviceName = "Trabajo E2E Cerámico";
 const inventoryCategoryName = "Trabajo E2E Films";
 const inventoryItemName = "Trabajo E2E PPF";
+const evidenceViewports = [
+  ["1440x900", 1440, 900],
+  ["1280x800", 1280, 800],
+  ["1024x768", 1024, 768],
+  ["820x1180", 820, 1180],
+  ["768x1024", 768, 1024],
+  ["390x844", 390, 844],
+] as const;
 let appointmentId = "";
 let caseId = "";
 let clientId = "";
@@ -30,6 +39,20 @@ async function login(page: Page) {
   await page.getByLabel("Contraseña").fill(e2eUsers.staff.password);
   await page.getByRole("button", { name: "Ingresar" }).click();
   await expect(page).toHaveURL(/\/app$/);
+}
+
+async function captureEvidence(page: Page) {
+  const directory = process.env.FE_EVIDENCE_DIR;
+  if (!directory) return;
+  for (const [name, width, height] of evidenceViewports) {
+    await page.setViewportSize({ width, height });
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    await page.evaluate(() => {
+      (document.activeElement as HTMLElement | null)?.blur();
+      window.scrollTo(0, 0);
+    });
+    await page.screenshot({ path: `${directory}/job-detail-${name}.png` });
+  }
 }
 
 async function cleanup() {
@@ -293,4 +316,14 @@ test("STAFF records consumptions and private photos from the job", async ({
   await expect(
     page.getByRole("button", { name: "Ocultar al cliente" }),
   ).toBeVisible();
+  await page.getByRole("button", { name: "Ampliar foto 1 del trabajo" }).click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Foto 1 del trabajo" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toBeHidden();
+  const accessibility = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(accessibility.violations).toEqual([]);
+  await captureEvidence(page);
 });
