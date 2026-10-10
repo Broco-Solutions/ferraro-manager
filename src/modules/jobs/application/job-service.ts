@@ -348,7 +348,7 @@ export async function listJobs(options: {
   };
 }
 
-export async function getJobDetail(id: string) {
+export async function getJobDetail(id: string, includeFinancial = false) {
   return prisma.job.findUnique({
     where: { id },
     select: {
@@ -361,6 +361,18 @@ export async function getJobDetail(id: string) {
       serviceCase: {
         select: {
           id: true,
+          ...(includeFinancial
+            ? {
+                agreedAmountUsd: true,
+                agreedSourceCurrency: true,
+                agreedSourceAmount: true,
+                agreedExchangeRateArsPerUsd: true,
+                directCostUsd: true,
+                directCostSourceCurrency: true,
+                directCostSourceAmount: true,
+                directCostExchangeRateArsPerUsd: true,
+              }
+            : {}),
           client: { select: { displayName: true } },
           vehicle: {
             select: {

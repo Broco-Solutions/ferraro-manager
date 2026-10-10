@@ -13,6 +13,8 @@ import { getCaseFinancialSummary } from "@/modules/finance/application/finance-s
 import styles from "@/modules/finance/ui/finance.module.css";
 import { requireRole } from "@/modules/identity/application/authorization";
 import { formatBusinessDateTime } from "@/shared/date-time/business-time";
+import { MoneyField } from "@/modules/money/ui/money-field";
+import { profitability } from "@/modules/money/domain/money";
 
 export const metadata: Metadata = { title: "Estado de cobro" };
 
@@ -28,6 +30,10 @@ export default async function CaseFinancePage({
   const query = await searchParams;
   const summary = await getCaseFinancialSummary(caseId);
   if (!summary || !summary.client || !summary.vehicle) notFound();
+  const knownMargin = profitability(
+    summary.agreedAmountUsd,
+    summary.directCostUsd,
+  );
   return (
     <Page className={styles.page} size="default">
       <Link href="/app/finance" className="back-link">
@@ -60,6 +66,12 @@ export default async function CaseFinancePage({
               ? `USD ${summary.agreedAmountUsd.toFixed(2)}`
               : "Importe por definir"}
           </strong>
+          {summary.agreedSourceCurrency === "ARS" ? (
+            <small>
+              ARS {summary.agreedSourceAmount?.toFixed(2)} · 1 USD = ARS{" "}
+              {summary.agreedExchangeRateArsPerUsd?.toString()}
+            </small>
+          ) : null}
         </article>
         <article>
           <span>Cobrado neto</span>
@@ -88,15 +100,16 @@ export default async function CaseFinancePage({
           className="inline-create-form finance-inline-form"
         >
           <input type="hidden" name="serviceCaseId" value={caseId} />
-          <label>
-            <span>Nuevo importe USD *</span>
-            <input
-              name="amountUsd"
-              inputMode="decimal"
-              required
-              defaultValue={summary.agreedAmountUsd?.toFixed(2)}
-            />
-          </label>
+          <MoneyField
+            amountLabel="Nuevo importe"
+            initialCurrency={summary.agreedSourceCurrency ?? "USD"}
+            initialAmount={
+              summary.agreedSourceAmount?.toString() ??
+              summary.agreedAmountUsd?.toFixed(2) ??
+              ""
+            }
+            initialRate={summary.agreedExchangeRateArsPerUsd?.toString() ?? ""}
+          />
           <label className="grow-field">
             <span>Motivo *</span>
             <input
@@ -109,6 +122,36 @@ export default async function CaseFinancePage({
           </label>
           <button className="ghost-button">Actualizar</button>
         </form>
+      </section>
+      <section className={styles.balance} aria-label="Rentabilidad del caso">
+        <article>
+          <span>Costo directo</span>
+          <strong>
+            {summary.directCostUsd === null
+              ? "Sin imputar"
+              : `USD ${summary.directCostUsd.toFixed(2)}`}
+          </strong>
+          {summary.directCostSourceCurrency === "ARS" ? (
+            <small>
+              ARS {summary.directCostSourceAmount?.toFixed(2)} · 1 USD = ARS{" "}
+              {summary.directCostExchangeRateArsPerUsd?.toString()}
+            </small>
+          ) : null}
+        </article>
+        <article>
+          <span>Margen conocido</span>
+          <strong>
+            {knownMargin ? `USD ${knownMargin.marginUsd.toFixed(2)}` : "—"}
+          </strong>
+        </article>
+        <article>
+          <span>Margen porcentual</span>
+          <strong>
+            {knownMargin?.marginPercent === null || !knownMargin
+              ? "—"
+              : `${knownMargin.marginPercent.toFixed(2)}%`}
+          </strong>
+        </article>
       </section>
       <section className="detail-section">
         <div className="section-heading-row">
@@ -141,6 +184,12 @@ export default async function CaseFinancePage({
                   {entry.direction === "INFLOW" ? "+" : "−"} USD{" "}
                   {entry.amountUsd.toFixed(2)}
                 </strong>
+                {entry.sourceCurrency === "ARS" ? (
+                  <small>
+                    ARS {entry.sourceAmount.toFixed(2)} · 1 USD = ARS{" "}
+                    {entry.exchangeRateArsPerUsd?.toString()}
+                  </small>
+                ) : null}
                 {entry.type !== "REVERSAL" && !entry.reversedBy ? (
                   <form
                     action={reverseFinancialEntryAction}

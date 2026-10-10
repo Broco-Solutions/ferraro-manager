@@ -133,6 +133,7 @@ export async function getAdminDashboard(now = new Date()) {
       select: {
         id: true,
         agreedAmountUsd: true,
+        directCostUsd: true,
         client: { select: { displayName: true } },
         vehicle: { select: { brand: true, model: true } },
         jobs: {
@@ -176,6 +177,21 @@ export async function getAdminDashboard(now = new Date()) {
     (total, serviceCase) => total.plus(serviceCase.agreedAmountUsd!),
     new Prisma.Decimal(0),
   );
+  const casesWithKnownMargin = monthCases.filter(
+    (serviceCase) =>
+      serviceCase.agreedAmountUsd !== null &&
+      serviceCase.directCostUsd !== null,
+  );
+  const knownMarginUsd = casesWithKnownMargin.reduce(
+    (total, serviceCase) =>
+      total
+        .plus(serviceCase.agreedAmountUsd!)
+        .minus(serviceCase.directCostUsd!),
+    new Prisma.Decimal(0),
+  );
+  const costCount = monthCases.filter(
+    (serviceCase) => serviceCase.directCostUsd !== null,
+  ).length;
   const pendingCases = cases
     .filter((serviceCase) => serviceCase.agreedAmountUsd !== null)
     .map((serviceCase) => ({
@@ -193,6 +209,10 @@ export async function getAdminDashboard(now = new Date()) {
     outflowUsd: outflows,
     cashNetUsd: cashNet,
     jobsThisMonth,
+    knownMarginUsd,
+    marginCaseCount: casesWithKnownMargin.length,
+    caseCount: monthCases.length,
+    costCount,
     averageAgreedUsd: pricedMonthCases.length
       ? agreedTotal.dividedBy(pricedMonthCases.length)
       : new Prisma.Decimal(0),

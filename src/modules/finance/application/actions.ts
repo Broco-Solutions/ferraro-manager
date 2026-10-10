@@ -8,6 +8,7 @@ import {
   recordFinancialEntry,
   reverseFinancialEntry,
   setAgreedAmount,
+  setDirectCost,
   setFinancialCategoryActive,
 } from "@/modules/finance/application/finance-service";
 import { requireRole } from "@/modules/identity/application/authorization";
@@ -46,7 +47,9 @@ export async function saveFinancialEntryAction(
           | "CUSTOMER_REFUND"
           | "MANUAL_INCOME"
           | "MANUAL_EXPENSE",
-        amountUsd: value(formData, "amountUsd"),
+        currency: value(formData, "currency") as "USD" | "ARS",
+        amount: value(formData, "amount"),
+        exchangeRateArsPerUsd: value(formData, "exchangeRateArsPerUsd"),
         occurredLocal: value(formData, "occurredLocal"),
         serviceCaseId: value(formData, "serviceCaseId"),
         categoryId: value(formData, "categoryId"),
@@ -89,13 +92,29 @@ export async function setAgreedAmountAction(formData: FormData) {
   await setAgreedAmount(
     {
       serviceCaseId,
-      amountUsd: value(formData, "amountUsd"),
+      currency: value(formData, "currency") as "USD" | "ARS",
+      amount: value(formData, "amount"),
+      exchangeRateArsPerUsd: value(formData, "exchangeRateArsPerUsd"),
       reason: value(formData, "reason"),
     },
     session.user,
   );
   revalidatePath(`/app/finance/cases/${serviceCaseId}`);
   redirect(`/app/finance/cases/${serviceCaseId}?amount=1`);
+}
+
+export async function setDirectCostAction(formData: FormData) {
+  await requireRole("ADMIN");
+  const serviceCaseId = value(formData, "serviceCaseId");
+  await setDirectCost({
+    serviceCaseId,
+    currency: value(formData, "currency") === "ARS" ? "ARS" : "USD",
+    amount: value(formData, "amount"),
+    exchangeRateArsPerUsd: value(formData, "exchangeRateArsPerUsd"),
+  });
+  revalidatePath(`/app/finance/cases/${serviceCaseId}`);
+  revalidatePath("/app");
+  revalidatePath("/app/jobs");
 }
 
 export async function createFinancialCategoryAction(formData: FormData) {

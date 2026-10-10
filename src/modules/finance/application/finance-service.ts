@@ -7,9 +7,11 @@ import {
 } from "@/generated/prisma/client";
 import { prisma } from "@/infrastructure/db/client";
 import { caseBalance, netCash } from "@/modules/finance/domain/balance";
+import { normalizeMoneyInput } from "@/modules/money/domain/money";
 import {
   amountRevisionSchema,
   categoryInputSchema,
+  directCostSchema,
   financialEntryInputSchema,
   type FinancialEntryInput,
 } from "@/modules/finance/domain/finance-schema";
@@ -45,6 +47,7 @@ export async function recordFinancialEntry(
   const hash = requestHash(data);
   const config = kindConfig[data.kind];
   const occurredAt = businessLocalDateTimeToUtc(data.occurredLocal);
+  const money = normalizeMoneyInput(data);
 
   try {
     return await prisma.$transaction(async (tx) => {
@@ -87,7 +90,10 @@ export async function recordFinancialEntry(
         data: {
           direction: config.direction,
           type: config.type,
-          amountUsd: data.amountUsd,
+          amountUsd: money.amountUsd,
+          sourceCurrency: money.sourceCurrency,
+          sourceAmount: money.sourceAmount,
+          exchangeRateArsPerUsd: money.exchangeRateArsPerUsd,
           occurredAt,
           serviceCaseId: data.serviceCaseId || null,
           categoryId: data.categoryId || null,
@@ -146,6 +152,9 @@ export async function reverseFinancialEntry(
           direction: true,
           type: true,
           amountUsd: true,
+          sourceCurrency: true,
+          sourceAmount: true,
+          exchangeRateArsPerUsd: true,
           occurredAt: true,
           serviceCaseId: true,
           categoryId: true,
@@ -165,6 +174,9 @@ export async function reverseFinancialEntry(
           direction: original.direction === "INFLOW" ? "OUTFLOW" : "INFLOW",
           type: "REVERSAL",
           amountUsd: original.amountUsd,
+          sourceCurrency: original.sourceCurrency,
+          sourceAmount: original.sourceAmount,
+          exchangeRateArsPerUsd: original.exchangeRateArsPerUsd,
           occurredAt: new Date(),
           description: `Reversión: ${reason}`,
           serviceCaseId: original.serviceCaseId,
@@ -200,14 +212,20 @@ export async function setAgreedAmount(input: unknown, actor: Actor) {
       select: { agreedAmountUsd: true },
     });
     if (!serviceCase) throw new Error("SERVICE_CASE_NOT_FOUND");
-    const next = new Prisma.Decimal(data.amountUsd);
+    const money = normalizeMoneyInput(data);
+    const next = money.amountUsd;
     if (serviceCase.agreedAmountUsd?.equals(next)) return { changed: false };
     const updated = await tx.serviceCase.updateMany({
       where: {
         id: data.serviceCaseId,
         agreedAmountUsd: serviceCase.agreedAmountUsd,
       },
-      data: { agreedAmountUsd: next },
+      data: {
+        agreedAmountUsd: next,
+        agreedSourceCurrency: money.sourceCurrency,
+        agreedSourceAmount: money.sourceAmount,
+        agreedExchangeRateArsPerUsd: money.exchangeRateArsPerUsd,
+      },
     });
     if (updated.count !== 1) throw new Error("AMOUNT_CONFLICT");
     await tx.serviceCaseAmountRevision.create({
@@ -215,11 +233,40 @@ export async function setAgreedAmount(input: unknown, actor: Actor) {
         serviceCaseId: data.serviceCaseId,
         previousAmountUsd: serviceCase.agreedAmountUsd,
         newAmountUsd: next,
+        sourceCurrency: money.sourceCurrency,
+        sourceAmount: money.sourceAmount,
+        exchangeRateArsPerUsd: money.exchangeRateArsPerUsd,
         reason: data.reason,
         createdById: actor.id,
       },
     });
     return { changed: true };
+  });
+}
+
+export async function setDirectCost(input: unknown) {
+  const data = directCostSchema.parse(input);
+  if (!data.amount.trim()) {
+    await prisma.serviceCase.update({
+      where: { id: data.serviceCaseId },
+      data: {
+        directCostUsd: null,
+        directCostSourceCurrency: null,
+        directCostSourceAmount: null,
+        directCostExchangeRateArsPerUsd: null,
+      },
+    });
+    return;
+  }
+  const money = normalizeMoneyInput(data);
+  await prisma.serviceCase.update({
+    where: { id: data.serviceCaseId },
+    data: {
+      directCostUsd: money.amountUsd,
+      directCostSourceCurrency: money.sourceCurrency,
+      directCostSourceAmount: money.sourceAmount,
+      directCostExchangeRateArsPerUsd: money.exchangeRateArsPerUsd,
+    },
   });
 }
 
@@ -282,6 +329,13 @@ export async function getCaseFinancialSummary(serviceCaseId: string) {
     select: {
       id: true,
       agreedAmountUsd: true,
+      agreedSourceCurrency: true,
+      agreedSourceAmount: true,
+      agreedExchangeRateArsPerUsd: true,
+      directCostUsd: true,
+      directCostSourceCurrency: true,
+      directCostSourceAmount: true,
+      directCostExchangeRateArsPerUsd: true,
       clientId: true,
       vehicleId: true,
     },
@@ -302,6 +356,9 @@ export async function getCaseFinancialSummary(serviceCaseId: string) {
       direction: true,
       type: true,
       amountUsd: true,
+      sourceCurrency: true,
+      sourceAmount: true,
+      exchangeRateArsPerUsd: true,
       occurredAt: true,
       description: true,
       paymentMethod: true,
@@ -370,6 +427,9 @@ export async function listFinancialEntries(options: {
       direction: true,
       type: true,
       amountUsd: true,
+      sourceCurrency: true,
+      sourceAmount: true,
+      exchangeRateArsPerUsd: true,
       occurredAt: true,
       description: true,
       reversalOfId: true,

@@ -158,6 +158,12 @@ export default async function FinancePage({
                   {entry.direction === "INFLOW" ? "+" : "−"} USD{" "}
                   {entry.amountUsd.toFixed(2)}
                 </strong>
+                {entry.sourceCurrency === "ARS" ? (
+                  <small>
+                    ARS {entry.sourceAmount.toFixed(2)} · 1 USD = ARS{" "}
+                    {entry.exchangeRateArsPerUsd?.toString()}
+                  </small>
+                ) : null}
                 {entry.serviceCase ? (
                   <Link
                     href={`/app/finance/cases/${entry.serviceCase.id}`}

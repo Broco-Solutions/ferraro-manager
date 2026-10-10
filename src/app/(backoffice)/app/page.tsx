@@ -247,6 +247,20 @@ export default async function AppHomePage() {
               label="Saldo pendiente realizado"
               value={money.format(admin.pendingBalanceUsd.toNumber())}
             />
+            {admin.marginCaseCount > 0 ? (
+              <Kpi
+                detail="Suma de casos con importe y costo informados"
+                label="Margen conocido"
+                value={money.format(admin.knownMarginUsd.toNumber())}
+              />
+            ) : null}
+            {admin.caseCount > 0 ? (
+              <Kpi
+                detail={`${admin.costCount} de ${admin.caseCount} casos con costo imputado`}
+                label="Cobertura de costos"
+                value={`${((admin.costCount / admin.caseCount) * 100).toFixed(1)}%`}
+              />
+            ) : null}
           </div>
         </section>
       ) : null}

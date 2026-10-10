@@ -6,6 +6,7 @@ import {
   saveFinancialEntryAction,
   type FinanceFormState,
 } from "@/modules/finance/application/actions";
+import { MoneyField } from "@/modules/money/ui/money-field";
 
 interface FinancialEntryFormProps {
   defaultOccurredLocal: string;
@@ -63,15 +64,7 @@ export function FinancialEntryForm({
               <option value="MANUAL_EXPENSE">Egreso manual</option>
             </select>
           </label>
-          <label>
-            <span>Monto USD *</span>
-            <input
-              name="amountUsd"
-              inputMode="decimal"
-              placeholder="0.00"
-              required
-            />
-          </label>
+          <MoneyField />
           <label>
             <span>Fecha y hora *</span>
             <input

@@ -14,6 +14,9 @@ import {
 } from "@/modules/job-consumptions/ui/consumption-forms";
 import { voidJobAction } from "@/modules/jobs/application/actions";
 import { getJobDetail } from "@/modules/jobs/application/job-service";
+import { setDirectCostAction } from "@/modules/finance/application/actions";
+import { profitability } from "@/modules/money/domain/money";
+import { MoneyField } from "@/modules/money/ui/money-field";
 import styles from "@/modules/jobs/ui/jobs.module.css";
 import { requireRole } from "@/modules/identity/application/authorization";
 import { PhotoGallery } from "@/modules/photos/ui/photo-gallery";
@@ -36,9 +39,9 @@ export default async function JobDetailPage({
   }>;
 }) {
   const [{ jobId }, notices] = await Promise.all([params, searchParams]);
-  const [session, job, inventoryItems] = await Promise.all([
-    requireRole("ADMIN", "STAFF"),
-    getJobDetail(jobId),
+  const session = await requireRole("ADMIN", "STAFF");
+  const [job, inventoryItems] = await Promise.all([
+    getJobDetail(jobId, session.user.role === "ADMIN"),
     listConsumptionOptions(),
   ]);
   if (!job) notFound();
@@ -111,6 +114,104 @@ export default async function JobDetailPage({
           </strong>
         </div>
       </section>
+      {session.user.role === "ADMIN"
+        ? (() => {
+            const agreed = job.serviceCase.agreedAmountUsd ?? null;
+            const directCost = job.serviceCase.directCostUsd ?? null;
+            const margin = profitability(agreed, directCost);
+            return (
+              <section
+                className={styles.section}
+                aria-label="Rentabilidad del caso"
+              >
+                <div className={styles.sectionHeader}>
+                  <div>
+                    <p className="eyebrow">Administración</p>
+                    <h2>Rentabilidad</h2>
+                  </div>
+                </div>
+                <dl className="case-profitability">
+                  <div>
+                    <dt>Monto acordado</dt>
+                    <dd>
+                      {agreed === null
+                        ? "Por definir"
+                        : `USD ${agreed.toFixed(2)}`}
+                      {job.serviceCase.agreedSourceCurrency === "ARS" ? (
+                        <small>
+                          ARS {job.serviceCase.agreedSourceAmount?.toFixed(2)} ·
+                          1 USD = ARS{" "}
+                          {job.serviceCase.agreedExchangeRateArsPerUsd?.toString()}
+                        </small>
+                      ) : null}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Costo directo</dt>
+                    <dd>
+                      {directCost === null
+                        ? "Sin imputar"
+                        : `USD ${directCost.toFixed(2)}`}
+                      {job.serviceCase.directCostSourceCurrency === "ARS" ? (
+                        <small>
+                          ARS{" "}
+                          {job.serviceCase.directCostSourceAmount?.toFixed(2)}·
+                          1 USD = ARS{" "}
+                          {job.serviceCase.directCostExchangeRateArsPerUsd?.toString()}
+                        </small>
+                      ) : null}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Margen</dt>
+                    <dd>
+                      {margin ? `USD ${margin.marginUsd.toFixed(2)}` : "—"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Margen porcentual</dt>
+                    <dd>
+                      {margin?.marginPercent
+                        ? `${margin.marginPercent.toFixed(2)}%`
+                        : margin?.marginPercent?.isZero()
+                          ? "0,00%"
+                          : "—"}
+                    </dd>
+                  </div>
+                </dl>
+                <form
+                  action={setDirectCostAction}
+                  className="inline-create-form"
+                >
+                  <input
+                    type="hidden"
+                    name="serviceCaseId"
+                    value={job.serviceCaseId}
+                  />
+                  <MoneyField
+                    amountLabel="Costo directo"
+                    required={false}
+                    initialCurrency={
+                      job.serviceCase.directCostSourceCurrency ?? "USD"
+                    }
+                    initialAmount={
+                      job.serviceCase.directCostSourceAmount?.toString() ?? ""
+                    }
+                    initialRate={
+                      job.serviceCase.directCostExchangeRateArsPerUsd?.toString() ??
+                      ""
+                    }
+                  />
+                  <button className="ghost-button">Guardar costo</button>
+                  <small>
+                    Opcional. Dejá el importe vacío para quitar la imputación.
+                    Cero registra un costo real de cero.
+                  </small>
+                </form>
+              </section>
+            );
+          })()
+        : null}
       <section className={styles.section}>
         <div className={styles.sectionHeader}>
           <div>
