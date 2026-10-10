@@ -1,6 +1,18 @@
 import type { UserRole } from "@/modules/identity/domain/roles";
 
 export interface NavigationItem {
+  group: "Operación" | "Comercial" | "Insumos" | "Administración";
+  icon:
+    | "home"
+    | "calendar"
+    | "clients"
+    | "jobs"
+    | "inventory"
+    | "quotes"
+    | "purchases"
+    | "finance"
+    | "services"
+    | "admin";
   label: string;
   href?: string;
   shortLabel: string;
@@ -11,6 +23,8 @@ export interface NavigationItem {
 
 const navigation: readonly NavigationItem[] = [
   {
+    group: "Operación",
+    icon: "home",
     label: "Inicio",
     shortLabel: "Inicio",
     href: "/app",
@@ -18,6 +32,8 @@ const navigation: readonly NavigationItem[] = [
     mobile: true,
   },
   {
+    group: "Operación",
+    icon: "calendar",
     label: "Agenda",
     shortLabel: "Agenda",
     href: "/app/calendar",
@@ -25,6 +41,8 @@ const navigation: readonly NavigationItem[] = [
     mobile: true,
   },
   {
+    group: "Operación",
+    icon: "clients",
     label: "Clientes",
     shortLabel: "Clientes",
     href: "/app/clients",
@@ -32,6 +50,8 @@ const navigation: readonly NavigationItem[] = [
     mobile: true,
   },
   {
+    group: "Operación",
+    icon: "jobs",
     label: "Trabajos",
     shortLabel: "Trabajos",
     href: "/app/jobs",
@@ -39,6 +59,8 @@ const navigation: readonly NavigationItem[] = [
     mobile: true,
   },
   {
+    group: "Insumos",
+    icon: "inventory",
     label: "Inventario",
     shortLabel: "Stock",
     href: "/app/inventory",
@@ -46,30 +68,40 @@ const navigation: readonly NavigationItem[] = [
     mobile: true,
   },
   {
+    group: "Comercial",
+    icon: "quotes",
     label: "Presupuestos",
     shortLabel: "Presupuestos",
     href: "/app/quotes",
     roles: ["ADMIN"],
   },
   {
+    group: "Insumos",
+    icon: "purchases",
     label: "Compras",
     shortLabel: "Compras",
     href: "/app/purchases",
     roles: ["ADMIN"],
   },
   {
+    group: "Administración",
+    icon: "finance",
     label: "Finanzas",
     shortLabel: "Finanzas",
     href: "/app/finance",
     roles: ["ADMIN"],
   },
   {
+    group: "Comercial",
+    icon: "services",
     label: "Servicios",
     shortLabel: "Servicios",
     href: "/app/services",
     roles: ["ADMIN"],
   },
   {
+    group: "Administración",
+    icon: "admin",
     label: "Administración",
     shortLabel: "Admin",
     href: "/app/admin",

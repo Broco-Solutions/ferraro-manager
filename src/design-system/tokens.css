@@ -20,6 +20,15 @@
     --border-strong: #aaa79e;
     --border-inverse: #3b3d39;
 
+    /* Shell surfaces. */
+    --sidebar-background: #151615;
+    --sidebar-foreground: #f7f6f2;
+    --sidebar-muted: #b7bab3;
+    --sidebar-hover: #252724;
+    --sidebar-active: #30332f;
+    --sidebar-border: #353733;
+    --sidebar-accent: #ffce13;
+
     /* Interaction is independent from brand accent and semantic status. */
     --primary: #171817;
     --primary-hover: #2c2e2b;
@@ -108,6 +117,7 @@
     --sidebar-expanded: 17.5rem;
     --sidebar-collapsed: 4.5rem;
     --header-height: 4rem;
+    --bottom-nav-height: 4.25rem;
 
     /* Documented breakpoints; media queries retain literal values in native CSS. */
     --breakpoint-sm: 30rem;

@@ -1,6 +1,9 @@
 "use client";
 
+import { MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { useEffect, useRef } from "react";
+
+import styles from "./global-search-bar.module.css";
 
 export function GlobalSearchBar() {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -15,18 +18,28 @@ export function GlobalSearchBar() {
     return () => window.removeEventListener("keydown", focusSearch);
   }, []);
   return (
-    <form action="/app/search" className="global-search-bar" role="search">
-      <label htmlFor="global-search">Buscar en Ferraro</label>
-      <input
-        ref={inputRef}
-        id="global-search"
-        name="q"
-        type="search"
-        minLength={2}
-        placeholder="Cliente, M3, trabajo, presupuesto…"
-      />
-      <kbd>Ctrl K</kbd>
-      <button>Buscar</button>
+    <form action="/app/search" className={styles.form} role="search">
+      <label className="sr-only" htmlFor="global-search">
+        Buscar en Ferraro
+      </label>
+      <div className={styles.control}>
+        <MagnifyingGlassIcon
+          aria-hidden="true"
+          className={styles.icon}
+          size={20}
+        />
+        <input
+          className={styles.input}
+          id="global-search"
+          minLength={2}
+          name="q"
+          placeholder="Cliente, patente, trabajo, presupuesto…"
+          ref={inputRef}
+          type="search"
+        />
+        <kbd className={styles.shortcut}>Ctrl K</kbd>
+      </div>
+      <button className={styles.submit}>Buscar</button>
     </form>
   );
 }

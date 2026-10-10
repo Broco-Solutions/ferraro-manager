@@ -1,7 +1,7 @@
 "use client";
 
 import { XIcon } from "@phosphor-icons/react";
-import type { ReactNode } from "react";
+import type { ReactElement, ReactNode } from "react";
 import {
   Button as AriaButton,
   Dialog as AriaDialog,
@@ -111,7 +111,7 @@ export function IconButton({
   tooltip,
   variant = "ghost",
 }: {
-  children: ReactNode;
+  children: ReactElement;
   label: string;
   tooltip?: string;
   variant?: "ghost" | "danger";
