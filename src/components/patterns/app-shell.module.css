@@ -255,6 +255,9 @@
 
 .shell[data-collapsed="true"] .brandArea {
   display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto;
+  gap: var(--space-2);
   justify-items: center;
   padding-inline: var(--space-3);
 }
@@ -264,12 +267,11 @@
 }
 
 .shell[data-collapsed="true"] .collapseButton {
-  position: absolute;
-  top: 5.75rem;
+  position: static;
 }
 
 .shell[data-collapsed="true"] .navigation {
-  padding-top: var(--space-16);
+  padding-top: var(--space-5);
 }
 
 .shell[data-collapsed="true"] .navLink {
