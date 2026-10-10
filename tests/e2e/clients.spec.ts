@@ -13,7 +13,9 @@ async function login(page: Page) {
   await resetE2EAuthRateLimit();
   await page.goto("/login");
   await page.getByLabel("Email").fill(e2eUsers.staff.email);
-  await page.getByLabel("Contraseña").fill(e2eUsers.staff.password);
+  await page
+    .getByRole("textbox", { name: "Contraseña" })
+    .fill(e2eUsers.staff.password);
   await page.getByRole("button", { name: "Ingresar" }).click();
   await expect(page).toHaveURL(/\/app$/);
 }

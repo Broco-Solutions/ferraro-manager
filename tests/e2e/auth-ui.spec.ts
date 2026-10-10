@@ -19,7 +19,9 @@ test("login exposes branded accessible idle and error states", async ({
   expect(accessibility.violations).toEqual([]);
 
   await page.getByLabel("Email").fill(e2eUsers.admin.email);
-  await page.getByLabel("Contraseña").fill("credencial-incorrecta");
+  await page
+    .getByRole("textbox", { name: "Contraseña" })
+    .fill("credencial-incorrecta");
   await page.getByRole("button", { name: "Ingresar" }).click();
   await expect(
     page.getByRole("alert").filter({ hasText: "No pudimos ingresar" }),
@@ -35,12 +37,41 @@ test("login announces its localized submitting state", async ({ page }) => {
   });
   await page.goto("/login");
   await page.getByLabel("Email").fill(e2eUsers.staff.email);
-  await page.getByLabel("Contraseña").fill(e2eUsers.staff.password);
+  await page
+    .getByRole("textbox", { name: "Contraseña" })
+    .fill(e2eUsers.staff.password);
   await page.getByRole("button", { name: "Ingresar" }).click();
   await expect(
     page.getByRole("button", { name: "Ingresando…" }),
   ).toBeDisabled();
   await expect(page).toHaveURL(/\/app$/, { timeout: 15_000 });
+});
+
+test("password visibility toggle keeps its field geometry and keyboard access", async ({
+  page,
+}) => {
+  await page.goto("/login");
+
+  const password = page.getByRole("textbox", { name: "Contraseña" });
+  const initialBox = await password.boundingBox();
+  await expect(password).toHaveAttribute("type", "password");
+
+  const showButton = page.getByRole("button", { name: "Mostrar contraseña" });
+  await showButton.focus();
+  await page.keyboard.press("Enter");
+
+  await expect(password).toHaveAttribute("type", "text");
+  const hideButton = page.getByRole("button", { name: "Ocultar contraseña" });
+  await expect(hideButton).toHaveAttribute("aria-pressed", "true");
+  await expect(hideButton).toBeFocused();
+  expect(await password.boundingBox()).toEqual(initialBox);
+
+  await page.keyboard.press("Space");
+  await expect(password).toHaveAttribute("type", "password");
+  await expect(
+    page.getByRole("button", { name: "Mostrar contraseña" }),
+  ).toHaveAttribute("aria-pressed", "false");
+  await expect(password).toHaveAttribute("autocomplete", "current-password");
 });
 
 test("unknown routes use the reusable branded not-found state", async ({

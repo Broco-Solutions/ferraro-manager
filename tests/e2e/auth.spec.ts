@@ -9,7 +9,7 @@ async function login(
   await resetE2EAuthRateLimit();
   await page.goto("/login");
   await page.getByLabel("Email").fill(user.email);
-  await page.getByLabel("Contraseña").fill(user.password);
+  await page.getByRole("textbox", { name: "Contraseña" }).fill(user.password);
   await page.getByRole("button", { name: "Ingresar" }).click();
   await expect(page).toHaveURL(/\/app$/, { timeout: 15_000 });
 }
@@ -22,7 +22,9 @@ test("a protected route redirects an anonymous visitor", async ({ page }) => {
   await page.getByLabel("Email").focus();
   await expect(page.getByLabel("Email")).toBeFocused();
   await page.keyboard.press("Tab");
-  await expect(page.getByLabel("Contraseña")).toBeFocused();
+  await expect(
+    page.getByRole("textbox", { name: "Contraseña" }),
+  ).toBeFocused();
 });
 
 test("ADMIN can sign in, enter the protected admin route and sign out", async ({

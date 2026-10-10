@@ -56,7 +56,9 @@ async function login(page: Page, role: "admin" | "staff") {
   await resetE2EAuthRateLimit();
   await page.goto("/login");
   await page.getByLabel("Email").fill(e2eUsers[role].email);
-  await page.getByLabel("Contraseña").fill(e2eUsers[role].password);
+  await page
+    .getByRole("textbox", { name: "Contraseña" })
+    .fill(e2eUsers[role].password);
   await page.getByRole("button", { name: "Ingresar" }).click();
   await expect(page).toHaveURL(/\/app$/);
 }
@@ -258,7 +260,9 @@ test("ADMIN shares an isolated portal and regeneration/revocation invalidate acc
   await expect(
     clientPage.getByRole("heading", { name: "Tu historial Ferraro." }),
   ).toBeVisible();
-  await clientPage.getByLabel("Contraseña").fill("GT3-Ferraro");
+  await clientPage
+    .getByRole("textbox", { name: "Contraseña" })
+    .fill("GT3-Ferraro");
   await clientPage
     .getByRole("button", { name: "Ingresar a mi historial" })
     .click();
@@ -298,7 +302,9 @@ test("ADMIN shares an isolated portal and regeneration/revocation invalidate acc
     clientPage.getByRole("heading", { name: /ya no está disponible/ }),
   ).toBeVisible();
   await clientPage.goto(newUrl);
-  await clientPage.getByLabel("Contraseña").fill("GT3-Ferraro");
+  await clientPage
+    .getByRole("textbox", { name: "Contraseña" })
+    .fill("GT3-Ferraro");
   await clientPage
     .getByRole("button", { name: "Ingresar a mi historial" })
     .click();

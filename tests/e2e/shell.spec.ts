@@ -9,7 +9,7 @@ async function login(
   await resetE2EAuthRateLimit();
   await page.goto("/login");
   await page.getByLabel("Email").fill(user.email);
-  await page.getByLabel("Contraseña").fill(user.password);
+  await page.getByRole("textbox", { name: "Contraseña" }).fill(user.password);
   await page.getByRole("button", { name: "Ingresar" }).click();
   await expect(page).toHaveURL(/\/app$/, { timeout: 15_000 });
 }
@@ -26,6 +26,20 @@ test("ADMIN navigation marks the route and persists the collapsed sidebar", asyn
   await expect(
     page.getByRole("button", { name: "Expandir navegación" }),
   ).toBeVisible();
+  const sidebar = page.getByRole("complementary", {
+    name: "Navegación lateral",
+  });
+  const mark = sidebar.locator('a[aria-label="Ir al inicio"] img').last();
+  const expandButton = sidebar.getByRole("button", {
+    name: "Expandir navegación",
+  });
+  const markBox = await mark.boundingBox();
+  const toggleBox = await expandButton.boundingBox();
+  expect(markBox).not.toBeNull();
+  expect(toggleBox).not.toBeNull();
+  expect(markBox!.y + markBox!.height).toBeLessThanOrEqual(toggleBox!.y);
+  expect(toggleBox!.width).toBeGreaterThanOrEqual(44);
+  expect(toggleBox!.height).toBeGreaterThanOrEqual(44);
   await expect
     .poll(() =>
       page.evaluate(() => localStorage.getItem("ferraro:sidebar-collapsed")),

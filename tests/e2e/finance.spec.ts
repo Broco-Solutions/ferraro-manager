@@ -50,7 +50,7 @@ async function login(
   await resetE2EAuthRateLimit();
   await page.goto("/login");
   await page.getByLabel("Email").fill(user.email);
-  await page.getByLabel("Contraseña").fill(user.password);
+  await page.getByRole("textbox", { name: "Contraseña" }).fill(user.password);
   await page.getByRole("button", { name: "Ingresar" }).click();
   await expect(page).toHaveURL(/\/app$/);
 }
@@ -132,6 +132,27 @@ test("ADMIN sets an agreed amount and records a deposit without operational stat
       "Movimiento registrado sin modificar la agenda ni el trabajo.",
     ),
   ).toBeVisible();
+  if (process.env.FE_EVIDENCE_DIR) {
+    for (const [name, width, height] of evidenceViewports) {
+      await page.setViewportSize({ width, height });
+      await expect
+        .poll(() =>
+          page.evaluate(
+            () =>
+              document.documentElement.scrollWidth <=
+              document.documentElement.clientWidth,
+          ),
+        )
+        .toBe(true);
+      await page.evaluate(() => {
+        (document.activeElement as HTMLElement | null)?.blur();
+        window.scrollTo(0, 0);
+      });
+      await page.screenshot({
+        path: `${process.env.FE_EVIDENCE_DIR}/finance-list-${name}.png`,
+      });
+    }
+  }
   await page.getByRole("link", { name: "Ver saldo" }).click();
   await expect(page.getByText("USD 750.00")).toBeVisible();
   await expect(page.getByText("USD 250.00", { exact: true })).toBeVisible();
