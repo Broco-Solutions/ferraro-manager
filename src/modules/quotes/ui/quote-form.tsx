@@ -7,6 +7,8 @@ import {
   type QuoteFormState,
 } from "@/modules/quotes/application/actions";
 
+import styles from "./quotes.module.css";
+
 const initialState: QuoteFormState = { status: "idle" };
 
 interface QuoteOptions {
@@ -108,7 +110,7 @@ export function QuoteForm({
   }
 
   return (
-    <form action={action} className="quote-editor">
+    <form action={action} className={styles.editor}>
       {values.quoteId ? (
         <input type="hidden" name="quoteId" value={values.quoteId} />
       ) : null}
@@ -323,7 +325,7 @@ export function QuoteForm({
           </label>
         </div>
       </section>
-      <aside className="quote-summary" aria-label="Resumen del presupuesto">
+      <aside className={styles.summary} aria-label="Resumen del presupuesto">
         <div>
           <span>Subtotal estimado</span>
           <strong>USD {summary.subtotal.toFixed(2)}</strong>
@@ -337,7 +339,7 @@ export function QuoteForm({
             inputMode="decimal"
           />
         </label>
-        <div className="quote-grand-total">
+        <div className={styles.summaryTotal}>
           <span>Total estimado</span>
           <strong>USD {summary.total.toFixed(2)}</strong>
         </div>

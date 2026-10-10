@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
+import { ArrowRightIcon, PlusIcon } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 
+import { DataToolbar, Page, PageHeader } from "@/components/patterns/page";
+import { buttonClassName } from "@/components/ui/button";
+import { Badge } from "@/components/ui/status";
 import { requireRole } from "@/modules/identity/application/authorization";
 import { listQuotes } from "@/modules/quotes/application/quote-service";
+import styles from "@/modules/quotes/ui/quotes.module.css";
 
 export const metadata: Metadata = { title: "Presupuestos" };
 
@@ -27,53 +32,54 @@ export default async function QuotesPage({
   });
   const filtered = Boolean(params.q || params.status);
   return (
-    <div className="page-stack">
-      <header className="page-header page-header-actions">
-        <div>
-          <p className="eyebrow">Propuestas comerciales</p>
-          <h1>Presupuestos</h1>
-          <p className="page-description">
-            Precios históricos, presentación premium y conversión sin recarga.
-          </p>
-        </div>
-        <Link href="/app/quotes/new" className="primary-button button-link">
-          Nuevo presupuesto
-        </Link>
-      </header>
-      <form className="filter-bar" role="search">
-        <label className="search-field">
-          <span className="sr-only">Buscar presupuestos</span>
-          <input
-            name="q"
-            defaultValue={params.q}
-            placeholder="Número, cliente o vehículo"
-          />
-        </label>
-        <label className="compact-field">
-          <span>Estado</span>
-          <select name="status" defaultValue={params.status ?? ""}>
-            <option value="">Todos</option>
-            <option value="DRAFT">Borradores</option>
-            <option value="SENT">Enviados</option>
-            <option value="ACCEPTED">Aceptados</option>
-            <option value="REJECTED">Rechazados</option>
-            <option value="expired">Vencidos</option>
-          </select>
-        </label>
-        <button className="ghost-button">Aplicar</button>
-        {filtered ? (
-          <Link href="/app/quotes" className="text-link">
-            Limpiar
+    <Page className={styles.page} size="wide">
+      <PageHeader
+        eyebrow="Propuestas comerciales"
+        title="Presupuestos"
+        description="Propuestas claras, precios históricos y conversión operativa sin duplicar datos."
+        actions={
+          <Link href="/app/quotes/new" className={buttonClassName("primary")}>
+            <PlusIcon aria-hidden="true" />
+            Nuevo presupuesto
           </Link>
-        ) : null}
-      </form>
-      <div className="results-meta">
+        }
+      />
+      <DataToolbar>
+        <form className="filter-bar" role="search">
+          <label className="search-field">
+            <span className="sr-only">Buscar presupuestos</span>
+            <input
+              name="q"
+              defaultValue={params.q}
+              placeholder="Número, cliente o vehículo"
+            />
+          </label>
+          <label className="compact-field">
+            <span>Estado</span>
+            <select name="status" defaultValue={params.status ?? ""}>
+              <option value="">Todos</option>
+              <option value="DRAFT">Borradores</option>
+              <option value="SENT">Enviados</option>
+              <option value="ACCEPTED">Aceptados</option>
+              <option value="REJECTED">Rechazados</option>
+              <option value="expired">Vencidos</option>
+            </select>
+          </label>
+          <button className="ghost-button">Aplicar</button>
+          {filtered ? (
+            <Link href="/app/quotes" className="text-link">
+              Limpiar
+            </Link>
+          ) : null}
+        </form>
+      </DataToolbar>
+      <div className={styles.meta}>
         <strong>{result.total}</strong>{" "}
         {result.total === 1 ? "presupuesto" : "presupuestos"}
       </div>
       {result.items.length ? (
         <section
-          className="entity-list"
+          className={styles.list}
           aria-label="Resultados de presupuestos"
         >
           {result.items.map((quote) => {
@@ -83,10 +89,10 @@ export default async function QuotesPage({
             return (
               <Link
                 href={`/app/quotes/${quote.id}`}
-                className="quote-row"
+                className={styles.row}
                 key={quote.id}
               >
-                <span className="quote-number">
+                <span className={styles.number}>
                   <strong>{quote.number}</strong>
                   <small>
                     {quote.issuedOn.toLocaleDateString("es-AR", {
@@ -94,27 +100,30 @@ export default async function QuotesPage({
                     })}
                   </small>
                 </span>
-                <span className="job-primary">
+                <span className={styles.identity}>
                   <strong>{quote.client.displayName}</strong>
                   <small>
                     {quote.vehicle.brand} {quote.vehicle.model}
                   </small>
                 </span>
-                <strong className="quote-amount">
+                <strong className={styles.amount}>
                   USD {quote.totalUsd.toFixed(2)}
                 </strong>
-                <span
-                  className={
-                    quote.status === "ACCEPTED"
-                      ? "status-badge status-active"
-                      : "status-badge"
+                <Badge
+                  intent={
+                    expired
+                      ? "warning"
+                      : quote.status === "ACCEPTED"
+                        ? "success"
+                        : quote.status === "REJECTED"
+                          ? "danger"
+                          : "neutral"
                   }
+                  withIcon
                 >
                   {expired ? "Vencido" : labels[quote.status]}
-                </span>
-                <span className="row-arrow" aria-hidden="true">
-                  →
-                </span>
+                </Badge>
+                <ArrowRightIcon className={styles.arrow} aria-hidden="true" />
               </Link>
             );
           })}
@@ -142,6 +151,6 @@ export default async function QuotesPage({
           </Link>
         </section>
       )}
-    </div>
+    </Page>
   );
 }

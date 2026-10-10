@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { DetailHeader, Page } from "@/components/patterns/page";
+import { buttonClassName } from "@/components/ui/button";
 import { ConfirmButton } from "@/components/ui/confirm-button";
 import { requireRole } from "@/modules/identity/application/authorization";
 import {
@@ -11,6 +13,7 @@ import {
   rejectQuoteAction,
 } from "@/modules/quotes/application/actions";
 import { getQuoteDetail } from "@/modules/quotes/application/quote-service";
+import styles from "@/modules/quotes/ui/quotes.module.css";
 
 export const metadata: Metadata = { title: "Presupuesto" };
 const labels = {
@@ -38,7 +41,7 @@ export default async function QuoteDetailPage({
   if (!quote) notFound();
   const appointment = quote.acceptedServiceCase?.appointments[0];
   return (
-    <div className="page-stack page-narrow">
+    <Page className={styles.page} size="default">
       <Link href="/app/quotes" className="back-link">
         ← Presupuestos
       </Link>
@@ -62,35 +65,32 @@ export default async function QuoteDetailPage({
           Presupuesto marcado como rechazado.
         </p>
       ) : null}
-      <header className="page-header page-header-actions">
-        <div>
-          <p className="eyebrow">{labels[quote.status]}</p>
-          <h1>{quote.number}</h1>
-          <p className="page-description">
-            {quote.client.displayName} · {quote.vehicle.brand}{" "}
-            {quote.vehicle.model}
-          </p>
-        </div>
-        <div className="header-actions">
-          <Link
-            href={`/api/quotes/${quote.id}/pdf`}
-            target="_blank"
-            className="ghost-button button-link"
-          >
-            {quote.status === "DRAFT" ? "Preview PDF" : "Descargar PDF"}
-          </Link>
-          {quote.status === "DRAFT" ? (
+      <DetailHeader
+        eyebrow={labels[quote.status]}
+        title={quote.number}
+        description={`${quote.client.displayName} · ${quote.vehicle.brand} ${quote.vehicle.model}`}
+        actions={
+          <>
             <Link
-              href={`/app/quotes/${quote.id}/edit`}
-              className="ghost-button button-link"
+              href={`/api/quotes/${quote.id}/pdf`}
+              target="_blank"
+              className={buttonClassName("secondary")}
             >
-              Editar
+              {quote.status === "DRAFT" ? "Preview PDF" : "Descargar PDF"}
             </Link>
-          ) : null}
-        </div>
-      </header>
-      <section className="quote-detail-sheet">
-        <div className="quote-detail-heading">
+            {quote.status === "DRAFT" ? (
+              <Link
+                href={`/app/quotes/${quote.id}/edit`}
+                className={buttonClassName("secondary")}
+              >
+                Editar
+              </Link>
+            ) : null}
+          </>
+        }
+      />
+      <section className={styles.sheet}>
+        <div className={styles.sheetHeader}>
           <div>
             <span>Cliente</span>
             <strong>{quote.client.displayName}</strong>
@@ -102,9 +102,9 @@ export default async function QuoteDetailPage({
             </strong>
           </div>
         </div>
-        <div className="quote-detail-lines">
+        <div className={styles.lines}>
           {quote.items.map((item) => (
-            <article key={item.id}>
+            <article className={styles.line} key={item.id}>
               <div>
                 <strong>{item.nameSnapshot}</strong>
                 {item.descriptionSnapshot ? (
@@ -119,7 +119,7 @@ export default async function QuoteDetailPage({
             </article>
           ))}
         </div>
-        <div className="quote-detail-total">
+        <div className={styles.total}>
           <span>
             Subtotal <b>USD {quote.subtotalUsd.toFixed(2)}</b>
           </span>
@@ -131,7 +131,7 @@ export default async function QuoteDetailPage({
           <strong>Total · USD {quote.totalUsd.toFixed(2)}</strong>
         </div>
       </section>
-      <section className="quote-actions-panel">
+      <section className={styles.actions} aria-label="Acciones del presupuesto">
         {quote.status === "DRAFT" ? (
           <form action={issueQuoteAction}>
             <input type="hidden" name="quoteId" value={quote.id} />
@@ -198,6 +198,6 @@ export default async function QuoteDetailPage({
         Aceptar o emitir no registra ningún cobro. La operación y la caja
         permanecen independientes.
       </p>
-    </div>
+    </Page>
   );
 }
