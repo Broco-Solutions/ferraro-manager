@@ -19,11 +19,13 @@ import {
   IconButton,
 } from "@/components/ui/overlays";
 import { Alert, Badge } from "@/components/ui/status";
+import { Toast, ToastRegion } from "@/components/ui/toast";
 
 import styles from "./page.module.css";
 
 export function ComponentShowcase() {
   const [confirmed, setConfirmed] = useState(false);
+  const [showToast, setShowToast] = useState(false);
 
   return (
     <>
@@ -174,11 +176,24 @@ export function ComponentShowcase() {
           <IconButton label="Filtrar resultados" tooltip="Filtrar resultados">
             <FunnelIcon aria-hidden="true" size={20} />
           </IconButton>
+          <Button variant="secondary" onClick={() => setShowToast(true)}>
+            Mostrar notificación
+          </Button>
         </div>
         {confirmed ? (
           <Alert intent="success" title="Acción confirmada">
             El ejemplo cerró el dialog y devolvió el foco al disparador.
           </Alert>
+        ) : null}
+        {showToast ? (
+          <ToastRegion>
+            <Toast
+              onDismiss={() => setShowToast(false)}
+              title="Cambios guardados"
+            >
+              El registro quedó actualizado correctamente.
+            </Toast>
+          </ToastRegion>
         ) : null}
       </section>
     </>

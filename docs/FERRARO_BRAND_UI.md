@@ -84,6 +84,16 @@ Los controles nativos preservan semantics y autocompletado. React Aria se limita
 
 El mapa de iconos usa exclusivamente Phosphor regular/bold en cajas ópticas de 20–24 px. La navegación se filtra en servidor mediante `getNavigationForRole`; CSS nunca oculta una capacidad como mecanismo de seguridad.
 
+## Acceso y estados globales
+
+- Login desktop: composición editorial 45/55, panel grafito con geometría derivada del isotipo, lockup FERRARO DETAIL oficial sobre placa blanca y formulario claro sin fotografía genérica.
+- Login tablet: conserva ambas regiones mientras cada columna mantiene ancho usable; mobile usa un formulario único con lockup oficial, foco inicial en Email y controles de 48 px.
+- Auth: mismo Better Auth, mismos nombres/autocomplete, sin signup/reset/social. Loading localizado, error live y valores preservados.
+- Estados: `StatePage` unifica error recuperable/global, 403 y 404 con isotipo, código, heading, explicación y acción segura; no revela contenido protegido.
+- Loading/toast: skeleton estructural con `aria-busy` y `ToastRegion` live, dismissible y fuera de la navegación de foco automática.
+
+El amarillo aparece como señal institucional y línea de composición. Sobre superficie clara, labels pequeños usan `--focus-ring` (6.52:1), no el amarillo oficial de 1.35:1.
+
 ## Geometría y tono
 
 La UI deriva del isotipo su ritmo vertical y división en tres, sin convertirlos en patrón ornamental repetitivo. El shell es grafito y el área de trabajo clara. La identidad proviene de activo, tipografía, alineación, ritmo y detalle; el amarillo se reserva para marca, foco y selección controlada.

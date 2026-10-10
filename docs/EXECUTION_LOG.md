@@ -172,3 +172,13 @@ Registro resumido de la ejecución autónoma de V1. El contrato funcional contin
 - **Tests:** lint, typecheck, 35 unit, 42 integración, build y `git diff --check` verdes. E2E relacionado auth/design-system/shell: 8/8, incluido axe A/AA.
 - **Gate:** GATE 2 shell, `approved for continued autonomous execution`; GATE 2 completo se cierra junto con login/estados en FE-04.
 - **Known issues:** evidencia preview cloud integrada no disponible; validación local product build cubre el shell. Estilos globales heredados sin consumidores se retiran en FE-14.
+
+## FRONTEND BUILD FE-04 — Login y estados globales
+
+- **Status:** COMPLETE — approved for continued autonomous execution.
+- **Scope:** login Ferraro responsive con lockup oficial, primitives de formulario y feedback; `StatePage` para error/403/404, loading estructural y toast base consumido por el catálogo. Better Auth, proxy, redirects y contratos permanecen intactos.
+- **Evidence:** ocho capturas privadas en `/tmp/ferraro-redesign-evidence/fe04`: login idle en seis viewports, error mobile y not-found mobile. Sin overflow; consola limpia en idle. El 401 de credencial inválida y 404 de la ruta adversarial son respuestas esperadas del caso probado.
+- **Accessibility:** autofocus real en Email tras hidratación, labels/autocomplete conservados, inputs 48 px, loading `aria-busy`, error live, valores preservados y foco/contraste visibles. Axe login y catálogo: 0 violations A/AA.
+- **Tests:** lint, typecheck, 35 unit, 42 integración, build y `git diff --check` verdes. Auth/auth-ui 7/7 y design-system 2/2 en ejecuciones finales; submitting, invalid credentials, 403, 404 y toast cubiertos.
+- **Gate:** GATE 2 completo, `approved for continued autonomous execution`; shell, navegación, login y estados habilitan migración modular.
+- **Known issues:** preview cloud aislada no disponible; Better Auth Preview URL continúa pendiente de validación cloud. Producción no fue usada.

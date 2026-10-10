@@ -2,6 +2,11 @@
 
 import { useEffect } from "react";
 
+import {
+  StatePage,
+  stateActionClassName,
+} from "@/components/patterns/state-page";
+
 export default function ErrorPage({
   error,
   reset,
@@ -14,17 +19,15 @@ export default function ErrorPage({
   }, [error]);
 
   return (
-    <main className="state-page">
-      <div className="state-card">
-        <p className="state-code">Error</p>
-        <h1>No pudimos cargar esta sección</h1>
-        <p>
-          Intentá nuevamente. Si el problema continúa, avisá a un administrador.
-        </p>
-        <button className="primary-button" type="button" onClick={reset}>
+    <StatePage
+      action={
+        <button className={stateActionClassName} type="button" onClick={reset}>
           Reintentar
         </button>
-      </div>
-    </main>
+      }
+      code="Error recuperable"
+      description="Intentá nuevamente. Si el problema continúa, avisá a un administrador."
+      title="No pudimos cargar esta sección"
+    />
   );
 }

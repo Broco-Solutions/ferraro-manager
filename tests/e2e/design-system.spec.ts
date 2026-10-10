@@ -40,6 +40,15 @@ test("design system primitives preserve keyboard focus and modal behavior", asyn
   ).toBeFocused();
   await alertDialog.getByRole("button", { name: "Eliminar evidencia" }).click();
   await expect(page.getByText("Acción confirmada")).toBeVisible();
+
+  await page.getByRole("button", { name: "Mostrar notificación" }).click();
+  await expect(
+    page.getByRole("region", { name: "Notificaciones" }).getByRole("status"),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Cerrar notificación" }).click();
+  await expect(
+    page.getByText("El registro quedó actualizado correctamente."),
+  ).toHaveCount(0);
 });
 
 test("design system has no automated WCAG A/AA violations", async ({
