@@ -168,3 +168,24 @@ Mantener intacto el flujo de intents, confirmación, procesamiento y endpoints p
 - Abrir, ordenar, publicar, elegir portada o eliminar no modifica el contrato de privacidad existente.
 - El lightbox hereda focus trap, Escape y retorno de foco; los botones mantienen nombres accesibles aun cuando el layout muestre sólo iconos.
 - La implementación queda validada con filesystem local. No se declara persistencia remota completa hasta disponer de storage Preview aislado; producción no se usa como sustituto.
+
+## DEC-008 — PDF comparte assets y tipografía de la interfaz
+
+- **Fecha:** 2026-10-10
+- **Estado:** aceptada
+- **Build afectado:** FRONTEND BUILD FE-09 — Presupuestos y PDF
+
+### Contexto
+
+El renderer anterior escribía “FERRARO” con Helvetica y un tono dorado ajeno al núcleo digital. Eso reconstruía el logo con una fuente y separaba la propuesta impresa de la identidad aprobada.
+
+### Decisión
+
+Insertar en React PDF los paths exactos del lockup FERRARO DETAIL negro extraído del manual, sin autotrace ni rasterización. Usar Inter Variable TTF oficial embebida para el contenido, negro `#000000`, gris `#706F6F`, amarillo `#FFCE13` y papel blanco. Mantener el documento textual, A4, paginado y sin cambiar el contrato de artefacto congelado.
+
+### Consecuencias
+
+- Wordmark y DETAIL mantienen proporción/path oficial y no dependen de una fuente instalada.
+- El TTF queda versionado junto a los WOFF2 de interfaz y documentado por checksum; no hay fetch en runtime.
+- El PDF sigue siendo extraíble y buscable; sólo el lockup es geometría vectorial.
+- El amarillo se limita a la regla institucional; grises y estructura sostienen impresión monocroma.

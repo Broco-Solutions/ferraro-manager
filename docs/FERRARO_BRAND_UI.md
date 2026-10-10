@@ -138,6 +138,16 @@ Evidencia FE-07: `/tmp/ferraro-redesign-evidence/fe07`, seis baselines y nueve c
 
 Evidencia FE-08: `/tmp/ferraro-redesign-evidence/fe08`, seis baselines y seis capturas finales; E2E local cubre upload, acceso anónimo 401, publicación, corrección de consumo, lightbox y axe sin violations. La persistencia cloud continúa pendiente hasta existir storage Preview aislado.
 
+## Presupuestos y documento A4
+
+- La lista es una secuencia de propuestas con número/fecha, cliente/vehículo, total y estado. Borrador, enviado, aceptado, rechazado y vencido tienen texto/icono y semántica propia.
+- El editor reserva una columna oscura para subtotal, descuento y total en desktop; en tablet/mobile el resumen vuelve al flujo. El total visual es orientativo y el servidor conserva el recálculo decimal autoritativo.
+- El detalle adopta una hoja clara con regla amarilla controlada, identidades, líneas y total. Las acciones de emitir/aceptar/rechazar/duplicar/agendar permanecen fuera de la hoja y explican su impacto.
+- El PDF usa A4 blanco, una regla amarilla, negro/gris oficiales, Inter Variable embebida y el lockup FERRARO DETAIL vectorial oficial. El logo no se reconstruye con texto ni se rasteriza; sus paths son los del asset verificado.
+- Encabezado, cabecera de tabla, footer y paginación soportan multipágina. La información comercial sigue siendo texto extraíble y legible en impresión en grises.
+
+Evidencia FE-09: `/tmp/ferraro-redesign-evidence/fe09/final`; incluye UI en seis viewports, PDF, raster color/grises y texto extraído. El TTF embebido tiene SHA-256 `4989b125924991b90d05b2d16e0e388c48f7d5bb8b30539bbf9c755278d0ccaf`.
+
 ## Geometría y tono
 
 La UI deriva del isotipo su ritmo vertical y división en tres, sin convertirlos en patrón ornamental repetitivo. El shell es grafito y el área de trabajo clara. La identidad proviene de activo, tipografía, alineación, ritmo y detalle; el amarillo se reserva para marca, foco y selección controlada.

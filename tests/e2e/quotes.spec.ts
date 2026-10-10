@@ -1,6 +1,7 @@
-import { rm } from "node:fs/promises";
+import { rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 
+import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
 import {
@@ -15,6 +16,37 @@ const categoryName = "Presupuesto E2E Protección";
 let clientId = "";
 let vehicleId = "";
 let serviceId = "";
+const evidenceViewports = [
+  ["1440x900", 1440, 900],
+  ["1280x800", 1280, 800],
+  ["1024x768", 1024, 768],
+  ["820x1180", 820, 1180],
+  ["768x1024", 768, 1024],
+  ["390x844", 390, 844],
+] as const;
+
+async function captureEvidence(page: Page) {
+  if (!process.env.FE_EVIDENCE_DIR) return;
+  for (const [name, width, height] of evidenceViewports) {
+    await page.setViewportSize({ width, height });
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            document.documentElement.scrollWidth <=
+            document.documentElement.clientWidth,
+        ),
+      )
+      .toBe(true);
+    await page.evaluate(() => {
+      (document.activeElement as HTMLElement | null)?.blur();
+      window.scrollTo(0, 0);
+    });
+    await page.screenshot({
+      path: `${process.env.FE_EVIDENCE_DIR}/quote-detail-${name}.png`,
+    });
+  }
+}
 
 async function login(
   page: Page,
@@ -150,7 +182,19 @@ test("ADMIN creates, emits, accepts and converts a quote into the same case appo
   const preview = await page.request.get(previewHref!);
   expect(preview.ok()).toBeTruthy();
   expect(preview.headers()["content-type"]).toContain("application/pdf");
-  expect((await preview.body()).subarray(0, 4).toString()).toBe("%PDF");
+  const previewBytes = await preview.body();
+  expect(previewBytes.subarray(0, 4).toString()).toBe("%PDF");
+  if (process.env.FE_EVIDENCE_DIR)
+    await writeFile(
+      `${process.env.FE_EVIDENCE_DIR}/quote-preview.pdf`,
+      previewBytes,
+    );
+
+  const accessibility = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(accessibility.violations).toEqual([]);
+  await captureEvidence(page);
 
   await page.getByRole("button", { name: "Emitir presupuesto" }).click();
   await page

@@ -227,3 +227,15 @@ Registro resumido de la ejecución autónoma de V1. El contrato funcional contin
 - **Tests:** lint, typecheck, 35 unit, 42 integración, build y `git diff --check` verdes. E2E jobs 2/2: turno→trabajo, consumo→corrección con movimientos compensatorios, upload local, privacidad, publicación y lightbox por teclado.
 - **Gate:** GATE 4 continúa, `approved for continued autonomous execution` para la validación local.
 - **Known issues:** no existe storage Preview persistente y aislado; por regla del plan, la persistencia remota de FE-08 no se declara cerrada. Producción no fue usada. El procesamiento se validó exclusivamente con filesystem local y datos sintéticos.
+
+## FRONTEND BUILD FE-09 — Presupuestos y PDF
+
+- **Status:** COMPLETE — approved for continued autonomous execution.
+- **Scope:** lista/filtros, editor con resumen, detalle/document sheet, acciones de lifecycle, agenda desde aceptado y PDF A4. Cálculos, precisión decimal, estados, artefacto congelado y autorización permanecen intactos.
+- **Brand/PDF:** el wordmark tipográfico fue eliminado del renderer. El PDF inserta el lockup FERRARO DETAIL oficial como los mismos paths del SVG verificado, usa negro/gris/amarillo oficiales, papel blanco e Inter Variable TTF embebida (`4989b125924991b90d05b2d16e0e388c48f7d5bb8b30539bbf9c755278d0ccaf`).
+- **Evidence:** seis baselines en `/tmp/ferraro-redesign-evidence/fe09/baseline`; seis capturas UI, PDF original, raster color, raster gris y extracción de texto en `/tmp/ferraro-redesign-evidence/fe09/final`. A4 de una línea inspeccionado visualmente; prueba unitaria genera además 35 líneas multipágina.
+- **Responsive/accessibility:** editor 2 columnas + resumen sticky pasa a flujo único; document sheet conserva jerarquía y montos tabulares. Seis viewports sin overflow horizontal; axe WCAG A/AA/2.2 AA en 0 violations. PDF conserva texto extraíble, metadata, numeración, encabezado de tabla repetido y filas no partidas.
+- **Security/lifecycle:** STAFF recibe 403 en UI y PDF; preview/final continúan `private, no-store`; emitir congela el artefacto, aceptar fija importe y convertir reutiliza el mismo caso. Ningún cobro se registra por estas acciones.
+- **Tests:** lint, typecheck, 35 unit, 42 integración, build y `git diff --check` verdes. Quote E2E 2/2: crear, preview PDF válido, emitir, aceptar, agendar, reconciliar USD 800.00 y denegación STAFF.
+- **Gate:** GATE 4 UI continúa y GATE 5 PDF parcial, `approved for continued autonomous execution`.
+- **Known issues:** no existe preview cloud aislada; el artefacto se validó con filesystem local, sin producción.
