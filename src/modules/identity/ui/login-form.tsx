@@ -3,7 +3,12 @@
 import { type FormEvent, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 
+import { Button } from "@/components/ui/button";
+import { Field, Input } from "@/components/ui/field";
+import { Alert } from "@/components/ui/status";
 import { authClient } from "@/infrastructure/auth/client";
+
+import styles from "./login-form.module.css";
 
 const genericError =
   "No pudimos iniciar sesión. Revisá tus datos e intentá nuevamente.";
@@ -49,14 +54,14 @@ export function LoginForm() {
 
   return (
     <form
-      className="login-form"
+      className={styles.form}
       method="post"
       onSubmit={handleSubmit}
       noValidate
     >
-      <div className="field-group">
-        <label htmlFor="email">Email</label>
-        <input
+      <Field label="Email" required>
+        <Input
+          className={styles.input}
           id="email"
           name="email"
           type="email"
@@ -64,36 +69,37 @@ export function LoginForm() {
           inputMode="email"
           required
           autoFocus
-          disabled={!isHydrated || isSubmitting}
+          disabled={isSubmitting}
         />
-      </div>
+      </Field>
 
-      <div className="field-group">
-        <label htmlFor="password">Contraseña</label>
-        <input
+      <Field label="Contraseña" required>
+        <Input
+          className={styles.input}
           id="password"
           name="password"
           type="password"
           autoComplete="current-password"
           minLength={12}
           required
-          disabled={!isHydrated || isSubmitting}
+          disabled={isSubmitting}
         />
-      </div>
+      </Field>
 
       {error ? (
-        <p className="form-error" role="alert">
+        <Alert intent="danger" title="No pudimos ingresar">
           {error}
-        </p>
+        </Alert>
       ) : null}
 
-      <button
-        className="primary-button"
+      <Button
+        className={styles.submit}
+        loading={isSubmitting}
         type="submit"
         disabled={!isHydrated || isSubmitting}
       >
         {isSubmitting ? "Ingresando…" : "Ingresar"}
-      </button>
+      </Button>
     </form>
   );
 }
