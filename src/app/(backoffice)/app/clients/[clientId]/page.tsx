@@ -1,18 +1,23 @@
+import { CarProfileIcon } from "@phosphor-icons/react/dist/ssr";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { DetailHeader, Page } from "@/components/patterns/page";
+import { Button, buttonClassName } from "@/components/ui/button";
+import { Alert } from "@/components/ui/status";
 import {
   setClientArchivedAction,
   setVehicleArchivedAction,
 } from "@/modules/clients/application/actions";
 import { getClientDetail } from "@/modules/clients/application/client-service";
+import styles from "@/modules/clients/ui/clients.module.css";
 import { VehicleForm } from "@/modules/clients/ui/vehicle-form";
-import { listClientJobHistory } from "@/modules/jobs/application/job-service";
 import { requireUser } from "@/modules/identity/application/session";
-import { listClientQuotes } from "@/modules/quotes/application/quote-service";
+import { listClientJobHistory } from "@/modules/jobs/application/job-service";
 import { getClientShareLinkSummary } from "@/modules/portal/application/portal-service";
 import { ShareLinkManager } from "@/modules/portal/ui/share-link-manager";
+import { listClientQuotes } from "@/modules/quotes/application/quote-service";
 import { formatBusinessDate } from "@/shared/date-time/business-time";
 
 export const metadata: Metadata = { title: "Ficha de cliente" };
@@ -47,129 +52,142 @@ export default async function ClientDetailPage({
   if (!client) notFound();
 
   return (
-    <div className="page-stack">
-      <Link href="/app/clients" className="back-link">
+    <Page className={styles.detailPage}>
+      <Link className={styles.backLink} href="/app/clients">
         ← Clientes
       </Link>
+
       {notices.saved || notices.vehicleSaved || notices.statusChanged ? (
-        <p className="success-banner" role="status">
-          Los cambios se guardaron correctamente.
-        </p>
+        <Alert intent="success" title="Cambios guardados">
+          La ficha conserva la última información confirmada.
+        </Alert>
       ) : null}
       {notices.possibleDuplicates ? (
-        <p className="warning-banner" role="status">
+        <Alert intent="warning" title="Posibles duplicados">
           Encontramos {notices.possibleDuplicates} cliente(s) con teléfono o
-          email similar. Revisá la lista para evitar duplicados.
-        </p>
+          email similar. Revisá la lista antes de continuar.
+        </Alert>
       ) : null}
-      <header className="page-header page-header-actions">
-        <div>
-          <p className="eyebrow">Ficha de cliente</p>
-          <h1>{client.displayName}</h1>
-          <p className="page-description">
-            {[client.phone, client.email, client.instagram]
-              .filter(Boolean)
-              .join(" · ") || "Sin datos de contacto cargados"}
-          </p>
-        </div>
-        <div className="header-actions">
-          <Link
-            href={`/app/clients/${client.id}/edit`}
-            className="ghost-button button-link"
-          >
-            Editar
-          </Link>
-          <form action={setClientArchivedAction}>
-            <input type="hidden" name="id" value={client.id} />
-            <input
-              type="hidden"
-              name="archived"
-              value={String(client.active)}
-            />
-            <button className="ghost-button" type="submit">
-              {client.active ? "Archivar" : "Restaurar"}
-            </button>
-          </form>
-        </div>
-      </header>
 
-      <section className="detail-summary">
+      <DetailHeader
+        actions={
+          <div className={styles.detailActions}>
+            <Link
+              className={`${buttonClassName("secondary")} ${styles.actionLink}`}
+              href={`/app/clients/${client.id}/edit`}
+            >
+              Editar
+            </Link>
+            <form action={setClientArchivedAction}>
+              <input name="id" type="hidden" value={client.id} />
+              <input
+                name="archived"
+                type="hidden"
+                value={String(client.active)}
+              />
+              <Button type="submit" variant="ghost">
+                {client.active ? "Archivar" : "Restaurar"}
+              </Button>
+            </form>
+          </div>
+        }
+        description={
+          [client.phone, client.email, client.instagram]
+            .filter(Boolean)
+            .join(" · ") || "Sin datos de contacto cargados"
+        }
+        eyebrow={client.active ? "Cliente activo" : "Cliente archivado"}
+        title={client.displayName}
+      />
+
+      <dl className={styles.detailSummary}>
         <div>
-          <span>Estado</span>
-          <strong>{client.active ? "Activo" : "Archivado"}</strong>
+          <dt>Estado</dt>
+          <dd>{client.active ? "Activo" : "Archivado"}</dd>
         </div>
         <div>
-          <span>WhatsApp</span>
-          <strong>{client.whatsapp || "Sin cargar"}</strong>
+          <dt>WhatsApp</dt>
+          <dd>{client.whatsapp || "Sin cargar"}</dd>
         </div>
         <div>
-          <span>Alta</span>
-          <strong>
+          <dt>Alta</dt>
+          <dd>
             {new Intl.DateTimeFormat("es-AR", {
               dateStyle: "medium",
               timeZone: "America/Argentina/Buenos_Aires",
             }).format(client.createdAt)}
-          </strong>
+          </dd>
         </div>
-      </section>
+      </dl>
 
       {client.notes ? (
-        <section className="quiet-panel">
+        <section className={styles.notes}>
           <div>
-            <p className="eyebrow">Notas internas</p>
+            <p className={styles.eyebrow}>Notas internas</p>
             <h2>Contexto</h2>
           </div>
           <p>{client.notes}</p>
         </section>
       ) : null}
 
-      <section className="section-stack">
-        <div className="section-heading">
+      <section className={styles.section}>
+        <header className={styles.sectionHeader}>
           <div>
-            <p className="eyebrow">Garage</p>
+            <p className={styles.eyebrow}>Garage</p>
             <h2>Vehículos</h2>
           </div>
-          <span>{client.vehicles.length}</span>
-        </div>
+          <span
+            aria-label={`${client.vehicles.length} vehículos`}
+            className={styles.count}
+          >
+            {client.vehicles.length}
+          </span>
+        </header>
         {client.vehicles.length ? (
-          <div className="vehicle-grid">
+          <div className={styles.vehicleList}>
             {client.vehicles.map((vehicle) => (
               <article
-                className={`vehicle-card ${vehicle.active ? "" : "is-archived"}`}
+                className={`${styles.vehicle} ${vehicle.active ? "" : styles.vehicleArchived}`}
                 key={vehicle.id}
               >
-                <div className="vehicle-visual">
-                  <span>{vehicle.brand.slice(0, 1)}</span>
-                </div>
-                <div className="vehicle-card-copy">
-                  <p className="card-kicker">
+                <div className={styles.vehicleIdentity}>
+                  <p className={styles.eyebrow}>
                     {vehicle.active ? "Activo" : "Archivado"}
                   </p>
                   <h3>
                     {vehicle.brand} {vehicle.model}
                   </h3>
-                  <p>
-                    {[vehicle.version, vehicle.year, vehicle.color]
+                  <p>{vehicle.version || "Versión sin especificar"}</p>
+                </div>
+                <div className={styles.vehicleMeta}>
+                  <span>
+                    <CarProfileIcon aria-hidden size={18} />{" "}
+                    {[vehicle.year, vehicle.color]
                       .filter(Boolean)
                       .join(" · ") || "Sin detalles adicionales"}
-                  </p>
+                  </span>
+                  <span>
+                    {vehicle.vehicleClass
+                      ? `Segmento ${vehicle.vehicleClass}`
+                      : "Segmento sin definir"}
+                  </span>
                 </div>
-                <div className="vehicle-actions">
+                <div className={styles.vehicleActions}>
                   <Link
+                    className={styles.textAction}
                     href={`/app/clients/${client.id}/vehicles/${vehicle.id}/edit`}
-                    className="text-link"
                   >
                     Editar
                   </Link>
                   <form action={setVehicleArchivedAction}>
-                    <input type="hidden" name="clientId" value={client.id} />
-                    <input type="hidden" name="vehicleId" value={vehicle.id} />
+                    <input name="clientId" type="hidden" value={client.id} />
+                    <input name="vehicleId" type="hidden" value={vehicle.id} />
                     <input
-                      type="hidden"
                       name="archived"
+                      type="hidden"
                       value={String(vehicle.active)}
                     />
-                    <button type="submit" className="text-button">
+                    <button className={styles.textAction} type="submit">
                       {vehicle.active ? "Archivar" : "Restaurar"}
                     </button>
                   </form>
@@ -178,74 +196,41 @@ export default async function ClientDetailPage({
             ))}
           </div>
         ) : (
-          <div className="inline-empty">
+          <div className={styles.inlineEmpty}>
             <strong>Sin vehículos todavía</strong>
             <p>Agregá el primero sin salir de esta ficha.</p>
           </div>
         )}
       </section>
 
-      {session.user.role === "ADMIN" ? (
-        <ShareLinkManager clientId={client.id} initialLink={shareLink} />
-      ) : null}
-
-      {session.user.role === "ADMIN" ? (
-        <section className="section-stack">
-          <div className="section-heading">
-            <div>
-              <p className="eyebrow">Comercial</p>
-              <h2>Presupuestos</h2>
-            </div>
-            <span>{quotes.length}</span>
-          </div>
-          {quotes.length ? (
-            <div className="timeline-list">
-              {quotes.map((quote) => (
-                <Link
-                  href={`/app/quotes/${quote.id}`}
-                  key={quote.id}
-                  className="timeline-item"
-                >
-                  <span>
-                    {formatBusinessDate(quote.issuedOn, { timeZone: "UTC" })}
-                  </span>
-                  <strong>{quote.number}</strong>
-                  <small>
-                    {quote.vehicle.brand} {quote.vehicle.model} · USD{" "}
-                    {quote.totalUsd.toFixed(2)}
-                  </small>
-                  <em>{quote.status}</em>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div className="inline-empty">
-              <strong>Sin presupuestos</strong>
-              <p>Podés crear el primero desde el módulo comercial.</p>
-            </div>
-          )}
-        </section>
-      ) : null}
-
-      <details className="form-disclosure" open={!client.vehicles.length}>
+      <details className={styles.disclosure} open={!client.vehicles.length}>
         <summary>Agregar vehículo</summary>
-        <div className="form-disclosure-body">
+        <div className={styles.disclosureBody}>
           <VehicleForm clientId={client.id} />
         </div>
       </details>
 
-      <section className="section-stack">
-        <p className="eyebrow">Historial</p>
-        <h2>Trabajos realizados</h2>
+      <section className={styles.section}>
+        <header className={styles.sectionHeader}>
+          <div>
+            <p className={styles.eyebrow}>Historial</p>
+            <h2>Trabajos realizados</h2>
+          </div>
+          <span aria-label={`${jobs.length} trabajos`} className={styles.count}>
+            {jobs.length}
+          </span>
+        </header>
         {jobs.length ? (
-          <div className="timeline-list">
+          <div className={styles.timeline}>
             {jobs.map((job) => (
               <Link
+                className={styles.timelineItem}
                 href={`/app/jobs/${job.id}`}
                 key={job.id}
-                className="timeline-item"
               >
-                <span>{formatBusinessDate(job.performedAt)}</span>
+                <time dateTime={job.performedAt.toISOString()}>
+                  {formatBusinessDate(job.performedAt)}
+                </time>
                 <strong>
                   {job.serviceCase.vehicle.brand}{" "}
                   {job.serviceCase.vehicle.model}
@@ -259,12 +244,59 @@ export default async function ClientDetailPage({
             ))}
           </div>
         ) : (
-          <div className="inline-empty">
+          <div className={styles.inlineEmpty}>
             <strong>Sin trabajos todavía</strong>
             <p>El historial real aparecerá cuando se complete el primero.</p>
           </div>
         )}
       </section>
-    </div>
+
+      {session.user.role === "ADMIN" ? (
+        <section className={styles.section}>
+          <header className={styles.sectionHeader}>
+            <div>
+              <p className={styles.eyebrow}>Comercial</p>
+              <h2>Presupuestos</h2>
+            </div>
+            <span
+              aria-label={`${quotes.length} presupuestos`}
+              className={styles.count}
+            >
+              {quotes.length}
+            </span>
+          </header>
+          {quotes.length ? (
+            <div className={styles.timeline}>
+              {quotes.map((quote) => (
+                <Link
+                  className={styles.timelineItem}
+                  href={`/app/quotes/${quote.id}`}
+                  key={quote.id}
+                >
+                  <time dateTime={quote.issuedOn.toISOString()}>
+                    {formatBusinessDate(quote.issuedOn, { timeZone: "UTC" })}
+                  </time>
+                  <strong>{quote.number}</strong>
+                  <small>
+                    {quote.vehicle.brand} {quote.vehicle.model} · USD{" "}
+                    {quote.totalUsd.toFixed(2)}
+                  </small>
+                  <em>{quote.status}</em>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className={styles.inlineEmpty}>
+              <strong>Sin presupuestos</strong>
+              <p>Podés crear el primero desde el módulo comercial.</p>
+            </div>
+          )}
+        </section>
+      ) : null}
+
+      {session.user.role === "ADMIN" ? (
+        <ShareLinkManager clientId={client.id} initialLink={shareLink} />
+      ) : null}
+    </Page>
   );
 }

@@ -1,7 +1,18 @@
+import {
+  ArrowRightIcon,
+  CarProfileIcon,
+  MagnifyingGlassIcon,
+  PlusIcon,
+  UsersThreeIcon,
+} from "@phosphor-icons/react/dist/ssr";
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { Page, PageHeader } from "@/components/patterns/page";
+import { buttonClassName } from "@/components/ui/button";
+import { Badge } from "@/components/ui/status";
 import { listClients } from "@/modules/clients/application/client-service";
+import styles from "@/modules/clients/ui/clients.module.css";
 
 export const metadata: Metadata = { title: "Clientes" };
 
@@ -12,8 +23,9 @@ interface PageProps {
 function pageHref(params: { q?: string; status?: string; page: number }) {
   const query = new URLSearchParams();
   if (params.q) query.set("q", params.q);
-  if (params.status && params.status !== "active")
+  if (params.status && params.status !== "active") {
     query.set("status", params.status);
+  }
   query.set("page", String(params.page));
   return `/app/clients?${query}`;
 }
@@ -32,92 +44,96 @@ export default async function ClientsPage({ searchParams }: PageProps) {
   const filtered = Boolean(params.q || status !== "active");
 
   return (
-    <div className="page-stack">
-      <header className="page-header page-header-actions">
-        <div>
-          <p className="eyebrow">Relaciones</p>
-          <h1>Clientes</h1>
-          <p className="page-description">
-            Encontrá rápido una persona y todos sus vehículos.
-          </p>
-        </div>
-        <Link href="/app/clients/new" className="primary-button button-link">
-          Nuevo cliente
-        </Link>
-      </header>
+    <Page className={styles.page}>
+      <PageHeader
+        actions={
+          <Link
+            className={`${buttonClassName("primary")} ${styles.headerLink}`}
+            href="/app/clients/new"
+          >
+            <PlusIcon aria-hidden size={18} weight="bold" />
+            <span>Nuevo cliente</span>
+          </Link>
+        }
+        description="Encontrá una persona, su contacto y todo su garage sin perder contexto."
+        eyebrow="Relaciones"
+        title="Clientes"
+      />
 
-      <form className="filter-bar" role="search">
-        <label className="search-field">
+      <form className={styles.filters} role="search">
+        <label className={`${styles.filterField} ${styles.searchControl}`}>
           <span className="sr-only">Buscar clientes</span>
+          <MagnifyingGlassIcon aria-hidden size={19} />
           <input
-            name="q"
             defaultValue={params.q}
+            name="q"
             placeholder="Nombre, teléfono o vehículo"
           />
         </label>
-        <label className="compact-field">
+        <label className={styles.filterField}>
           <span>Estado</span>
-          <select name="status" defaultValue={status}>
+          <select defaultValue={status} name="status">
             <option value="active">Activos</option>
             <option value="archived">Archivados</option>
             <option value="all">Todos</option>
           </select>
         </label>
-        <button className="ghost-button" type="submit">
+        <button className={styles.filterSubmit} type="submit">
           Aplicar
         </button>
         {filtered ? (
-          <Link href="/app/clients" className="text-link">
+          <Link className={styles.filterClear} href="/app/clients">
             Limpiar
           </Link>
         ) : null}
       </form>
 
-      <div className="results-meta">
-        <strong>{result.total}</strong>{" "}
-        {result.total === 1 ? "cliente" : "clientes"}
+      <div aria-live="polite" className={styles.resultsMeta}>
+        <strong>{result.total}</strong>
+        <span>{result.total === 1 ? "cliente" : "clientes"}</span>
       </div>
 
       {result.items.length ? (
-        <section className="entity-list" aria-label="Resultados de clientes">
+        <section aria-label="Resultados de clientes" className={styles.list}>
           {result.items.map((client) => (
             <Link
+              className={styles.row}
               href={`/app/clients/${client.id}`}
-              className="client-row"
               key={client.id}
             >
-              <span className="entity-avatar" aria-hidden="true">
-                {client.displayName.slice(0, 1).toUpperCase()}
-              </span>
-              <span className="client-primary">
+              <span className={styles.primary}>
                 <strong>{client.displayName}</strong>
                 <small>
                   {client.phone || client.email || "Sin contacto cargado"}
                 </small>
               </span>
-              <span className="vehicle-summary">
+              <span className={styles.garage}>
+                <CarProfileIcon aria-hidden size={20} />
                 {client.vehicles.length
                   ? client.vehicles
                       .map((vehicle) => `${vehicle.brand} ${vehicle.model}`)
                       .join(" · ")
                   : "Sin vehículos"}
               </span>
-              <span
-                className={
-                  client.active ? "status-badge status-active" : "status-badge"
-                }
+              <Badge
+                className={styles.status}
+                intent={client.active ? "success" : "neutral"}
+                withIcon
               >
                 {client.active ? "Activo" : "Archivado"}
-              </span>
-              <span className="row-arrow" aria-hidden="true">
-                →
-              </span>
+              </Badge>
+              <ArrowRightIcon
+                aria-hidden
+                className={styles.rowArrow}
+                size={20}
+              />
             </Link>
           ))}
         </section>
       ) : (
-        <section className="empty-state">
-          <p className="eyebrow">
+        <section className={styles.empty}>
+          <UsersThreeIcon aria-hidden size={30} />
+          <p className={styles.eyebrow}>
             {filtered ? "Sin coincidencias" : "Primera carga"}
           </p>
           <h2>
@@ -131,8 +147,8 @@ export default async function ClientsPage({ searchParams }: PageProps) {
               : "Creá el primero y agregá su vehículo en el siguiente paso."}
           </p>
           <Link
+            className={styles.detailAction}
             href={filtered ? "/app/clients" : "/app/clients/new"}
-            className="ghost-button button-link"
           >
             {filtered ? "Limpiar filtros" : "Crear cliente"}
           </Link>
@@ -140,7 +156,7 @@ export default async function ClientsPage({ searchParams }: PageProps) {
       )}
 
       {result.pages > 1 ? (
-        <nav className="pagination" aria-label="Paginación">
+        <nav aria-label="Paginación" className={styles.pagination}>
           {result.page > 1 ? (
             <Link
               href={pageHref({ q: params.q, status, page: result.page - 1 })}
@@ -164,6 +180,6 @@ export default async function ClientsPage({ searchParams }: PageProps) {
           )}
         </nav>
       ) : null}
-    </div>
+    </Page>
   );
 }

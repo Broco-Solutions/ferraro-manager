@@ -2,10 +2,15 @@
 
 import { useActionState } from "react";
 
+import { FormActions, FormGrid, FormSection } from "@/components/patterns/page";
+import { Button } from "@/components/ui/button";
+import { Field, Input, Textarea } from "@/components/ui/field";
 import {
   saveClientAction,
   type FormActionState,
 } from "@/modules/clients/application/actions";
+
+import styles from "./clients.module.css";
 
 const initialState: FormActionState = { status: "idle" };
 
@@ -21,126 +26,116 @@ interface ClientValues {
   notes?: string | null;
 }
 
-function FieldError({ state, name }: { state: FormActionState; name: string }) {
-  const error = state.fields?.[name];
-  return error ? <span className="field-error">{error}</span> : null;
-}
-
 export function ClientForm({ values = {} }: { values?: ClientValues }) {
   const [state, action, pending] = useActionState(
     saveClientAction,
     initialState,
   );
+
   return (
-    <form action={action} className="entity-form">
-      {values.id ? <input type="hidden" name="id" value={values.id} /> : null}
+    <form action={action} className={styles.form}>
+      {values.id ? <input name="id" type="hidden" value={values.id} /> : null}
       {state.message ? (
-        <p className="form-error" role="alert">
+        <p className={styles.formError} role="alert">
           {state.message}
         </p>
       ) : null}
-      <section className="form-section">
-        <div className="form-section-heading">
-          <h2>Identificación</h2>
-          <p>Usá el nombre con el que el equipo reconoce al cliente.</p>
-        </div>
-        <div className="form-grid">
-          <label className="field-group field-span-2">
-            <span>Nombre identificatorio *</span>
-            <input
-              name="displayName"
-              defaultValue={values.displayName}
+
+      <FormSection
+        description="Usá el nombre con el que el equipo reconoce al cliente."
+        title="Identificación"
+      >
+        <FormGrid>
+          <Field
+            className={styles.fieldSpan}
+            error={state.fields?.displayName}
+            label="Nombre identificatorio"
+            required
+          >
+            <Input
               autoFocus
-              required
+              defaultValue={values.displayName}
               maxLength={120}
-              aria-invalid={Boolean(state.fields?.displayName)}
+              name="displayName"
+              required
             />
-            <FieldError state={state} name="displayName" />
-          </label>
-          <label className="field-group">
-            <span>Nombre</span>
-            <input
-              name="firstName"
+          </Field>
+          <Field label="Nombre" optional>
+            <Input
+              autoComplete="given-name"
               defaultValue={values.firstName ?? ""}
               maxLength={80}
-              autoComplete="given-name"
+              name="firstName"
             />
-          </label>
-          <label className="field-group">
-            <span>Apellido</span>
-            <input
-              name="lastName"
+          </Field>
+          <Field label="Apellido" optional>
+            <Input
+              autoComplete="family-name"
               defaultValue={values.lastName ?? ""}
               maxLength={80}
-              autoComplete="family-name"
+              name="lastName"
             />
-          </label>
-        </div>
-      </section>
-      <section className="form-section">
-        <div className="form-section-heading">
-          <h2>Contacto</h2>
-          <p>Completá sólo los canales que realmente use.</p>
-        </div>
-        <div className="form-grid">
-          <label className="field-group">
-            <span>Teléfono</span>
-            <input
-              name="phone"
-              defaultValue={values.phone ?? ""}
-              type="tel"
+          </Field>
+        </FormGrid>
+      </FormSection>
+
+      <FormSection
+        description="Completá sólo los canales que realmente use."
+        title="Contacto"
+      >
+        <FormGrid>
+          <Field label="Teléfono" optional>
+            <Input
               autoComplete="tel"
-            />
-          </label>
-          <label className="field-group">
-            <span>WhatsApp</span>
-            <input
-              name="whatsapp"
-              defaultValue={values.whatsapp ?? ""}
+              defaultValue={values.phone ?? ""}
+              name="phone"
               type="tel"
             />
-          </label>
-          <label className="field-group">
-            <span>Email</span>
-            <input
-              name="email"
-              defaultValue={values.email ?? ""}
-              type="email"
-              autoComplete="email"
-              aria-invalid={Boolean(state.fields?.email)}
+          </Field>
+          <Field label="WhatsApp" optional>
+            <Input
+              defaultValue={values.whatsapp ?? ""}
+              name="whatsapp"
+              type="tel"
             />
-            <FieldError state={state} name="email" />
-          </label>
-          <label className="field-group">
-            <span>Instagram</span>
-            <input
-              name="instagram"
+          </Field>
+          <Field error={state.fields?.email} label="Email" optional>
+            <Input
+              autoComplete="email"
+              defaultValue={values.email ?? ""}
+              name="email"
+              type="email"
+            />
+          </Field>
+          <Field label="Instagram" optional>
+            <Input
               defaultValue={values.instagram ?? ""}
+              name="instagram"
               placeholder="@usuario"
             />
-          </label>
-        </div>
-      </section>
-      <section className="form-section">
-        <label className="field-group">
-          <span>Notas internas</span>
-          <textarea
-            name="notes"
+          </Field>
+        </FormGrid>
+      </FormSection>
+
+      <FormSection
+        description="Sólo visible para el equipo Ferraro."
+        title="Contexto interno"
+      >
+        <Field label="Notas internas" optional>
+          <Textarea
             defaultValue={values.notes ?? ""}
-            rows={4}
             maxLength={2000}
+            name="notes"
+            rows={5}
           />
-        </label>
-      </section>
-      <div className="form-actions">
-        <button className="primary-button" type="submit" disabled={pending}>
-          {pending
-            ? "Guardando…"
-            : values.id
-              ? "Guardar cambios"
-              : "Crear cliente"}
-        </button>
-      </div>
+        </Field>
+      </FormSection>
+
+      <FormActions>
+        <Button loading={pending} size="lg" type="submit">
+          {values.id ? "Guardar cambios" : "Crear cliente"}
+        </Button>
+      </FormActions>
     </form>
   );
 }

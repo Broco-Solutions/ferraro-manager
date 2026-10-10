@@ -2,10 +2,15 @@
 
 import { useActionState } from "react";
 
+import { FormActions, FormGrid } from "@/components/patterns/page";
+import { Button } from "@/components/ui/button";
+import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import {
   saveVehicleAction,
   type FormActionState,
 } from "@/modules/clients/application/actions";
+
+import styles from "./clients.module.css";
 
 const initialState: FormActionState = { status: "idle" };
 
@@ -31,88 +36,76 @@ export function VehicleForm({
     saveVehicleAction,
     initialState,
   );
+
   return (
-    <form action={action} className="entity-form entity-form-compact">
-      <input type="hidden" name="clientId" value={clientId} />
+    <form action={action} className={`${styles.form} ${styles.formCompact}`}>
+      <input name="clientId" type="hidden" value={clientId} />
       {values.id ? (
-        <input type="hidden" name="vehicleId" value={values.id} />
+        <input name="vehicleId" type="hidden" value={values.id} />
       ) : null}
       {state.message ? (
-        <p className="form-error" role="alert">
+        <p className={styles.formError} role="alert">
           {state.message}
         </p>
       ) : null}
-      <div className="form-grid">
-        <label className="field-group">
-          <span>Marca *</span>
-          <input
-            name="brand"
+      <FormGrid>
+        <Field error={state.fields?.brand} label="Marca" required>
+          <Input
             defaultValue={values.brand}
-            required
             maxLength={80}
-            aria-invalid={Boolean(state.fields?.brand)}
+            name="brand"
+            required
           />
-        </label>
-        <label className="field-group">
-          <span>Modelo *</span>
-          <input
-            name="model"
+        </Field>
+        <Field error={state.fields?.model} label="Modelo" required>
+          <Input
             defaultValue={values.model}
-            required
             maxLength={80}
-            aria-invalid={Boolean(state.fields?.model)}
+            name="model"
+            required
           />
-        </label>
-        <label className="field-group">
-          <span>Versión</span>
-          <input
-            name="version"
+        </Field>
+        <Field label="Versión" optional>
+          <Input
             defaultValue={values.version ?? ""}
             maxLength={100}
+            name="version"
           />
-        </label>
-        <label className="field-group">
-          <span>Año</span>
-          <input
-            name="year"
+        </Field>
+        <Field label="Año" optional>
+          <Input
             defaultValue={values.year ?? ""}
             inputMode="numeric"
-            min={1900}
             max={2100}
+            min={1900}
+            name="year"
           />
-        </label>
-        <label className="field-group">
-          <span>Color</span>
-          <input
-            name="color"
+        </Field>
+        <Field label="Color" optional>
+          <Input
             defaultValue={values.color ?? ""}
             maxLength={60}
+            name="color"
           />
-        </label>
-        <label className="field-group">
-          <span>Segmento</span>
-          <select name="vehicleClass" defaultValue={values.vehicleClass ?? ""}>
+        </Field>
+        <Field label="Segmento" optional>
+          <Select defaultValue={values.vehicleClass ?? ""} name="vehicleClass">
             <option value="">Sin definir</option>
             <option value="SEDAN">Sedan</option>
             <option value="SUV">SUV</option>
             <option value="PICKUP">Pickup</option>
             <option value="OTHER">Otro</option>
-          </select>
-        </label>
-        <label className="field-group field-span-2">
-          <span>Observaciones</span>
-          <textarea name="notes" defaultValue={values.notes ?? ""} rows={3} />
-        </label>
-      </div>
-      <div className="form-actions">
-        <button className="primary-button" type="submit" disabled={pending}>
-          {pending
-            ? "Guardando…"
-            : values.id
-              ? "Guardar vehículo"
-              : "Agregar vehículo"}
-        </button>
-      </div>
+          </Select>
+        </Field>
+        <Field className={styles.fieldSpan} label="Observaciones" optional>
+          <Textarea defaultValue={values.notes ?? ""} name="notes" rows={4} />
+        </Field>
+      </FormGrid>
+      <FormActions>
+        <Button loading={pending} type="submit">
+          {values.id ? "Guardar vehículo" : "Agregar vehículo"}
+        </Button>
+      </FormActions>
     </form>
   );
 }

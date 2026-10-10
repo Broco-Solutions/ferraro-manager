@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { Page, PageHeader } from "@/components/patterns/page";
 import { getVehicleDetail } from "@/modules/clients/application/client-service";
+import styles from "@/modules/clients/ui/clients.module.css";
 import { VehicleForm } from "@/modules/clients/ui/vehicle-form";
 
 export const metadata: Metadata = { title: "Editar vehículo" };
@@ -16,19 +18,15 @@ export default async function EditVehiclePage({
   const vehicle = await getVehicleDetail(clientId, vehicleId);
   if (!vehicle) notFound();
   return (
-    <div className="page-stack page-narrow">
-      <Link href={`/app/clients/${clientId}`} className="back-link">
+    <Page className={styles.formPage} size="narrow">
+      <Link className={styles.backLink} href={`/app/clients/${clientId}`}>
         ← Volver a la ficha
       </Link>
-      <header className="page-header">
-        <div>
-          <p className="eyebrow">Vehículo</p>
-          <h1>
-            Editar {vehicle.brand} {vehicle.model}
-          </h1>
-        </div>
-      </header>
+      <PageHeader
+        eyebrow="Vehículo"
+        title={`Editar ${vehicle.brand} ${vehicle.model}`}
+      />
       <VehicleForm clientId={clientId} values={vehicle} />
-    </div>
+    </Page>
   );
 }

@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
 import {
@@ -58,4 +59,8 @@ test("STAFF creates a client, adds a vehicle and finds it by model", async ({
   await page.getByRole("button", { name: "Aplicar" }).click();
   await expect(page.getByText(clientName)).toBeVisible();
   await expect(page.getByText("Audi RS3")).toBeVisible();
+  const accessibility = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(accessibility.violations).toEqual([]);
 });

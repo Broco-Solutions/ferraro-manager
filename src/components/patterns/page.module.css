@@ -131,13 +131,10 @@
   }
 
   .formActions {
-    position: sticky;
-    z-index: var(--z-sticky);
-    bottom: 0;
-    margin-inline: calc(var(--gutter-mobile) * -1);
-    padding: var(--space-3) var(--gutter-mobile)
-      max(var(--space-3), env(safe-area-inset-bottom));
-    background: var(--surface-raised);
-    box-shadow: 0 -1px 0 var(--border);
+    position: static;
+    margin-inline: 0;
+    padding: var(--space-5) 0 0;
+    background: transparent;
+    box-shadow: none;
   }
 }

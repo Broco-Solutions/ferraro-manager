@@ -1,26 +1,24 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { Page, PageHeader } from "@/components/patterns/page";
 import { ClientForm } from "@/modules/clients/ui/client-form";
+import styles from "@/modules/clients/ui/clients.module.css";
 
 export const metadata: Metadata = { title: "Nuevo cliente" };
 
 export default function NewClientPage() {
   return (
-    <div className="page-stack page-narrow">
-      <Link href="/app/clients" className="back-link">
+    <Page className={styles.formPage} size="narrow">
+      <Link className={styles.backLink} href="/app/clients">
         ← Clientes
       </Link>
-      <header className="page-header">
-        <div>
-          <p className="eyebrow">Alta rápida</p>
-          <h1>Nuevo cliente</h1>
-          <p className="page-description">
-            Sólo pedimos lo necesario. Podés agregar el vehículo al guardar.
-          </p>
-        </div>
-      </header>
+      <PageHeader
+        description="Sólo pedimos lo necesario. Podés agregar el vehículo al guardar."
+        eyebrow="Alta rápida"
+        title="Nuevo cliente"
+      />
       <ClientForm />
-    </div>
+    </Page>
   );
 }
