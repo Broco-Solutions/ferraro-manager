@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 
 import { ConfirmDialog } from "@/components/ui/overlays";
+import { PasswordInput } from "@/components/ui/password-input";
 import {
   createShareLinkAction,
   regenerateShareLinkAction,
@@ -84,8 +85,7 @@ export function ShareLinkManager({
         <div className="portal-link-form">
           <label className="field-group">
             <span>Contraseña opcional</span>
-            <input
-              type="password"
+            <PasswordInput
               value={password}
               minLength={6}
               maxLength={128}
@@ -118,8 +118,7 @@ export function ShareLinkManager({
         <div className="portal-link-actions">
           <label className="field-group">
             <span>Nueva contraseña</span>
-            <input
-              type="password"
+            <PasswordInput
               value={password}
               minLength={6}
               maxLength={128}

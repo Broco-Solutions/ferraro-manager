@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Alert } from "@/components/ui/status";
 import { authClient } from "@/infrastructure/auth/client";
 
@@ -74,11 +75,10 @@ export function LoginForm() {
       </Field>
 
       <Field label="Contraseña" required>
-        <Input
+        <PasswordInput
           className={styles.input}
           id="password"
           name="password"
-          type="password"
           autoComplete="current-password"
           minLength={12}
           required

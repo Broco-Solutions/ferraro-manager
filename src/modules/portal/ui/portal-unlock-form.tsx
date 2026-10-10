@@ -6,6 +6,7 @@ import {
   unlockPortalAction,
   type PortalUnlockState,
 } from "@/modules/portal/application/actions";
+import { PasswordInput } from "@/components/ui/password-input";
 
 const initialState: PortalUnlockState = {};
 
@@ -19,8 +20,7 @@ export function PortalUnlockForm({ token }: { token: string }) {
       <input type="hidden" name="token" value={token} />
       <label>
         <span>Contraseña</span>
-        <input
-          type="password"
+        <PasswordInput
           name="password"
           required
           maxLength={128}
