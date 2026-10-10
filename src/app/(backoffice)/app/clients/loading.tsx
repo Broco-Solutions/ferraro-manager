@@ -3,11 +3,8 @@ import styles from "@/modules/clients/ui/clients.module.css";
 
 export default function ClientsLoading() {
   return (
-    <div
-      aria-busy="true"
-      aria-label="Cargando clientes"
-      className={styles.loading}
-    >
+    <div aria-busy="true" className={styles.loading} role="status">
+      <span className="sr-only">Cargando clientes</span>
       <Skeleton height="3.5rem" width="18rem" />
       <Skeleton height="4.5rem" />
       <div className={styles.loading}>
