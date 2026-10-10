@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { Page, PageHeader } from "@/components/patterns/page";
 import { listJobOptions } from "@/modules/jobs/application/job-service";
 import { JobForm } from "@/modules/jobs/ui/job-form";
+import styles from "@/modules/jobs/ui/jobs.module.css";
 import { formatBusinessDateTimeInput } from "@/shared/date-time/business-time";
 
 export const metadata: Metadata = { title: "Nuevo trabajo" };
@@ -10,19 +12,11 @@ export const metadata: Metadata = { title: "Nuevo trabajo" };
 export default async function NewJobPage() {
   const options = await listJobOptions();
   return (
-    <div className="page-stack page-narrow">
+    <Page className={styles.page} size="narrow">
       <Link href="/app/jobs" className="back-link">
         ← Trabajos
       </Link>
-      <header className="page-header">
-        <div>
-          <p className="eyebrow">Registro directo</p>
-          <h1>Nuevo trabajo</h1>
-          <p className="page-description">
-            Para trabajos realizados sin turno previo. No exige cobro.
-          </p>
-        </div>
-      </header>
+      <PageHeader eyebrow="Registro directo" title="Nuevo trabajo" description="Documentá lo efectivamente realizado sin turno previo. El registro no genera un cobro automático." />
       {options.clients.length ? (
         <JobForm
           options={options}
@@ -38,6 +32,6 @@ export default async function NewJobPage() {
           </Link>
         </section>
       )}
-    </div>
+    </Page>
   );
 }

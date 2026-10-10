@@ -7,6 +7,8 @@ import {
   type JobFormState,
 } from "@/modules/jobs/application/actions";
 
+import styles from "./jobs.module.css";
+
 const initialState: JobFormState = { status: "idle" };
 
 interface JobOptions {
@@ -55,7 +57,7 @@ export function JobForm({
   const fromAppointment = Boolean(values.appointmentId);
 
   return (
-    <form action={action} className="entity-form job-form">
+    <form action={action} className={`entity-form job-form ${styles.form}`}>
       {values.appointmentId ? (
         <input
           type="hidden"
@@ -202,7 +204,7 @@ export function JobForm({
           <textarea name="notes" defaultValue={values.notes ?? ""} rows={4} />
         </label>
       </section>
-      <div className="form-actions sticky-form-actions">
+      <div className={styles.formActions}>
         <button className="primary-button" disabled={pending}>
           {pending
             ? "Guardando…"

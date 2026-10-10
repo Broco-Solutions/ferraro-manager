@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ArrowRightIcon, PlusIcon } from "@phosphor-icons/react/dist/ssr";
 
+import { DataToolbar, Page, PageHeader } from "@/components/patterns/page";
+import { buttonClassName } from "@/components/ui/button";
+import { Badge } from "@/components/ui/status";
 import { listJobs } from "@/modules/jobs/application/job-service";
+import styles from "@/modules/jobs/ui/jobs.module.css";
 import { formatBusinessDate } from "@/shared/date-time/business-time";
 
 export const metadata: Metadata = { title: "Trabajos" };
@@ -31,19 +36,14 @@ export default async function JobsPage({
   });
   const filtered = Boolean(params.q || status !== "active");
   return (
-    <div className="page-stack">
-      <header className="page-header page-header-actions">
-        <div>
-          <p className="eyebrow">Historial real</p>
-          <h1>Trabajos</h1>
-          <p className="page-description">
-            Servicios efectivamente realizados en cada vehículo.
-          </p>
-        </div>
-        <Link href="/app/jobs/new" className="primary-button button-link">
-          Nuevo trabajo
-        </Link>
-      </header>
+    <Page className={styles.page} size="wide">
+      <PageHeader
+        eyebrow="Historial real"
+        title="Trabajos"
+        description="Servicios efectivamente realizados, materiales utilizados y registro visual de cada vehículo."
+        actions={<Link href="/app/jobs/new" className={buttonClassName("primary")}><PlusIcon aria-hidden="true" />Nuevo trabajo</Link>}
+      />
+      <DataToolbar>
       <form className="filter-bar" role="search">
         <label className="search-field">
           <span className="sr-only">Buscar trabajos</span>
@@ -68,38 +68,30 @@ export default async function JobsPage({
           </Link>
         ) : null}
       </form>
-      <div className="results-meta">
-        <strong>{result.total}</strong>{" "}
-        {result.total === 1 ? "trabajo" : "trabajos"}
-      </div>
+      </DataToolbar>
+      <div className={styles.meta}><strong>{result.total}</strong> {result.total === 1 ? "trabajo documentado" : "trabajos documentados"}</div>
       {result.items.length ? (
-        <section className="entity-list" aria-label="Resultados de trabajos">
+        <section className={styles.list} aria-label="Resultados de trabajos">
           {result.items.map((job) => (
-            <Link href={`/app/jobs/${job.id}`} className="job-row" key={job.id}>
-              <span className="job-date">
+            <Link href={`/app/jobs/${job.id}`} className={styles.row} key={job.id}>
+              <span className={styles.date}>
                 <strong>{formatBusinessDate(job.performedAt)}</strong>
               </span>
-              <span className="job-primary">
+              <span className={styles.identity}>
                 <strong>
                   {job.serviceCase.vehicle.brand}{" "}
                   {job.serviceCase.vehicle.model}
                 </strong>
                 <small>{job.serviceCase.client.displayName}</small>
               </span>
-              <span className="job-services">
+              <span className={styles.services}>
                 {job.services.map((item) => item.nameSnapshot).join(" · ") ||
                   "Sin servicios detallados"}
               </span>
-              <span
-                className={
-                  job.voidedAt ? "status-badge" : "status-badge status-active"
-                }
-              >
+              <Badge intent={job.voidedAt ? "danger" : "success"} withIcon>
                 {job.voidedAt ? "Anulado" : "Realizado"}
-              </span>
-              <span className="row-arrow" aria-hidden="true">
-                →
-              </span>
+              </Badge>
+              <ArrowRightIcon className={styles.arrow} aria-hidden="true" />
             </Link>
           ))}
         </section>
@@ -151,6 +143,6 @@ export default async function JobsPage({
           )}
         </nav>
       ) : null}
-    </div>
+    </Page>
   );
 }

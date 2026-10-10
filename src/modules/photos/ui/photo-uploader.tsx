@@ -11,6 +11,8 @@ import {
   photoStages,
 } from "@/modules/photos/domain/photo-schema";
 
+import styles from "./photo-uploader.module.css";
+
 type UploadStatus = "ready" | "uploading" | "processing" | "done" | "error";
 
 interface UploadItem {
@@ -191,8 +193,8 @@ export function PhotoUploader({ jobId }: { jobId: string }) {
   );
 
   return (
-    <div className="photo-uploader">
-      <label className="photo-picker">
+    <div className={styles.uploader}>
+      <label className={styles.picker}>
         <span>Elegir fotos</span>
         <small>JPG, PNG o WebP · hasta 10 por lote · 12 MB cada una</small>
         <input
@@ -209,12 +211,12 @@ export function PhotoUploader({ jobId }: { jobId: string }) {
         </p>
       ) : null}
       {items.length ? (
-        <div className="upload-queue" aria-live="polite">
+        <div className={styles.queue} aria-live="polite">
           {items.map((item) => (
-            <article key={item.id}>
+            <article className={styles.item} key={item.id}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={item.previewUrl} alt="Previsualización local" />
-              <div>
+              <div className={styles.itemBody}>
                 <strong>{item.file.name}</strong>
                 <small>{(item.file.size / 1024 / 1024).toFixed(1)} MB</small>
                 <label className="field-group">
@@ -243,7 +245,7 @@ export function PhotoUploader({ jobId }: { jobId: string }) {
                     {item.progress}%
                   </progress>
                 ) : null}
-                <span className={`upload-status upload-${item.status}`}>
+                <span className={`${styles.status} ${item.status === "done" ? styles.done : ""} ${item.status === "error" ? styles.error : ""}`}>
                   {item.status === "ready"
                     ? "Lista para subir"
                     : item.status === "uploading"

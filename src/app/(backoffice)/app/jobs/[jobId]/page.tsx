@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { DetailHeader, Page } from "@/components/patterns/page";
+import { buttonClassName } from "@/components/ui/button";
 import { ConfirmButton } from "@/components/ui/confirm-button";
+import { Badge } from "@/components/ui/status";
 import { reverseConsumptionAction } from "@/modules/job-consumptions/application/actions";
 import { listConsumptionOptions } from "@/modules/job-consumptions/application/consumption-service";
 import {
@@ -12,18 +14,9 @@ import {
 } from "@/modules/job-consumptions/ui/consumption-forms";
 import { voidJobAction } from "@/modules/jobs/application/actions";
 import { getJobDetail } from "@/modules/jobs/application/job-service";
+import styles from "@/modules/jobs/ui/jobs.module.css";
 import { requireRole } from "@/modules/identity/application/authorization";
-import {
-  deletePhotoAction,
-  movePhotoAction,
-  setCoverPhotoAction,
-  togglePhotoVisibilityAction,
-  updatePhotoStageAction,
-} from "@/modules/photos/application/actions";
-import {
-  photoStageLabels,
-  photoStages,
-} from "@/modules/photos/domain/photo-schema";
+import { PhotoGallery } from "@/modules/photos/ui/photo-gallery";
 import { PhotoUploader } from "@/modules/photos/ui/photo-uploader";
 import { formatBusinessDateTime } from "@/shared/date-time/business-time";
 
@@ -51,7 +44,7 @@ export default async function JobDetailPage({
   if (!job) notFound();
   const vehicle = job.serviceCase.vehicle;
   return (
-    <div className="page-stack page-narrow">
+    <Page className={styles.page} size="wide">
       <Link href="/app/jobs" className="back-link">
         ← Trabajos
       </Link>
@@ -74,24 +67,15 @@ export default async function JobDetailPage({
               : "El consumo quedó anulado y el stock fue restituido."}
         </p>
       ) : null}
-      <header className="page-header page-header-actions">
-        <div>
-          <p className="eyebrow">
-            {job.voidedAt ? "Trabajo anulado" : "Trabajo realizado"}
-          </p>
-          <h1>
-            {vehicle.brand} {vehicle.model}
-          </h1>
-          <p className="page-description">
-            {job.serviceCase.client.displayName} ·{" "}
-            {formatBusinessDateTime(job.performedAt)}
-          </p>
-        </div>
-        <div className="header-actions">
+      <DetailHeader
+        eyebrow={job.voidedAt ? "Trabajo anulado" : "Trabajo realizado"}
+        title={`${vehicle.brand} ${vehicle.model}`}
+        description={`${job.serviceCase.client.displayName} · ${formatBusinessDateTime(job.performedAt)}`}
+        actions={<>
           {session.user.role === "ADMIN" ? (
             <Link
               href={`/app/finance/cases/${job.serviceCaseId}`}
-              className="primary-button button-link"
+              className={buttonClassName("primary")}
             >
               Ver cobros
             </Link>
@@ -99,14 +83,14 @@ export default async function JobDetailPage({
           {job.originAppointment ? (
             <Link
               href={`/app/calendar/${job.originAppointment.id}`}
-              className="ghost-button button-link"
+              className={buttonClassName("secondary")}
             >
               Ver turno
             </Link>
           ) : null}
-        </div>
-      </header>
-      <section className="detail-summary">
+        </>}
+      />
+      <section className={styles.summary} aria-label="Resumen del trabajo">
         <div>
           <span>Origen</span>
           <strong>
@@ -125,16 +109,16 @@ export default async function JobDetailPage({
           </strong>
         </div>
       </section>
-      <section className="section-stack">
-        <div className="section-heading">
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
           <div>
             <p className="eyebrow">Snapshot</p>
             <h2>Servicios realizados</h2>
           </div>
-          <span>{job.services.length}</span>
+          <span className={styles.count}>{job.services.length}</span>
         </div>
         {job.services.length ? (
-          <div className="snapshot-list">
+          <div className={styles.servicesList}>
             {job.services.map((service) => (
               <article key={service.id}>
                 <strong>{service.nameSnapshot}</strong>
@@ -152,7 +136,7 @@ export default async function JobDetailPage({
         )}
       </section>
       {job.notes ? (
-        <section className="quiet-panel">
+        <section className={styles.notes}>
           <div>
             <p className="eyebrow">Notas internas</p>
             <h2>Detalle operativo</h2>
@@ -160,22 +144,22 @@ export default async function JobDetailPage({
           <p>{job.notes}</p>
         </section>
       ) : null}
-      <section className="section-stack">
-        <div className="section-heading">
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
           <div>
             <p className="eyebrow">Materiales</p>
             <h2>Consumos del trabajo</h2>
           </div>
-          <span>{job.materialConsumptions.length}</span>
+          <span className={styles.count}>{job.materialConsumptions.length}</span>
         </div>
         {!job.voidedAt ? (
           inventoryItems.length ? (
             <details
-              className="form-disclosure"
+              className={styles.disclosure}
               open={!job.materialConsumptions.length}
             >
               <summary>Registrar consumo</summary>
-              <div className="form-disclosure-body">
+              <div className={styles.disclosureBody}>
                 <ConsumptionForm
                   jobId={job.id}
                   items={inventoryItems.map((item) => ({
@@ -196,28 +180,26 @@ export default async function JobDetailPage({
           )
         ) : null}
         {job.materialConsumptions.length ? (
-          <div className="consumption-list">
+          <div className={styles.consumptions}>
             {job.materialConsumptions.map((consumption) => {
               const reversed = Boolean(consumption.movement?.reversedBy);
               const replaced = Boolean(consumption.replacedBy);
               const active = !reversed && !replaced && !job.voidedAt;
               return (
                 <article
-                  className={active ? "" : "consumption-inactive"}
+                  className={`${styles.consumption} ${active ? "" : styles.inactive}`}
                   key={consumption.id}
                 >
-                  <div className="consumption-summary">
-                    <div>
+                  <div className={styles.consumptionMain}>
                       <strong>{consumption.item.name}</strong>
                       <span>
                         {consumption.quantityBase.toFixed(3)}{" "}
                         {consumption.unitSnapshot}
                       </span>
-                    </div>
-                    <span className="status-pill">
-                      {replaced ? "Corregido" : reversed ? "Anulado" : "Activo"}
-                    </span>
                   </div>
+                  <Badge intent={active ? "success" : "neutral"} withIcon>
+                    {replaced ? "Corregido" : reversed ? "Anulado" : "Activo"}
+                  </Badge>
                   {consumption.note ? <p>{consumption.note}</p> : null}
                   {active ? (
                     <details className="inline-disclosure">
@@ -269,135 +251,23 @@ export default async function JobDetailPage({
           </div>
         )}
       </section>
-      <section className="section-stack">
-        <div className="section-heading">
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
           <div>
             <p className="eyebrow">Registro visual</p>
             <h2>Fotos del trabajo</h2>
           </div>
-          <span>{job.photos.length}</span>
+          <span className={styles.count}>{job.photos.length}</span>
         </div>
         {!job.voidedAt ? (
-          <details className="form-disclosure" open={!job.photos.length}>
+          <details className={styles.disclosure} open={!job.photos.length}>
             <summary>Subir fotos</summary>
-            <div className="form-disclosure-body">
+            <div className={styles.disclosureBody}>
               <PhotoUploader jobId={job.id} />
             </div>
           </details>
         ) : null}
-        {job.photos.length ? (
-          <div className="job-photo-grid">
-            {job.photos.map((photo, index) => (
-              <article key={photo.id}>
-                <a
-                  href={`/api/photos/${photo.id}/preview`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="job-photo-frame"
-                >
-                  <Image
-                    src={`/api/photos/${photo.id}/thumbnail`}
-                    alt={`Foto ${index + 1} del trabajo`}
-                    width={480}
-                    height={480}
-                    unoptimized
-                    loading={index === 0 ? "eager" : "lazy"}
-                  />
-                  {photo.isCover ? <span>Portada</span> : null}
-                </a>
-                <div className="job-photo-meta">
-                  <form action={updatePhotoStageAction}>
-                    <input type="hidden" name="jobId" value={job.id} />
-                    <input type="hidden" name="photoId" value={photo.id} />
-                    <label className="field-group">
-                      <span>Etapa</span>
-                      <select name="stage" defaultValue={photo.stage ?? ""}>
-                        <option value="">Sin clasificar</option>
-                        {photoStages.map((stage) => (
-                          <option value={stage} key={stage}>
-                            {photoStageLabels[stage]}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <button className="text-button">Aplicar</button>
-                  </form>
-                  <div className="photo-quick-actions">
-                    <form action={togglePhotoVisibilityAction}>
-                      <input type="hidden" name="jobId" value={job.id} />
-                      <input type="hidden" name="photoId" value={photo.id} />
-                      <input
-                        type="hidden"
-                        name="visibleToClient"
-                        value={photo.visibleToClient ? "false" : "true"}
-                      />
-                      <button className="text-button">
-                        {photo.visibleToClient
-                          ? "Ocultar al cliente"
-                          : "Publicar al cliente"}
-                      </button>
-                    </form>
-                    {!photo.isCover ? (
-                      <form action={setCoverPhotoAction}>
-                        <input type="hidden" name="jobId" value={job.id} />
-                        <input type="hidden" name="photoId" value={photo.id} />
-                        <button className="text-button">
-                          Usar como portada
-                        </button>
-                      </form>
-                    ) : null}
-                  </div>
-                  <div
-                    className="photo-order-actions"
-                    aria-label="Orden de foto"
-                  >
-                    <form action={movePhotoAction}>
-                      <input type="hidden" name="jobId" value={job.id} />
-                      <input type="hidden" name="photoId" value={photo.id} />
-                      <input type="hidden" name="direction" value="UP" />
-                      <button
-                        className="icon-button"
-                        aria-label="Mover foto antes"
-                        disabled={index === 0}
-                      >
-                        ↑
-                      </button>
-                    </form>
-                    <form action={movePhotoAction}>
-                      <input type="hidden" name="jobId" value={job.id} />
-                      <input type="hidden" name="photoId" value={photo.id} />
-                      <input type="hidden" name="direction" value="DOWN" />
-                      <button
-                        className="icon-button"
-                        aria-label="Mover foto después"
-                        disabled={index === job.photos.length - 1}
-                      >
-                        ↓
-                      </button>
-                    </form>
-                    <form action={deletePhotoAction}>
-                      <input type="hidden" name="jobId" value={job.id} />
-                      <input type="hidden" name="photoId" value={photo.id} />
-                      <ConfirmButton
-                        className="text-button danger-text-button"
-                        message="¿Eliminar esta foto del trabajo?"
-                      >
-                        Eliminar
-                      </ConfirmButton>
-                    </form>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <div className="inline-empty">
-            <strong>Sin fotos todavía</strong>
-            <p>
-              Las imágenes son privadas hasta que se publiquen explícitamente.
-            </p>
-          </div>
-        )}
+        <PhotoGallery jobId={job.id} photos={job.photos} />
       </section>
       {job.voidedAt ? (
         <section className="warning-panel">
@@ -405,11 +275,11 @@ export default async function JobDetailPage({
           <p>{job.voidReason}</p>
         </section>
       ) : (
-        <details className="form-disclosure danger-disclosure">
+        <details className={`${styles.disclosure} danger-disclosure`}>
           <summary>Anular trabajo</summary>
           <form
             action={voidJobAction}
-            className="form-disclosure-body compact-form"
+            className={`${styles.disclosureBody} compact-form`}
           >
             <input type="hidden" name="jobId" value={job.id} />
             <label className="field-group">
@@ -425,6 +295,6 @@ export default async function JobDetailPage({
           </form>
         </details>
       )}
-    </div>
+    </Page>
   );
 }
