@@ -2197,12 +2197,6 @@ a.nav-link:hover {
   font-size: 0.8rem;
 }
 
-.finance-filters {
-  grid-template-columns:
-    minmax(9rem, 0.8fr) repeat(2, minmax(10rem, 1fr))
-    auto auto;
-}
-
 .financial-list,
 .financial-main,
 .category-row > div,
@@ -2274,10 +2268,6 @@ a.nav-link:hover {
 }
 
 @media (max-width: 900px) {
-  .finance-filters {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .financial-row {
     grid-template-columns: 1fr auto;
   }
@@ -2288,7 +2278,6 @@ a.nav-link:hover {
 }
 
 @media (max-width: 600px) {
-  .finance-filters,
   .financial-row,
   .category-row,
   .timeline-list article {

@@ -96,12 +96,12 @@ export default async function FinancePage({
       </section>
 
       <DataToolbar>
-        <form className="filter-bar finance-filters" role="search">
-          <label className="compact-field">
+        <form className={styles.filters} role="search">
+          <label className={styles.filterField}>
             <span>Mes</span>
             <input type="month" name="month" defaultValue={result.month} />
           </label>
-          <label className="compact-field">
+          <label className={styles.filterField}>
             <span>Dirección</span>
             <select name="direction" defaultValue={params.direction ?? ""}>
               <option value="">Todas</option>
@@ -109,7 +109,7 @@ export default async function FinancePage({
               <option value="OUTFLOW">Salidas</option>
             </select>
           </label>
-          <label className="compact-field">
+          <label className={styles.filterField}>
             <span>Tipo</span>
             <select name="type" defaultValue={params.type ?? ""}>
               <option value="">Todos</option>
@@ -120,15 +120,17 @@ export default async function FinancePage({
               ))}
             </select>
           </label>
-          <button className="ghost-button">Aplicar</button>
-          {filtered ? (
-            <Link
-              href={`/app/finance?month=${result.month}`}
-              className="text-link"
-            >
-              Limpiar
-            </Link>
-          ) : null}
+          <div className={styles.filterActions}>
+            <button className="ghost-button">Aplicar</button>
+            {filtered ? (
+              <Link
+                href={`/app/finance?month=${result.month}`}
+                className="text-link"
+              >
+                Limpiar
+              </Link>
+            ) : null}
+          </div>
         </form>
       </DataToolbar>
 
