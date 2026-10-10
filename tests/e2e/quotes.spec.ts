@@ -252,3 +252,47 @@ test("STAFF cannot access quote data or its PDF route", async ({ page }) => {
   const response = await page.request.get(`/api/quotes/${quote!.id}/pdf`);
   expect(response.status()).toBe(403);
 });
+
+test("ADMIN issues an ARS quote and acceptance stores canonical USD on its case", async ({
+  page,
+}) => {
+  await login(page, e2eUsers.admin);
+  await page.goto("/app/quotes/new");
+  await page.getByLabel("Cliente *").selectOption(clientId);
+  await page.getByLabel("Vehículo *").selectOption(vehicleId);
+  await page.getByLabel("Moneda del presupuesto").selectOption("ARS");
+  await page.getByLabel("Cotización ARS/USD *").fill("1560");
+  await page.getByLabel("Desde catálogo").selectOption(serviceId);
+  await page.getByLabel("Precio unitario ARS *").fill("780000");
+  await page.getByRole("button", { name: "Crear presupuesto" }).click();
+  await expect(page.getByText("El borrador quedó guardado.")).toBeVisible();
+  await expect(page.getByText("ARS 780000.00").last()).toBeVisible();
+  await page.getByRole("button", { name: "Emitir presupuesto" }).click();
+  await page
+    .getByRole("alertdialog", { name: "Confirmar acción" })
+    .getByRole("button", { name: "Emitir presupuesto" })
+    .click();
+  await expect(
+    page.getByText("Presupuesto emitido y PDF congelado."),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Marcar aceptado" }).click();
+  await page
+    .getByRole("alertdialog", { name: "Confirmar acción" })
+    .getByRole("button", { name: "Marcar aceptado" })
+    .click();
+  const prisma = createTestPrisma();
+  try {
+    const quote = await prisma.quote.findFirstOrThrow({
+      where: { clientId, sourceCurrency: "ARS" },
+    });
+    const accepted = await prisma.serviceCase.findUniqueOrThrow({
+      where: { acceptedQuoteId: quote.id },
+    });
+    expect(quote.totalUsd.toFixed(2)).toBe("500.00");
+    expect(quote.sourceTotal.toFixed(2)).toBe("780000.00");
+    expect(accepted.agreedAmountUsd?.toFixed(2)).toBe("500.00");
+    expect(accepted.agreedSourceCurrency).toBe("ARS");
+  } finally {
+    await prisma.$disconnect();
+  }
+});

@@ -72,6 +72,8 @@ export async function saveQuoteAction(
   const parsed = quoteInputSchema.safeParse({
     clientId: value(formData, "clientId"),
     vehicleId: value(formData, "vehicleId"),
+    currency: value(formData, "currency") as "USD" | "ARS",
+    exchangeRateArsPerUsd: value(formData, "exchangeRateArsPerUsd"),
     issuedOn: value(formData, "issuedOn"),
     validUntil: value(formData, "validUntil"),
     notes: value(formData, "notes"),

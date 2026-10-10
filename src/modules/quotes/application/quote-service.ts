@@ -55,7 +55,12 @@ async function validateQuoteRelations(
 function quoteData(input: QuoteInput) {
   if (input.validUntil && input.validUntil < input.issuedOn)
     throw new Error("INVALID_VALIDITY_RANGE");
-  const totals = calculateQuote(input.items, input.discountUsd);
+  const totals = calculateQuote(
+    input.items,
+    input.discountUsd,
+    input.currency,
+    input.exchangeRateArsPerUsd,
+  );
   return {
     issuedOn: civilDate(input.issuedOn),
     validUntil: input.validUntil ? civilDate(input.validUntil) : null,
@@ -64,6 +69,12 @@ function quoteData(input: QuoteInput) {
     subtotalUsd: totals.subtotalUsd,
     discountUsd: totals.discountUsd,
     totalUsd: totals.totalUsd,
+    sourceCurrency: input.currency,
+    sourceSubtotal: totals.sourceSubtotal,
+    sourceDiscount: totals.sourceDiscount,
+    sourceTotal: totals.sourceTotal,
+    exchangeRateArsPerUsd:
+      input.currency === "ARS" ? input.exchangeRateArsPerUsd : null,
     items: {
       create: totals.items,
     },
@@ -158,6 +169,11 @@ function toPdfData(
       .join(" · "),
     notes: quote.notes ?? undefined,
     terms: quote.terms ?? undefined,
+    currency: quote.sourceCurrency,
+    sourceSubtotal: quote.sourceSubtotal.toFixed(2),
+    sourceDiscount: quote.sourceDiscount.toFixed(2),
+    sourceTotal: quote.sourceTotal.toFixed(2),
+    exchangeRateArsPerUsd: quote.exchangeRateArsPerUsd?.toFixed(6) ?? undefined,
     subtotalUsd: quote.subtotalUsd.toFixed(2),
     discountUsd: quote.discountUsd.toFixed(2),
     totalUsd: quote.totalUsd.toFixed(2),
@@ -166,8 +182,11 @@ function toPdfData(
       description: item.descriptionSnapshot ?? undefined,
       quantity: item.quantity.toFixed(3).replace(/\.?0+$/, ""),
       unitPriceUsd: item.unitPriceUsd.toFixed(2),
+      sourceUnitPrice: item.sourceUnitPrice.toFixed(2),
       discountUsd: item.discountUsd.toFixed(2),
+      sourceDiscount: item.sourceDiscount.toFixed(2),
       totalUsd: item.totalUsd.toFixed(2),
+      sourceTotal: item.sourceTotal.toFixed(2),
     })),
   };
 }
@@ -223,6 +242,9 @@ export async function acceptQuote(quoteId: string, actor: Actor) {
         clientId: true,
         vehicleId: true,
         totalUsd: true,
+        sourceCurrency: true,
+        sourceTotal: true,
+        exchangeRateArsPerUsd: true,
         acceptedServiceCase: { select: { id: true } },
       },
     });
@@ -237,6 +259,9 @@ export async function acceptQuote(quoteId: string, actor: Actor) {
         origin: "ACCEPTED_QUOTE",
         acceptedQuoteId: quote.id,
         agreedAmountUsd: quote.totalUsd,
+        agreedSourceCurrency: quote.sourceCurrency,
+        agreedSourceAmount: quote.sourceTotal,
+        agreedExchangeRateArsPerUsd: quote.exchangeRateArsPerUsd,
         createdById: actor.id,
       },
       select: { id: true },
@@ -246,6 +271,9 @@ export async function acceptQuote(quoteId: string, actor: Actor) {
         serviceCaseId: serviceCase.id,
         previousAmountUsd: null,
         newAmountUsd: quote.totalUsd,
+        sourceCurrency: quote.sourceCurrency,
+        sourceAmount: quote.sourceTotal,
+        exchangeRateArsPerUsd: quote.exchangeRateArsPerUsd,
         reason: `Presupuesto ${quote.number} aceptado`,
         createdById: actor.id,
       },
@@ -282,14 +310,16 @@ export async function duplicateQuote(quoteId: string, actor: Actor) {
       validUntil: undefined,
       notes: source.notes ?? undefined,
       terms: source.terms ?? undefined,
-      discountUsd: source.discountUsd.toFixed(2),
+      currency: source.sourceCurrency,
+      exchangeRateArsPerUsd: source.exchangeRateArsPerUsd?.toString() ?? "",
+      discountUsd: source.sourceDiscount.toFixed(2),
       items: source.items.map((item) => ({
         serviceId: item.serviceId ?? undefined,
         name: item.nameSnapshot,
         description: item.descriptionSnapshot ?? undefined,
         quantity: item.quantity.toFixed(3),
-        unitPriceUsd: item.unitPriceUsd.toFixed(2),
-        discountUsd: item.discountUsd.toFixed(2),
+        unitPriceUsd: item.sourceUnitPrice.toFixed(2),
+        discountUsd: item.sourceDiscount.toFixed(2),
       })),
     },
     actor,

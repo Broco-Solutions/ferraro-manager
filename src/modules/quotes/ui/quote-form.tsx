@@ -6,6 +6,7 @@ import {
   saveQuoteAction,
   type QuoteFormState,
 } from "@/modules/quotes/application/actions";
+import { usdToArsText } from "@/modules/money/domain/money-text";
 
 import styles from "./quotes.module.css";
 
@@ -50,6 +51,8 @@ interface QuoteValues {
   notes?: string | null;
   terms?: string | null;
   discountUsd?: string;
+  currency?: "USD" | "ARS";
+  exchangeRateArsPerUsd?: string | null;
   items?: Omit<Line, "key">[];
 }
 
@@ -89,6 +92,12 @@ export function QuoteForm({
   );
   const [globalDiscount, setGlobalDiscount] = useState(
     values.discountUsd ?? "0",
+  );
+  const [currency, setCurrency] = useState<"USD" | "ARS">(
+    values.currency ?? "USD",
+  );
+  const [exchangeRate, setExchangeRate] = useState(
+    values.exchangeRateArsPerUsd ?? "",
   );
   const summary = useMemo(() => {
     const subtotal = lines.reduce((sum, line) => {
@@ -183,6 +192,40 @@ export function QuoteForm({
         </div>
       </section>
       <section className="quote-lines-section">
+        <div className="form-grid two-columns">
+          <label className="field-group">
+            <span>Moneda del presupuesto</span>
+            <select
+              name="currency"
+              value={currency}
+              onChange={(event) =>
+                setCurrency(event.target.value as "USD" | "ARS")
+              }
+            >
+              <option value="USD">USD</option>
+              <option value="ARS">ARS</option>
+            </select>
+          </label>
+          {currency === "ARS" ? (
+            <label className="field-group">
+              <span>Cotización ARS/USD *</span>
+              <input
+                name="exchangeRateArsPerUsd"
+                value={exchangeRate}
+                onChange={(event) => setExchangeRate(event.target.value)}
+                inputMode="decimal"
+                required
+              />
+              <small>Pesos argentinos por 1 USD.</small>
+            </label>
+          ) : (
+            <input type="hidden" name="exchangeRateArsPerUsd" value="" />
+          )}
+        </div>
+        <small>
+          Elegí la moneda antes de cargar importes; cambiarla no transforma
+          valores ya ingresados.
+        </small>
         <div className="section-heading">
           <div>
             <p className="eyebrow">Propuesta</p>
@@ -231,7 +274,13 @@ export function QuoteForm({
                             serviceId: service.id,
                             name: service.name,
                             description: service.commercialDescription ?? "",
-                            unitPriceUsd: service.basePriceUsd ?? "0",
+                            unitPriceUsd:
+                              currency === "ARS"
+                                ? usdToArsText(
+                                    service.basePriceUsd ?? "0",
+                                    exchangeRate,
+                                  )
+                                : (service.basePriceUsd ?? "0"),
                           }
                         : { serviceId: "" },
                     );
@@ -282,7 +331,7 @@ export function QuoteForm({
                   />
                 </label>
                 <label className="field-group">
-                  <span>Precio unitario USD *</span>
+                  <span>Precio unitario {currency} *</span>
                   <input
                     name="itemUnitPriceUsd"
                     value={line.unitPriceUsd}
@@ -294,7 +343,7 @@ export function QuoteForm({
                   />
                 </label>
                 <label className="field-group">
-                  <span>Descuento USD</span>
+                  <span>Descuento {currency}</span>
                   <input
                     name="itemDiscountUsd"
                     value={line.discountUsd}
@@ -328,10 +377,12 @@ export function QuoteForm({
       <aside className={styles.summary} aria-label="Resumen del presupuesto">
         <div>
           <span>Subtotal estimado</span>
-          <strong>USD {summary.subtotal.toFixed(2)}</strong>
+          <strong>
+            {currency} {summary.subtotal.toFixed(2)}
+          </strong>
         </div>
         <label className="field-group">
-          <span>Descuento general USD</span>
+          <span>Descuento general {currency}</span>
           <input
             name="discountUsd"
             value={globalDiscount}
@@ -341,8 +392,16 @@ export function QuoteForm({
         </label>
         <div className={styles.summaryTotal}>
           <span>Total estimado</span>
-          <strong>USD {summary.total.toFixed(2)}</strong>
+          <strong>
+            {currency} {summary.total.toFixed(2)}
+          </strong>
         </div>
+        {currency === "ARS" && Number(exchangeRate) > 0 ? (
+          <small aria-live="polite">
+            Equivalente estimado · USD{" "}
+            {(summary.total / Number(exchangeRate)).toFixed(2)}
+          </small>
+        ) : null}
         <button className="primary-button" disabled={pending}>
           {pending
             ? "Guardando…"

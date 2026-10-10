@@ -3,6 +3,24 @@ import { describe, expect, it } from "vitest";
 import { calculateQuote } from "@/modules/quotes/domain/quote-calculator";
 
 describe("quote calculator", () => {
+  it("calculates source ARS values and canonical USD values with one rate", () => {
+    const result = calculateQuote(
+      [
+        {
+          name: "Trabajo",
+          quantity: "1",
+          unitPriceUsd: "780000",
+          discountUsd: "0",
+        },
+      ],
+      "0",
+      "ARS",
+      "1560",
+    );
+    expect(result.items[0]?.sourceTotal).toBe("780000.00");
+    expect(result.items[0]?.totalUsd).toBe("500.00");
+    expect(result.totalUsd).toBe("500.00");
+  });
   it("rounds each item commercially and applies line and global discounts", () => {
     const result = calculateQuote(
       [

@@ -22,6 +22,11 @@ export interface QuotePdfData {
   vehicle: string;
   notes?: string;
   terms?: string;
+  currency: "USD" | "ARS";
+  exchangeRateArsPerUsd?: string;
+  sourceSubtotal: string;
+  sourceDiscount: string;
+  sourceTotal: string;
   subtotalUsd: string;
   discountUsd: string;
   totalUsd: string;
@@ -30,8 +35,11 @@ export interface QuotePdfData {
     description?: string;
     quantity: string;
     unitPriceUsd: string;
+    sourceUnitPrice: string;
     discountUsd: string;
+    sourceDiscount: string;
     totalUsd: string;
+    sourceTotal: string;
   }[];
 }
 
@@ -216,8 +224,8 @@ const styles = StyleSheet.create({
   },
 });
 
-function money(value: string) {
-  return `USD ${value}`;
+function money(value: string, currency: "USD" | "ARS") {
+  return `${currency} ${value}`;
 }
 
 function QuoteDocument({
@@ -280,27 +288,42 @@ function QuoteDocument({
               {item.description ? (
                 <Text style={styles.itemDescription}>{item.description}</Text>
               ) : null}
+              {item.sourceDiscount !== "0.00" ? (
+                <Text style={styles.itemDescription}>
+                  Descuento: {money(item.sourceDiscount, data.currency)}
+                </Text>
+              ) : null}
             </View>
             <Text style={styles.qty}>{item.quantity}</Text>
-            <Text style={styles.price}>{money(item.unitPriceUsd)}</Text>
-            <Text style={styles.total}>{money(item.totalUsd)}</Text>
+            <Text style={styles.price}>
+              {money(item.sourceUnitPrice, data.currency)}
+            </Text>
+            <Text style={styles.total}>
+              {money(item.sourceTotal, data.currency)}
+            </Text>
           </View>
         ))}
         <View style={styles.summary} wrap={false}>
           <View style={styles.summaryRow}>
             <Text>Subtotal</Text>
-            <Text>{money(data.subtotalUsd)}</Text>
+            <Text>{money(data.sourceSubtotal, data.currency)}</Text>
           </View>
-          {data.discountUsd !== "0.00" ? (
+          {data.sourceDiscount !== "0.00" ? (
             <View style={styles.summaryRow}>
               <Text>Descuento</Text>
-              <Text>− {money(data.discountUsd)}</Text>
+              <Text>− {money(data.sourceDiscount, data.currency)}</Text>
             </View>
           ) : null}
           <View style={[styles.summaryRow, styles.grandTotal]}>
             <Text>Total</Text>
-            <Text>{money(data.totalUsd)}</Text>
+            <Text>{money(data.sourceTotal, data.currency)}</Text>
           </View>
+          {data.currency === "ARS" ? (
+            <Text style={styles.body}>
+              Cotización aplicada: 1 USD = ARS {data.exchangeRateArsPerUsd}.
+              Equivalente canónico: USD {data.totalUsd}.
+            </Text>
+          ) : null}
         </View>
         {data.notes ? (
           <View style={styles.section} wrap={false}>

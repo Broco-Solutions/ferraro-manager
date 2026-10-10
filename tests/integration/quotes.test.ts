@@ -27,6 +27,8 @@ let clientId = "";
 let vehicleId = "";
 let serviceId = "";
 let quoteId = "";
+let arsQuoteId = "";
+let arsCaseId = "";
 let caseId = "";
 let appointmentId = "";
 
@@ -82,6 +84,16 @@ describe("quotes and conversion integration", () => {
       });
       await prisma.serviceCase.deleteMany({ where: { id: caseId } });
     }
+    if (arsCaseId) {
+      await prisma.serviceCaseAmountRevision.deleteMany({
+        where: { serviceCaseId: arsCaseId },
+      });
+      await prisma.serviceCase.deleteMany({ where: { id: arsCaseId } });
+    }
+    if (arsQuoteId) {
+      await prisma.quoteItem.deleteMany({ where: { quoteId: arsQuoteId } });
+      await prisma.quote.deleteMany({ where: { id: arsQuoteId } });
+    }
     if (quoteId) {
       await prisma.quoteItem.deleteMany({ where: { quoteId } });
       await prisma.quote.deleteMany({ where: { id: quoteId } });
@@ -108,6 +120,7 @@ describe("quotes and conversion integration", () => {
   it("keeps snapshots, emits a PDF, accepts once and schedules the same case", async () => {
     const quote = await createQuote(
       {
+        currency: "USD",
         clientId,
         vehicleId,
         issuedOn: "2026-10-02",
@@ -130,6 +143,7 @@ describe("quotes and conversion integration", () => {
     await updateQuote(
       quoteId,
       {
+        currency: "USD",
         clientId,
         vehicleId,
         issuedOn: "2026-10-02",
@@ -162,7 +176,8 @@ describe("quotes and conversion integration", () => {
     await setAgreedAmount(
       {
         serviceCaseId: caseId,
-        amountUsd: "750",
+        currency: "USD",
+        amount: "750",
         reason: "Alcance ampliado después de aceptar",
       },
       { id: actorId },
@@ -200,5 +215,45 @@ describe("quotes and conversion integration", () => {
     expect(
       stored.acceptedServiceCase?.appointments[0]?.services[0]?.nameSnapshot,
     ).toBe(`PPF ${suffix}`);
+  });
+
+  it("preserves ARS quote values and accepts the USD canonical equivalent", async () => {
+    const quote = await createQuote(
+      {
+        currency: "ARS",
+        exchangeRateArsPerUsd: "1560",
+        clientId,
+        vehicleId,
+        issuedOn: "2026-10-04",
+        validUntil: "2026-10-20",
+        discountUsd: "0",
+        items: [
+          {
+            serviceId: "",
+            name: `ARS ${suffix}`,
+            quantity: "1",
+            unitPriceUsd: "780000",
+            discountUsd: "0",
+          },
+        ],
+      },
+      { id: actorId },
+    );
+    arsQuoteId = quote.id;
+    const stored = await prisma.quote.findUniqueOrThrow({
+      where: { id: quote.id },
+      include: { items: true },
+    });
+    expect(stored.totalUsd.toFixed(2)).toBe("500.00");
+    expect(stored.sourceTotal.toFixed(2)).toBe("780000.00");
+    expect(stored.items[0]?.sourceUnitPrice.toFixed(2)).toBe("780000.00");
+    await issueQuote(quote.id, { id: actorId });
+    arsCaseId = (await acceptQuote(quote.id, { id: actorId })).id;
+    const acceptedCase = await prisma.serviceCase.findUniqueOrThrow({
+      where: { id: arsCaseId },
+    });
+    expect(acceptedCase.agreedAmountUsd?.toFixed(2)).toBe("500.00");
+    expect(acceptedCase.agreedSourceCurrency).toBe("ARS");
+    expect(acceptedCase.agreedSourceAmount?.toFixed(2)).toBe("780000.00");
   });
 });

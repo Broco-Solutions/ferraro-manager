@@ -16,14 +16,21 @@ const base: QuotePdfData = {
   discountUsd: "0.00",
   totalUsd: "450.00",
   terms: "Valores expresados en USD.",
+  currency: "USD",
+  sourceSubtotal: "450.00",
+  sourceDiscount: "0.00",
+  sourceTotal: "450.00",
   items: [
     {
       name: "Tratamiento cerámico",
       description: "Protección premium",
       quantity: "1",
       unitPriceUsd: "450.00",
+      sourceUnitPrice: "450.00",
       discountUsd: "0.00",
+      sourceDiscount: "0.00",
       totalUsd: "450.00",
+      sourceTotal: "450.00",
     },
   ],
 };

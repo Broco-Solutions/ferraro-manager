@@ -27,9 +27,24 @@ export interface QuoteLineInput {
   discountUsd: string;
 }
 
+function convertCents(
+  sourceCents: bigint,
+  currency: "USD" | "ARS",
+  rate?: string,
+) {
+  if (currency === "USD") return sourceCents;
+  const parsed = /^\d+(?:\.\d{1,6})?$/.exec(rate ?? "");
+  if (!parsed) throw new Error("INVALID_EXCHANGE_RATE");
+  const rateMicros = parseFixed(rate!, 6, "EXCHANGE_RATE");
+  if (rateMicros <= 0n) throw new Error("INVALID_EXCHANGE_RATE");
+  return (sourceCents * 1_000_000n + rateMicros / 2n) / rateMicros;
+}
+
 export function calculateQuote(
   lines: readonly QuoteLineInput[],
   globalDiscountUsd: string,
+  currency: "USD" | "ARS" = "USD",
+  exchangeRateArsPerUsd?: string,
 ) {
   if (!lines.length) throw new Error("QUOTE_ITEMS_REQUIRED");
   const items = lines.map((line, index) => {
@@ -44,20 +59,36 @@ export function calculateQuote(
       nameSnapshot: line.name.trim(),
       descriptionSnapshot: line.description?.trim() || undefined,
       quantity: fixed(quantity, QUANTITY_SCALE),
-      unitPriceUsd: fixed(unitPrice, MONEY_SCALE),
-      discountUsd: fixed(discount, MONEY_SCALE),
-      totalUsd: fixed(gross - discount, MONEY_SCALE),
+      unitPriceUsd: fixed(
+        convertCents(unitPrice, currency, exchangeRateArsPerUsd),
+        MONEY_SCALE,
+      ),
+      discountUsd: fixed(
+        convertCents(discount, currency, exchangeRateArsPerUsd),
+        MONEY_SCALE,
+      ),
+      totalUsd: fixed(
+        convertCents(gross - discount, currency, exchangeRateArsPerUsd),
+        MONEY_SCALE,
+      ),
+      sourceUnitPrice: fixed(unitPrice, MONEY_SCALE),
+      sourceDiscount: fixed(discount, MONEY_SCALE),
+      sourceTotal: fixed(gross - discount, MONEY_SCALE),
       sortOrder: index,
       totalCents: gross - discount,
     };
   });
-  const subtotal = items.reduce((sum, item) => sum + item.totalCents, 0n);
+  const sourceSubtotal = items.reduce((sum, item) => sum + item.totalCents, 0n);
+  const subtotal = items.reduce(
+    (sum, item) => sum + BigInt(item.totalUsd.replace(".", "")),
+    0n,
+  );
   const globalDiscount = parseFixed(
     globalDiscountUsd || "0",
     MONEY_SCALE,
     "MONEY",
   );
-  if (globalDiscount > subtotal)
+  if (globalDiscount > sourceSubtotal)
     throw new Error("GLOBAL_DISCOUNT_EXCEEDS_SUBTOTAL");
   return {
     items: items.map((item) => ({
@@ -68,10 +99,28 @@ export function calculateQuote(
       unitPriceUsd: item.unitPriceUsd,
       discountUsd: item.discountUsd,
       totalUsd: item.totalUsd,
+      sourceUnitPrice: item.sourceUnitPrice,
+      sourceDiscount: item.sourceDiscount,
+      sourceTotal: item.sourceTotal,
       sortOrder: item.sortOrder,
     })),
     subtotalUsd: fixed(subtotal, MONEY_SCALE),
-    discountUsd: fixed(globalDiscount, MONEY_SCALE),
-    totalUsd: fixed(subtotal - globalDiscount, MONEY_SCALE),
+    discountUsd: fixed(
+      convertCents(globalDiscount, currency, exchangeRateArsPerUsd),
+      MONEY_SCALE,
+    ),
+    totalUsd: fixed(
+      subtotal -
+        BigInt(
+          fixed(
+            convertCents(globalDiscount, currency, exchangeRateArsPerUsd),
+            MONEY_SCALE,
+          ).replace(".", ""),
+        ),
+      MONEY_SCALE,
+    ),
+    sourceSubtotal: fixed(sourceSubtotal, MONEY_SCALE),
+    sourceDiscount: fixed(globalDiscount, MONEY_SCALE),
+    sourceTotal: fixed(sourceSubtotal - globalDiscount, MONEY_SCALE),
   };
 }

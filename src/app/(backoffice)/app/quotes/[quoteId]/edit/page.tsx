@@ -58,14 +58,17 @@ export default async function EditQuotePage({
             : undefined,
           notes: quote.notes,
           terms: quote.terms,
-          discountUsd: quote.discountUsd.toFixed(2),
+          currency: quote.sourceCurrency,
+          exchangeRateArsPerUsd:
+            quote.exchangeRateArsPerUsd?.toString() ?? null,
+          discountUsd: quote.sourceDiscount.toFixed(2),
           items: quote.items.map((item) => ({
             serviceId: item.serviceId ?? "",
             name: item.nameSnapshot,
             description: item.descriptionSnapshot ?? "",
             quantity: item.quantity.toFixed(3),
-            unitPriceUsd: item.unitPriceUsd.toFixed(2),
-            discountUsd: item.discountUsd.toFixed(2),
+            unitPriceUsd: item.sourceUnitPrice.toFixed(2),
+            discountUsd: item.sourceDiscount.toFixed(2),
           })),
         }}
       />

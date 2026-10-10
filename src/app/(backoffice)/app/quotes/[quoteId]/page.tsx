@@ -112,24 +112,47 @@ export default async function QuoteDetailPage({
                 ) : null}
               </div>
               <span>
-                {item.quantity.toFixed(3).replace(/\.?0+$/, "")} × USD{" "}
-                {item.unitPriceUsd.toFixed(2)}
+                {item.quantity.toFixed(3).replace(/\.?0+$/, "")} ×{" "}
+                {quote.sourceCurrency} {item.sourceUnitPrice.toFixed(2)}
+                {item.sourceDiscount.isPositive() ? (
+                  <small>
+                    {" "}
+                    · Descuento {quote.sourceCurrency}{" "}
+                    {item.sourceDiscount.toFixed(2)}
+                  </small>
+                ) : null}
               </span>
-              <b>USD {item.totalUsd.toFixed(2)}</b>
+              <b>
+                {quote.sourceCurrency} {item.sourceTotal.toFixed(2)}
+              </b>
             </article>
           ))}
         </div>
         <div className={styles.total}>
           <span>
-            Subtotal <b>USD {quote.subtotalUsd.toFixed(2)}</b>
+            Subtotal{" "}
+            <b>
+              {quote.sourceCurrency} {quote.sourceSubtotal.toFixed(2)}
+            </b>
           </span>
           {quote.discountUsd.isPositive() ? (
             <span>
-              Descuento <b>− USD {quote.discountUsd.toFixed(2)}</b>
+              Descuento{" "}
+              <b>
+                − {quote.sourceCurrency} {quote.sourceDiscount.toFixed(2)}
+              </b>
             </span>
           ) : null}
-          <strong>Total · USD {quote.totalUsd.toFixed(2)}</strong>
+          <strong>
+            Total · {quote.sourceCurrency} {quote.sourceTotal.toFixed(2)}
+          </strong>
         </div>
+        {quote.sourceCurrency === "ARS" ? (
+          <p>
+            1 USD = ARS {quote.exchangeRateArsPerUsd?.toString()} · Equivalente
+            canónico USD {quote.totalUsd.toFixed(2)}
+          </p>
+        ) : null}
       </section>
       <section className={styles.actions} aria-label="Acciones del presupuesto">
         {quote.status === "DRAFT" ? (
