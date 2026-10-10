@@ -139,3 +139,14 @@ Registro resumido de la ejecución autónoma de V1. El contrato funcional contin
 - **Assets:** paths preservados; no autotrace, no fuente web para el wordmark; comparación manual páginas 1–5 aprobada internamente.
 - **Gate:** GATE 1 marca, `approved for continued autonomous execution`; tokens, fuente, iconos y primitives continúan en FE-01/02.
 - **Known issues:** preview/DB/auth/storage cloud aislados todavía no provisionados; no bloquean trabajo local y quedan sin declarar como validados.
+
+## FRONTEND BUILD FE-01 — Foundations y tokens
+
+- **Status:** COMPLETE — approved for continued autonomous execution.
+- **Scope:** tokens semánticos, cascade layers, foundations, utilidades mínimas, aliases heredados, Inter Variable local y `/app/design-system` inicial protegida para ADMIN.
+- **Typography:** Inter Variable 5.3.0 elegida después de comparación óptica y métrica con IBM Plex Sans 5.3.0; una sola familia/subset latino, `display: swap`, fallback estable y licencia OFL versionada.
+- **Evidence:** comparación tipográfica y tres capturas privadas de `/app/design-system` en `/tmp/ferraro-redesign-evidence/fe01`; 1440×900, 768×1024 y 390×844 sin overflow horizontal ni errores de consola.
+- **Accessibility:** combinaciones de texto y estados entre 5.01:1 y 21:1; foco 6.52:1 sobre canvas, reduced motion global, targets base de 44 px y STAFF recibe forbidden server-side en el catálogo.
+- **Tests:** lint, typecheck, 35 unit, 42 integración, build y `git diff --check` verdes. Fuente cargada localmente y confirmada en navegador.
+- **Gate:** GATE 1 foundations/tipo, `approved for continued autonomous execution`; primitives e iconografía continúan en FE-02.
+- **Known issues:** aliases y hardcodes heredados continúan bajo migración controlada; preview cloud aislada aún no disponible y no fue sustituida por producción.

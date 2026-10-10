@@ -55,3 +55,26 @@ Usar un adapter de storage privado: filesystem sólo en desarrollo/test y S3-com
 - Producción requiere bucket privado, credenciales limitadas y CORS para `POST` desde el origen permitido.
 - Los borrados de usuario son lógicos para conservar trazabilidad. El mantenimiento sólo purga uploads nunca confirmados después de 24 horas; una futura purga de fotos borradas requerirá una política de retención explícita.
 - El proveedor puede cambiar sin modificar el dominio mientras conserve el contrato S3-compatible.
+
+## DEC-003 — Inter Variable y tokens semánticos nativos
+
+- **Fecha:** 2026-10-10
+- **Estado:** aceptada
+- **Build afectado:** FRONTEND BUILD FE-01 — Foundations y tokens
+
+### Contexto
+
+La UI heredada dependía de Avenir instalada en el sistema, valores visuales globales sin semántica y una hoja de estilos monolítica. El rediseño necesita render estable entre plataformas, contraste verificable y separación estricta entre marca, interacción y estados.
+
+### Decisión
+
+Usar Inter Variable 5.3.0 con subset latino, archivos WOFF2 locales y `next/font/local`. La comparación directa contra IBM Plex Sans 5.3.0 en titulares, texto operativo, montos y tabla densa no mostró una mejora clara que justificara cambiar la primera opción: Inter conservó una fila un píxel más compacta, lectura neutra y cifras estables.
+
+Centralizar color, tipografía, spacing, geometría, layout, motion y z-index en `src/design-system/tokens.css`, ordenados mediante cascade layers. Los colores oficiales permanecen inmutables; interacción y estados usan familias semánticas propias. Los aliases heredados se mantienen temporalmente sólo para evitar una migración global accidental y se eliminarán en FE-14.
+
+### Consecuencias
+
+- La familia queda autocontenida, con licencia OFL versionada, sin dependencia de red ni FOIT por proveedor externo.
+- El wordmark continúa siendo el SVG oficial y nunca se reconstruye con Inter.
+- Los nuevos componentes no pueden consumir aliases heredados ni agregar hex fuera del archivo de tokens, salvo texto documental que exhiba el valor oficial.
+- PPF House puede sustituir fuente y tokens sin modificar primitives ni lógica de dominio.

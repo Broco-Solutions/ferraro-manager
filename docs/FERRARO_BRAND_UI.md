@@ -15,16 +15,16 @@
 
 El manifiesto legible por tooling vive en `public/brand/manifest.json` y registra checksum individual.
 
-| Asset | Uso | Fuente |
-| --- | --- | --- |
-| `ferraro-lockup-detail-tricolor.svg` | Login, portal y firma institucional clara | Página 3 |
-| `ferraro-lockup-detail-black.svg` | PDF e impresión sobre blanco | Página 4 |
-| `ferraro-logo-tricolor.svg` | Superficie clara con presencia institucional | Página 3 |
-| `ferraro-logo-black.svg` | UI clara compacta | Página 4 |
-| `ferraro-logo-white.svg` | Shell y fondos oscuros; geometría oficial de la variante monocroma | Páginas 2 y 4 |
-| `ferraro-logo-outline.svg` | Recurso decorativo de baja frecuencia | Página 5 |
-| `ferraro-mark-tricolor.svg` | App icon y acento institucional claro | Página 3 |
-| `ferraro-mark-outline.svg` | Navegación compacta monocroma | Páginas 1 y 4 |
+| Asset                                | Uso                                                                | Fuente        |
+| ------------------------------------ | ------------------------------------------------------------------ | ------------- |
+| `ferraro-lockup-detail-tricolor.svg` | Login, portal y firma institucional clara                          | Página 3      |
+| `ferraro-lockup-detail-black.svg`    | PDF e impresión sobre blanco                                       | Página 4      |
+| `ferraro-logo-tricolor.svg`          | Superficie clara con presencia institucional                       | Página 3      |
+| `ferraro-logo-black.svg`             | UI clara compacta                                                  | Página 4      |
+| `ferraro-logo-white.svg`             | Shell y fondos oscuros; geometría oficial de la variante monocroma | Páginas 2 y 4 |
+| `ferraro-logo-outline.svg`           | Recurso decorativo de baja frecuencia                              | Página 5      |
+| `ferraro-mark-tricolor.svg`          | App icon y acento institucional claro                              | Página 3      |
+| `ferraro-mark-outline.svg`           | Navegación compacta monocroma                                      | Páginas 1 y 4 |
 
 Reglas: no deformar, inclinar, sombrear, separar letras, reconstruir el wordmark con una fuente web ni aplicar colores de módulo. El área de exclusión mínima provisional es el ancho del isotipo. El descriptor `DETAIL` exige al menos 160 px de ancho óptico; debajo se usa logo sin descriptor. El logo compacto exige 110 px y el isotipo se usa entre 20 y 64 px según contexto.
 
@@ -43,10 +43,21 @@ Los tonos derivados viven como tokens semánticos. Primitives y módulos no cons
 
 ## Tipografía e iconografía
 
-- Hipótesis aprobada: Inter Variable, subset latino, una sola familia y números tabulares.
-- Comparación requerida en GATE 1: Inter vs IBM Plex Sans en login, dashboard, agenda y tabla densa.
+- Familia aprobada: Inter Variable 5.3.0, subset latino, una sola familia, números tabulares y carga local mediante `next/font/local`.
+- Inter e IBM Plex Sans se compararon lado a lado con copy de login/dashboard, vehículo, estados, montos y tabla densa. No apareció una mejora clara con IBM Plex: Inter preservó el carácter sobrio, una fila 1 px más compacta y una lectura más neutral. Evidencia privada: `/tmp/ferraro-redesign-evidence/fe01/type-comparison.png`.
+- Los WOFF2 y su licencia OFL viven en `src/design-system/fonts`; checksums SHA-256: normal `3100e775e8616cd2611beecfa23a4263d7037586789b43f035236a2e6fbd4c62`, italic `7291b5970da2237441273c03b424a504b70b18f09791473fab99687dcc314720`.
 - Wordmark: siempre SVG oficial; nunca texto Inter/IBM Plex.
 - Iconografía: Phosphor por defecto, imports individuales. Lucide sólo reemplaza la elección completa si el spike demuestra una desventaja real de bundle, SSR o accesibilidad.
+
+## Foundations y tokens
+
+- Fuente única: `src/design-system/tokens.css`; las capas se ordenan como `reset`, `tokens`, `base`, `components`, `patterns`, `modules`, `utilities` y `overrides`.
+- Namespaces: `--brand-*`, superficies/foreground/border, interacción, estados, tipografía, spacing, geometría, controles, layout, z-index y motion.
+- Breakpoints de referencia: 30, 48, 64 y 80 rem. Gutters: 1 rem mobile, 1.5 rem tablet y 2 rem desktop. Anchos de contenido: 45, 76 y 90 rem.
+- Targets interactivos parten de 44 px. El foco claro usa `#6B5500` con 6.52:1 sobre canvas; el amarillo oficial se reserva como acento complementario.
+- Aliases `--color-*` sostienen únicamente selectores heredados durante la migración. Componentes nuevos consumen tokens semánticos y FE-14 elimina aliases sin referencias.
+
+Contrastes verificados en FE-01: foreground/canvas 16.03:1; muted/canvas 5.80:1; blanco/gris 5.01:1; success 6.47:1; warning 6.60:1; danger 6.12:1; info 6.37:1 sobre sus superficies.
 
 ## Geometría y tono
 
@@ -69,3 +80,4 @@ Ferraro conserva ownership de assets y composición institucional. Los primitive
 - Preview cloud aislada, DB preview, Better Auth preview y storage persistente todavía no están disponibles/verificados en esta ejecución.
 - Las capturas de Playwright permanecen como artifacts privados con retención objetivo de 14 días; no se versionan.
 - La validación de persistencia remota de fotos en FE-08/FE-12 quedará explícitamente pendiente si no se provisiona storage preview aislado.
+- Los aliases visuales heredados y los hex previos permanecen hasta migrar cada consumidor; no deben recibir usos nuevos y se auditan para su eliminación en FE-14.

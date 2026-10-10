@@ -1,36 +1,8 @@
-:root {
-  --color-ink: #171814;
-  --color-ink-soft: #55584f;
-  --color-canvas: #f3f1eb;
-  --color-surface: #fbfaf6;
-  --color-surface-raised: #ffffff;
-  --color-border: #d9d6cc;
-  --color-border-strong: #b8b4a8;
-  --color-accent: #9b7a3c;
-  --color-accent-strong: #725621;
-  --color-success: #3f6e4d;
-  --color-danger: #a43d35;
-  --color-dark: #151714;
-  --color-dark-soft: #242721;
-  --color-on-dark: #f7f4eb;
-  --shadow-sm: 0 1px 2px rgb(23 24 20 / 8%);
-  --shadow-md: 0 18px 48px rgb(23 24 20 / 10%);
-  --radius-sm: 0.5rem;
-  --radius-md: 0.875rem;
-  --radius-lg: 1.25rem;
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.25rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
-  --space-10: 2.5rem;
-  --space-12: 3rem;
-  --font-sans: "Avenir Next", Avenir, "Segoe UI", Helvetica, Arial, sans-serif;
-  --font-display:
-    "Avenir Next", Avenir, "Segoe UI", Helvetica, Arial, sans-serif;
-}
+@import "../design-system/tokens.css";
+@import "../design-system/foundations.css";
+@import "../design-system/utilities.css";
+
+@layer reset, tokens, base, components, patterns, modules, utilities, overrides;
 
 /* Inventory */
 .inventory-filters {
