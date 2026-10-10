@@ -192,3 +192,14 @@ Registro resumido de la ejecución autónoma de V1. El contrato funcional contin
 - **Tests:** lint, typecheck, 35 unit, 42 integración, build y `git diff --check` verdes. E2E relacionado dashboard/search ADMIN/STAFF 1/1, con proyecciones por rol y axe en ambas sesiones.
 - **Gate:** GATE 3 dashboard parcial, `approved for continued autonomous execution`; se completa con agenda en FE-06.
 - **Known issues:** evidencia cloud aislada no disponible; validación en production build local con PostgreSQL local y datos E2E sintéticos. Producción no fue usada.
+
+## FRONTEND BUILD FE-06 — Agenda
+
+- **Status:** COMPLETE — approved for continued autonomous execution.
+- **Scope:** agenda día/semana/mes, toolbar y selector de fecha navegable, eventos proporcionales con carriles de solape, continuidad multidía, bloqueo tramado, estados explícitos y formularios/detalle. Mobile usa lista temporal del día seleccionado; no comprime siete columnas. No se añadieron DnD, resize, capacidad, recordatorios ni reglas de colisión.
+- **Evidence:** seis baselines en `/tmp/ferraro-redesign-evidence/fe06/baseline` y ocho capturas finales en `/tmp/ferraro-redesign-evidence/fe06/final`: las seis resoluciones obligatorias distribuidas entre ADMIN/STAFF y día/semana/mes, más formulario desktop y detalle mobile. Fixtures locales reversibles cubrieron vacío, solape, multidía, bloqueo, confirmado, realizado y cancelado; fueron eliminadas después de capturar.
+- **Responsive:** día temporal proporcional en desktop, semana de siete columnas legibles con scroll/snap en tablet y día elegido como lista en mobile; mes con seis semanas completas, encabezados y `+N`, reducido al día elegido en mobile. Cero overflow del documento en 1440×900, 1280×800, 1024×768, 820×1180, 768×1024 y 390×844.
+- **Accessibility:** estado por texto, icono, borde/forma y color; rango/duración en nombres accesibles; orden cronológico; teclado para view switcher y fecha nativa; axe WCAG A/AA en 0 violations. Emulación de 200% efectiva (640 CSS px, DPR 2) sin overflow y `prefers-reduced-motion: reduce` confirmado. Consola y respuestas HTTP limpias en las capturas.
+- **Tests:** lint, typecheck, 35 unit, 42 integración, build y `git diff --check` verdes. Agenda E2E 2/2; gate conjunto agenda/dashboard/portal 4/4 con roles, proyecciones y aislamiento conservados.
+- **Gate:** GATE 3 completo, `approved for continued autonomous execution`.
+- **Known issues:** preview cloud aislada no disponible; validación local sobre production build y PostgreSQL local. La página de turno sigue siendo la fuente de verdad y no se agregó drawer opcional. Producción no fue usada.

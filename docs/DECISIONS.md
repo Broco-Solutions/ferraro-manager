@@ -124,3 +124,26 @@ La preferencia desktop se guarda por dispositivo en `localStorage` y se consume 
 - ADMIN y STAFF comparten estructura, pero STAFF nunca recibe enlaces de finanzas, compras o administración.
 - El drawer controla foco, Escape, scrim y retorno mediante React Aria; no se conserva el patrón `<details>`.
 - Search backend y destinos permanecen intactos; sólo cambian composición, iconos y ergonomía.
+
+## DEC-006 — Agenda propia server-first con layouts adaptativos
+
+- **Fecha:** 2026-10-10
+- **Estado:** aceptada
+- **Build afectado:** FRONTEND BUILD FE-06 — Agenda
+
+### Contexto
+
+La agenda existente ya tenía queries por rango, reglas de solape/bloqueo, timezone y navegación por URL. Incorporar un calendar framework completo traería interacción DnD/resize, bundle y abstracciones que el alcance no necesita; conservar una semana de siete columnas comprimida tampoco cumple la lectura mobile.
+
+### Decisión
+
+Mantener el render server-first y las queries actuales. Día usa un layout temporal proporcional con asignación visual de carriles; semana conserva siete días con ancho mínimo y scroll/snap en tablet; mes genera seis semanas completas. En mobile, semana y mes presentan sólo el día seleccionado como lista/resumen. Un único input nativo cliente actualiza `view` y `date` en URL mediante una boundary mínima.
+
+La página de turno sigue siendo la fuente de verdad. No se implementan drawer, DnD, resize, capacidad, recordatorios ni cambios de colisión.
+
+### Consecuencias
+
+- El algoritmo de carriles es puramente presentacional y no altera disponibilidad, consultas, timestamps ni estado.
+- Los estados incluyen texto e icono además de color; bloqueo usa trama y label explícito.
+- La continuidad multidía se recorta visualmente por jornada, pero conserva y anuncia el rango real.
+- Una futura librería sólo se evalúa si aparece una necesidad funcional aprobada que el render actual no pueda resolver de forma accesible y mantenible.

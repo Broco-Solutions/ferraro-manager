@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
 import {
@@ -131,5 +132,36 @@ test("STAFF schedules overlapping cars and a block prevents a new reservation", 
   await page.getByRole("button", { name: "Crear turno" }).click();
   await expect(
     page.getByRole("alert").filter({ hasText: "horario está bloqueado" }),
+  ).toBeVisible();
+});
+
+test("calendar views, date control and status labels remain keyboard accessible", async ({
+  page,
+}) => {
+  await login(page);
+  await page.goto("/app/calendar?view=day&date=2026-10-15");
+
+  await expect(page.getByLabel(/BMW M3, Confirmado/)).toHaveCount(2);
+  const dayAxe = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(dayAxe.violations).toEqual([]);
+
+  const weekView = page.getByRole("link", { name: "Semana" });
+  await weekView.focus();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/view=week&date=2026-10-15/);
+  await expect(
+    page.getByRole("region", { name: "Semana desplazable" }),
+  ).toBeVisible();
+
+  await page.getByLabel("Elegir fecha").fill("2026-10-16");
+  await expect(page).toHaveURL(/view=week&date=2026-10-16/);
+  await expect(page.getByText("Agenda E2E bloqueo")).toBeVisible();
+
+  await page.getByRole("link", { name: "Mes" }).click();
+  await expect(page).toHaveURL(/view=month&date=2026-10-16/);
+  await expect(
+    page.getByRole("region", { name: /viernes, 16 de octubre de 2026/i }),
   ).toBeVisible();
 });

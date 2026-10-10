@@ -105,6 +105,17 @@ El amarillo aparece como señal institucional y línea de composición. Sobre su
 
 Evidencia FE-05: `/tmp/ferraro-redesign-evidence/fe05`, seis viewports obligatorios combinados entre ADMIN y STAFF, sin overflow y con axe WCAG A/AA en cero violations.
 
+## Agenda temporal
+
+- Día desktop representa 07:00–20:00 con altura proporcional y carriles calculados sólo para layout; la duración y los solapes continúan definidos por los timestamps existentes.
+- Semana mantiene siete columnas con ancho mínimo y scroll/snap en tablet. Mobile muestra el día elegido como lista cronológica y no reduce la semana a columnas ilegibles.
+- Mes siempre muestra seis semanas completas, días externos atenuados, encabezados lunes–domingo, tres eventos resumidos y contador `+N`. En mobile se presenta el día elegido.
+- Confirmado, realizado, cancelado y bloqueo difieren por texto, icono, borde/forma y color. El bloqueo usa trama y confirmación accesible; no se interpreta el amarillo como warning.
+- Toolbar conserva anterior/siguiente/hoy, input nativo de fecha y vista en URL. La página de detalle continúa siendo la fuente de verdad; no existe edición en drawer.
+- Formularios nativos usan secciones editoriales, targets de 44–48 px, una columna mobile y acciones dentro del flujo para no superponerse con la navegación inferior.
+
+Evidencia FE-06: `/tmp/ferraro-redesign-evidence/fe06`, baseline y ocho capturas finales con vacío, solape, multidía, bloqueo y tres estados. Axe WCAG A/AA sin violations, 200% efectivo sin overflow y reduced motion verificado.
+
 ## Geometría y tono
 
 La UI deriva del isotipo su ritmo vertical y división en tres, sin convertirlos en patrón ornamental repetitivo. El shell es grafito y el área de trabajo clara. La identidad proviene de activo, tipografía, alineación, ritmo y detalle; el amarillo se reserva para marca, foco y selección controlada.
