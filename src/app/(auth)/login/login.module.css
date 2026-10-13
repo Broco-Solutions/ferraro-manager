@@ -65,14 +65,12 @@
   color: var(--brand-yellow);
   font-size: var(--text-xs);
   font-weight: var(--weight-bold);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
 }
 
 .brandCopy h1 {
   max-width: 10ch;
   margin: 0 0 var(--space-6);
-  font-size: clamp(2.75rem, 6vw, 5.5rem);
+  font-size: clamp(2.25rem, 4.5vw, 3.75rem);
   font-weight: var(--weight-semibold);
   letter-spacing: var(--tracking-tight);
   line-height: 0.95;
@@ -123,7 +121,7 @@
 }
 
 .formHeader h2 {
-  font-size: clamp(var(--text-3xl), 4vw, var(--text-4xl));
+  font-size: var(--text-3xl);
   line-height: var(--leading-tight);
 }
 
@@ -151,7 +149,7 @@
   }
 
   .brandCopy h1 {
-    font-size: clamp(2.5rem, 6vw, 4rem);
+    font-size: clamp(2rem, 6vw, 2.75rem);
   }
 }
 

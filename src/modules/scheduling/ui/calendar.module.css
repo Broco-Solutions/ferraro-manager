@@ -12,17 +12,15 @@
 
 .hero h1 {
   margin: var(--space-1) 0 0;
-  font-size: var(--text-4xl);
-  letter-spacing: -0.055em;
+  font-size: var(--text-2xl);
+  letter-spacing: var(--tracking-tight);
 }
 
 .eyebrow {
   margin: 0;
   color: var(--focus-ring);
   font-size: var(--text-xs);
-  font-weight: 780;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-weight: var(--weight-medium);
 }
 
 .description {
@@ -289,7 +287,7 @@
   height: max(var(--event-height), 3.25rem);
   overflow: hidden;
   border: 1px solid var(--border-strong);
-  border-left: 4px solid var(--info);
+  border-left: 1px solid var(--info);
   border-radius: var(--radius-md);
   padding: var(--space-2) var(--space-3);
   background: var(--surface);
@@ -451,7 +449,7 @@
   display: grid;
   gap: 0.2rem;
   border: 1px solid var(--border);
-  border-left: 3px solid var(--info);
+  border-left: 1px solid var(--info);
   border-radius: var(--radius-sm);
   padding: var(--space-3);
   background: var(--surface-raised);
@@ -535,7 +533,7 @@
 
 .monthEvent {
   overflow: hidden;
-  border-left: 2px solid var(--info);
+  border-left: 1px solid var(--info);
   border-radius: 0.2rem;
   padding: 0.2rem 0.35rem;
   background: var(--surface-subtle);
@@ -724,7 +722,7 @@
 .identity {
   display: grid;
   gap: var(--space-1);
-  border-left: 3px solid var(--brand-yellow);
+  border-left: 1px solid var(--brand-yellow);
   padding: var(--space-2) var(--space-4);
 }
 
@@ -849,7 +847,7 @@
   }
 
   .hero h1 {
-    font-size: clamp(2.5rem, 13vw, 3.65rem);
+    font-size: var(--text-2xl);
   }
 
   .actions {

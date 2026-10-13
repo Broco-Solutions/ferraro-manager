@@ -58,7 +58,7 @@
 .badges > span {
   padding: 0.3rem 0.55rem;
   font-size: 0.68rem;
-  font-weight: var(--weight-bold);
+  font-weight: var(--weight-medium);
   letter-spacing: 0.02em;
   background: rgb(0 0 0 / 82%);
   border-radius: var(--radius-pill);

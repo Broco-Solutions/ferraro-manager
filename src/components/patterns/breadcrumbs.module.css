@@ -1,7 +1,7 @@
 .breadcrumbs {
   width: min(100%, var(--content-wide));
   margin-inline: auto;
-  padding: var(--space-4) clamp(var(--space-8), 5vw, var(--space-16)) 0;
+  padding: var(--space-4) clamp(var(--space-4), 3vw, var(--space-10)) 0;
 }
 
 .breadcrumbs ol {

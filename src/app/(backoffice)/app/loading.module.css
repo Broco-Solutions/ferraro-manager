@@ -1,6 +1,6 @@
 .loading {
   display: grid;
-  gap: var(--space-8);
+  gap: var(--space-6);
   max-width: var(--content-default);
   margin-inline: auto;
 }

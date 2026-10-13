@@ -21,8 +21,6 @@
   color: var(--foreground-muted);
   font-size: var(--text-xs);
   font-weight: var(--weight-bold);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
 }
 .footer {
   display: flex;
@@ -44,7 +42,7 @@
 }
 .access h1 {
   margin: var(--space-2) 0 var(--space-3);
-  font-size: clamp(var(--text-2xl), 5vw, var(--text-4xl));
+  font-size: var(--text-3xl);
 }
 .access p {
   color: var(--foreground-muted);
@@ -53,13 +51,13 @@
 .hero {
   display: grid;
   gap: var(--space-2);
-  padding-block: clamp(var(--space-10), 10vw, var(--space-16));
+  padding-block: clamp(var(--space-8), 6vw, var(--space-12));
   border-bottom: 1px solid var(--border-strong);
 }
 .hero h1 {
   max-width: 14ch;
   margin: 0;
-  font-size: clamp(2.4rem, 7vw, 5rem);
+  font-size: clamp(2rem, 5vw, 3rem);
   letter-spacing: -0.055em;
   line-height: 0.98;
 }
@@ -74,8 +72,6 @@
   color: var(--foreground-muted);
   font-size: var(--text-xs);
   font-weight: var(--weight-bold);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
 }
 .section {
   display: grid;
@@ -112,7 +108,7 @@
   padding: var(--space-5);
   background: var(--surface-inverse);
   color: var(--brand-white);
-  border-left: 0.25rem solid var(--brand-yellow);
+  border-left: 1px solid var(--brand-yellow);
 }
 .vehicle h3,
 .vehicle p {
@@ -174,7 +170,7 @@
   padding: var(--space-5);
   color: var(--foreground-muted);
   background: var(--surface-subtle);
-  border: 1px dashed var(--border-strong);
+  border: 1px solid var(--border);
 }
 .empty strong {
   color: var(--foreground);
