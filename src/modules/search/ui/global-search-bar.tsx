@@ -26,7 +26,7 @@ export function GlobalSearchBar() {
         <MagnifyingGlassIcon
           aria-hidden="true"
           className={styles.icon}
-          size={20}
+          size={16}
         />
         <input
           className={styles.input}
@@ -39,7 +39,7 @@ export function GlobalSearchBar() {
         />
         <kbd className={styles.shortcut}>Ctrl K</kbd>
       </div>
-      <button className={styles.submit}>Buscar</button>
+      <button className="sr-only">Buscar</button>
     </form>
   );
 }

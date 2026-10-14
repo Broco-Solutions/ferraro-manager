@@ -19,7 +19,7 @@
   width: fit-content;
   color: var(--foreground-muted);
   font-size: var(--text-sm);
-  font-weight: 700;
+  font-weight: var(--weight-semibold);
   text-decoration: none;
 }
 
@@ -30,7 +30,7 @@
   padding: var(--space-3) var(--space-4);
   background: var(--success-surface);
   color: var(--success);
-  font-weight: 650;
+  font-weight: var(--weight-semibold);
 }
 
 .categoryForm {
@@ -55,7 +55,7 @@
 
 .resultsMeta strong {
   color: var(--foreground);
-  font-size: var(--text-xl);
+  font-size: var(--text-base);
 }
 
 .catalog {
@@ -111,7 +111,7 @@
   background: var(--surface-inverse);
   color: var(--foreground-inverse);
   font-size: var(--text-xs);
-  font-weight: 750;
+  font-weight: var(--weight-semibold);
 }
 
 .serviceList,
@@ -191,7 +191,7 @@
   cursor: pointer;
   font: inherit;
   font-size: var(--text-sm);
-  font-weight: 700;
+  font-weight: var(--weight-semibold);
   text-decoration: none;
 }
 
@@ -212,9 +212,29 @@
 }
 
 .empty {
-  min-height: 18rem;
+  min-height: 11rem;
   align-content: center;
-  justify-items: start;
+  justify-items: center;
+  gap: var(--space-1);
+  border-style: dashed;
+  border-color: var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: var(--space-8) var(--space-6);
+  background: transparent;
+  text-align: center;
+}
+
+.empty svg {
+  color: var(--foreground-subtle);
+}
+
+.empty h2 {
+  font-size: var(--text-base);
+}
+
+.empty p {
+  color: var(--foreground-muted);
+  font-size: var(--text-sm);
 }
 
 .empty h2,
@@ -271,7 +291,7 @@
   justify-content: space-between;
   padding: var(--space-4) var(--space-5);
   cursor: pointer;
-  font-weight: 750;
+  font-weight: var(--weight-semibold);
 }
 
 .disclosure summary::after {

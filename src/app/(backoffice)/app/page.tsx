@@ -118,7 +118,7 @@ export default async function AppHomePage() {
               href={item.href}
               key={item.href}
             >
-              <Icon aria-hidden size={19} weight="bold" />
+              <Icon aria-hidden size={16} weight="bold" />
               {item.label}
             </Link>
           );
@@ -159,7 +159,7 @@ export default async function AppHomePage() {
                         : ""}
                     </small>
                   </span>
-                  <ArrowRightIcon aria-hidden size={20} />
+                  <ArrowRightIcon aria-hidden size={16} />
                 </Link>
               ))}
             </div>
@@ -197,7 +197,7 @@ export default async function AppHomePage() {
                     </strong>
                     <small>{appointment.serviceCase.client.displayName}</small>
                   </span>
-                  <ArrowRightIcon aria-hidden size={20} />
+                  <ArrowRightIcon aria-hidden size={16} />
                 </Link>
               ))}
             </div>
@@ -291,7 +291,7 @@ export default async function AppHomePage() {
                       {job._count.photos} foto(s)
                     </small>
                   </span>
-                  <ArrowRightIcon aria-hidden size={20} />
+                  <ArrowRightIcon aria-hidden size={16} />
                 </Link>
               ))}
             </div>
@@ -324,7 +324,7 @@ export default async function AppHomePage() {
                       {item.minimumStock.toFixed(3)}
                     </small>
                   </span>
-                  <ArrowRightIcon aria-hidden size={20} />
+                  <ArrowRightIcon aria-hidden size={16} />
                 </Link>
               ))}
             </div>
@@ -359,7 +359,7 @@ export default async function AppHomePage() {
                         · {money.format(serviceCase.balance.toNumber())}
                       </small>
                     </span>
-                    <ArrowRightIcon aria-hidden size={20} />
+                    <ArrowRightIcon aria-hidden size={16} />
                   </Link>
                 ))}
               </div>
@@ -388,7 +388,7 @@ export default async function AppHomePage() {
                         {serviceCase.vehicle.brand} {serviceCase.vehicle.model}
                       </small>
                     </span>
-                    <ArrowRightIcon aria-hidden size={20} />
+                    <ArrowRightIcon aria-hidden size={16} />
                   </Link>
                 ))}
               </div>
@@ -419,7 +419,7 @@ export default async function AppHomePage() {
                   <strong>{quote.number}</strong>
                   <small>{quote.client.displayName}</small>
                 </span>
-                <ArrowRightIcon aria-hidden size={20} />
+                <ArrowRightIcon aria-hidden size={16} />
               </Link>
             ))}
           </div>
@@ -480,7 +480,7 @@ function DashboardSection({
         {href ? (
           <Link className={styles.sectionLink} href={href}>
             {link}
-            <ArrowRightIcon aria-hidden size={16} weight="bold" />
+            <ArrowRightIcon aria-hidden size={14} />
           </Link>
         ) : (
           <span aria-label={`${count ?? 0} elementos`} className={styles.count}>
@@ -496,7 +496,7 @@ function DashboardSection({
 function DashboardEmpty({ text, title }: { text: string; title: string }) {
   return (
     <div className={styles.empty}>
-      <CarProfileIcon aria-hidden size={28} />
+      <CarProfileIcon aria-hidden size={22} />
       <strong>{title}</strong>
       <p>{text}</p>
     </div>

@@ -229,7 +229,7 @@
   background: color-mix(in srgb, var(--surface) 94%, transparent);
   border-bottom: 1px solid var(--border);
   backdrop-filter: blur(12px);
-  padding-inline: var(--space-6);
+  padding-inline: clamp(var(--space-4), 3vw, var(--space-10));
 }
 
 .mobileHeader {

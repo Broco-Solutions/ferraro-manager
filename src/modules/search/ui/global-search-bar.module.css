@@ -1,15 +1,13 @@
 .form {
-  display: grid;
-  grid-template-columns: minmax(12rem, 34rem) auto;
-  gap: var(--space-3);
+  display: flex;
   align-items: center;
-  width: 100%;
-  padding-inline: clamp(var(--space-4), 3vw, var(--space-10));
+  width: min(100%, 30rem);
 }
 
 .control {
   position: relative;
   display: flex;
+  flex: 1 1 auto;
   min-width: 0;
   align-items: center;
 }
@@ -24,41 +22,46 @@
 .input {
   width: 100%;
   min-width: 0;
-  min-height: 2.5rem;
-  padding: var(--space-2) 5.5rem var(--space-2) var(--space-10);
+  min-height: var(--control-md);
+  padding: var(--space-1) 4.5rem var(--space-1) calc(var(--space-3) + 1.5rem);
   color: var(--foreground);
-  background: var(--background);
+  font-size: var(--text-sm);
+  background: var(--surface-subtle);
   border: 1px solid transparent;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
+  transition:
+    background var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard);
+}
+
+.input::placeholder {
+  color: var(--foreground-subtle);
 }
 
 .input:hover {
   border-color: var(--border);
 }
 
+.input:focus-visible {
+  background: var(--surface-raised);
+  border-color: var(--border-strong);
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus-accent) 40%, transparent);
+}
+
+.input::-webkit-search-cancel-button {
+  display: none;
+}
+
 .shortcut {
   position: absolute;
   right: var(--space-2);
-  padding: var(--space-1) var(--space-2);
+  padding: 0.125rem var(--space-2);
   color: var(--foreground-muted);
   background: var(--surface-raised);
   border: 1px solid var(--border);
   border-radius: var(--radius-xs);
   font-family: var(--font-sans);
   font-size: var(--text-xs);
-}
-
-.submit {
-  min-height: 2.5rem;
-  padding-inline: var(--space-3);
-  color: var(--foreground);
-  background: transparent;
-  border: 0;
-  border-radius: var(--radius-sm);
-  font-weight: var(--weight-semibold);
-  cursor: pointer;
-}
-
-.submit:hover {
-  background: var(--surface-subtle);
 }
