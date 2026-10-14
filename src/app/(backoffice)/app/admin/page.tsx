@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
-import { LockKeyIcon, PaletteIcon } from "@phosphor-icons/react/dist/ssr";
+import Link from "next/link";
+import {
+  LockKeyIcon,
+  PaletteIcon,
+  UsersThreeIcon,
+} from "@phosphor-icons/react/dist/ssr";
 
 import { Page, PageHeader } from "@/components/patterns/page";
+import { buttonClassName } from "@/components/ui/button";
 import { requireRole } from "@/modules/identity/application/authorization";
 import styles from "@/modules/search/ui/search-results.module.css";
 
@@ -21,6 +27,19 @@ export default async function AdminFoundationPage() {
         className={styles.adminList}
         aria-label="Configuración administrativa"
       >
+        <article className={styles.adminRow}>
+          <UsersThreeIcon aria-hidden="true" size={24} weight="duotone" />
+          <div>
+            <strong>Usuarios</strong>
+            <p>Altas, roles, contraseñas y desactivación del equipo.</p>
+          </div>
+          <Link
+            className={buttonClassName("secondary", "sm")}
+            href="/app/admin/users"
+          >
+            Gestionar
+          </Link>
+        </article>
         <article className={styles.adminRow}>
           <LockKeyIcon aria-hidden="true" size={24} weight="duotone" />
           <div>

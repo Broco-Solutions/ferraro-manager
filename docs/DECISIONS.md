@@ -235,3 +235,23 @@ La migración incremental `20261010160000_direct_cost_consistency` reemplaza exc
 - No hay backfill ni conversión de `NULL` a cero: la DB local existente no contenía costos directos que requirieran corrección.
 - La aplicación mantiene su validación Decimal server-side y ahora la persistencia rechaza estados parciales, cotizaciones ausentes e importes negativos.
 - La constraint es compatible con los registros históricos sin costo y no altera permisos, cálculos de margen ni el flujo operativo.
+
+## DEC-011 — Gestión de usuarios por ADMIN con baja lógica
+
+- **Fecha:** 2026-10-14
+- **Estado:** aceptada
+- **Build afectado:** ABM de usuarios
+
+### Contexto
+
+El alta de usuarios sólo era posible con `admin:bootstrap`, porque el signup público está deshabilitado. Hacía falta que un ADMIN pudiera crear, editar, desactivar y restablecer el acceso del equipo desde el backoffice. `User` es referenciado por decenas de columnas de auditoría, por lo que un borrado físico rompería integridad o perdería trazabilidad.
+
+### Decisión
+
+`/app/admin/users` (módulo `src/modules/users`) es exclusivo de ADMIN y valida rol en cada página y server action. La baja es lógica (`active = false`) y borra las sesiones del usuario en la misma transacción; el hook de creación de sesión ya impide nuevos ingresos. El ADMIN define la contraseña inicial y puede restablecerla (Argon2id, cuenta `credential` con `accountId = user.id`, igual que el bootstrap); el reset y los cambios de rol también cierran las sesiones abiertas. Un ADMIN no puede desactivarse ni quitarse el rol a sí mismo, y no se puede desactivar ni degradar al último ADMIN activo: el chequeo bloquea las filas ADMIN con `FOR UPDATE` dentro de la transacción.
+
+### Consecuencias
+
+- No hay migración: se reutilizan `role`, `active` y `lastLoginAt`.
+- No hay envío de emails ni invitaciones; la contraseña se comparte por fuera del sistema.
+- Un ADMIN que restablece su propia contraseña cierra su sesión y debe volver a ingresar.
