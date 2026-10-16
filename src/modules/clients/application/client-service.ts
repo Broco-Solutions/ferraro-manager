@@ -1,4 +1,4 @@
-import type { Prisma } from "@/generated/prisma/client";
+import { Prisma } from "@/generated/prisma/client";
 
 import { prisma } from "@/infrastructure/db/client";
 import {
@@ -8,6 +8,10 @@ import {
   type ClientInput,
   type VehicleInput,
 } from "@/modules/clients/domain/client-schema";
+import {
+  classifyDuplicate,
+  normalizeComparableName,
+} from "@/modules/clients/domain/client-vehicle-flow";
 
 interface Actor {
   id: string;
@@ -72,10 +76,19 @@ export async function createVehicle(
       where: { id: clientId },
       select: { active: true },
     });
-    if (!client) throw new Error("CLIENT_NOT_FOUND");
+    if (!client?.active) throw new Error("CLIENT_NOT_FOUND");
     return tx.vehicle.create({
       data: { ...data, clientId, createdById: actor.id, updatedById: actor.id },
-      select: { id: true, clientId: true },
+      select: {
+        id: true,
+        clientId: true,
+        brand: true,
+        model: true,
+        version: true,
+        year: true,
+        color: true,
+        vehicleClass: true,
+      },
     });
   });
 }
@@ -113,33 +126,312 @@ export async function setVehicleArchived(
 }
 
 export async function findPossibleDuplicates(input: {
+  displayName?: string;
   phone?: string;
   email?: string;
   excludeId?: string;
 }) {
   const normalizedPhone = normalizePhone(input.phone);
   const email = input.email?.trim().toLowerCase();
-  if (!normalizedPhone && !email) return [];
+  const comparableName = normalizeComparableName(input.displayName);
+  const nameInitial = input.displayName?.trim().charAt(0);
+  if (!normalizedPhone && !email && !comparableName) return [];
 
-  return prisma.client.findMany({
-    where: {
-      id: input.excludeId ? { not: input.excludeId } : undefined,
-      OR: [
-        ...(normalizedPhone ? [{ normalizedPhone }] : []),
-        ...(email
-          ? [{ email: { equals: email, mode: "insensitive" as const } }]
-          : []),
-      ],
-    },
-    select: {
-      id: true,
-      displayName: true,
-      phone: true,
-      email: true,
-      active: true,
-    },
-    take: 5,
+  const select = {
+    id: true,
+    displayName: true,
+    phone: true,
+    normalizedPhone: true,
+    email: true,
+    active: true,
+  } satisfies Prisma.ClientSelect;
+  const [strongCandidates, nameCandidates] = await Promise.all([
+    normalizedPhone || email
+      ? prisma.client.findMany({
+          where: {
+            id: input.excludeId ? { not: input.excludeId } : undefined,
+            OR: [
+              ...(normalizedPhone ? [{ normalizedPhone }] : []),
+              ...(email
+                ? [
+                    {
+                      email: {
+                        equals: email,
+                        mode: "insensitive" as const,
+                      },
+                    },
+                  ]
+                : []),
+            ],
+          },
+          select,
+          take: 10,
+        })
+      : [],
+    nameInitial
+      ? prisma.client.findMany({
+          where: {
+            id: input.excludeId ? { not: input.excludeId } : undefined,
+            displayName: {
+              startsWith: nameInitial,
+              mode: "insensitive",
+            },
+          },
+          select,
+          orderBy: { updatedAt: "desc" },
+          take: 50,
+        })
+      : [],
+  ]);
+  const candidates = [
+    ...strongCandidates,
+    ...nameCandidates.filter(
+      (candidate) =>
+        !strongCandidates.some((strong) => strong.id === candidate.id),
+    ),
+  ];
+
+  return candidates.flatMap((candidate) => {
+    const classification = classifyDuplicate(candidate, input);
+    return classification ? [{ ...candidate, ...classification }] : [];
   });
+}
+
+export interface ClientPickerOption {
+  id: string;
+  displayName: string;
+  phone: string | null;
+  email: string | null;
+  vehicleCount: number;
+}
+
+export interface VehiclePickerOption {
+  id: string;
+  clientId: string;
+  brand: string;
+  model: string;
+  version: string | null;
+  year: number | null;
+  color: string | null;
+  vehicleClass: "SEDAN" | "SUV" | "PICKUP" | "OTHER" | null;
+}
+
+export async function searchClientPickerOptions(options: {
+  query?: string;
+  selectedId?: string;
+  limit?: number;
+}): Promise<ClientPickerOption[]> {
+  const query = options.query?.trim();
+  const limit = Math.min(20, Math.max(1, options.limit ?? 20));
+  const normalizedQuery = normalizePhone(query);
+  const where: Prisma.ClientWhereInput = {
+    active: true,
+    OR: query
+      ? [
+          { displayName: { contains: query, mode: "insensitive" } },
+          { firstName: { contains: query, mode: "insensitive" } },
+          { lastName: { contains: query, mode: "insensitive" } },
+          { phone: { contains: query, mode: "insensitive" } },
+          ...(normalizedQuery
+            ? [{ normalizedPhone: { contains: normalizedQuery } }]
+            : []),
+          { email: { contains: query, mode: "insensitive" } },
+          {
+            vehicles: {
+              some: {
+                active: true,
+                OR: [
+                  { brand: { contains: query, mode: "insensitive" } },
+                  { model: { contains: query, mode: "insensitive" } },
+                ],
+              },
+            },
+          },
+        ]
+      : undefined,
+  };
+  const select = {
+    id: true,
+    displayName: true,
+    phone: true,
+    email: true,
+    _count: { select: { vehicles: { where: { active: true } } } },
+  } satisfies Prisma.ClientSelect;
+
+  const [items, selected] = await Promise.all([
+    prisma.client.findMany({
+      where,
+      select,
+      orderBy: query
+        ? [{ displayName: "asc" }]
+        : [{ createdAt: "desc" }, { displayName: "asc" }],
+      take: limit,
+    }),
+    options.selectedId
+      ? prisma.client.findFirst({
+          where: { id: options.selectedId, active: true },
+          select,
+        })
+      : null,
+  ]);
+  const unique = selected
+    ? [selected, ...items.filter((item) => item.id !== selected.id)]
+    : items;
+  return unique.slice(0, limit).map((client) => ({
+    id: client.id,
+    displayName: client.displayName,
+    phone: client.phone,
+    email: client.email,
+    vehicleCount: client._count.vehicles,
+  }));
+}
+
+export async function searchVehiclePickerOptions(options: {
+  clientId: string;
+  query?: string;
+  selectedId?: string;
+  limit?: number;
+}): Promise<VehiclePickerOption[]> {
+  const query = options.query?.trim();
+  const year = query && /^\d{4}$/.test(query) ? Number(query) : undefined;
+  const limit = Math.min(20, Math.max(1, options.limit ?? 20));
+  const client = await prisma.client.findFirst({
+    where: { id: options.clientId, active: true },
+    select: { id: true },
+  });
+  if (!client) return [];
+  const where: Prisma.VehicleWhereInput = {
+    clientId: options.clientId,
+    active: true,
+    OR: query
+      ? [
+          { brand: { contains: query, mode: "insensitive" } },
+          { model: { contains: query, mode: "insensitive" } },
+          { version: { contains: query, mode: "insensitive" } },
+          ...(year ? [{ year }] : []),
+        ]
+      : undefined,
+  };
+  const select = {
+    id: true,
+    clientId: true,
+    brand: true,
+    model: true,
+    version: true,
+    year: true,
+    color: true,
+    vehicleClass: true,
+  } satisfies Prisma.VehicleSelect;
+  const [items, selected] = await Promise.all([
+    prisma.vehicle.findMany({
+      where,
+      select,
+      orderBy: [{ brand: "asc" }, { model: "asc" }, { year: "desc" }],
+      take: limit,
+    }),
+    options.selectedId
+      ? prisma.vehicle.findFirst({
+          where: {
+            id: options.selectedId,
+            clientId: options.clientId,
+            active: true,
+          },
+          select,
+        })
+      : null,
+  ]);
+  return selected
+    ? [selected, ...items.filter((item) => item.id !== selected.id)].slice(
+        0,
+        limit,
+      )
+    : items;
+}
+
+export async function createClientWithVehicles(
+  input: { client: ClientInput; vehicles: VehicleInput[] },
+  actor: Actor,
+) {
+  const client = clientInputSchema.parse(input.client);
+  const vehicles = input.vehicles.map((vehicle) =>
+    vehicleInputSchema.parse(vehicle),
+  );
+  if (!vehicles.length || vehicles.length > 10)
+    throw new Error("INVALID_VEHICLE_COUNT");
+
+  return prisma.$transaction(
+    async (tx) => {
+      const normalizedPhone = normalizePhone(client.phone);
+      const email = client.email?.toLowerCase();
+      if (normalizedPhone || email) {
+        const strongDuplicate = await tx.client.findFirst({
+          where: {
+            OR: [
+              ...(normalizedPhone ? [{ normalizedPhone }] : []),
+              ...(email
+                ? [
+                    {
+                      email: {
+                        equals: email,
+                        mode: "insensitive" as const,
+                      },
+                    },
+                  ]
+                : []),
+            ],
+          },
+          select: { id: true },
+        });
+        if (strongDuplicate) throw new Error("STRONG_CLIENT_DUPLICATE");
+      }
+      const created = await tx.client.create({
+        data: {
+          ...client,
+          normalizedPhone,
+          email,
+          createdById: actor.id,
+          updatedById: actor.id,
+          vehicles: {
+            create: vehicles.map((vehicle) => ({
+              ...vehicle,
+              createdById: actor.id,
+              updatedById: actor.id,
+            })),
+          },
+        },
+        select: {
+          id: true,
+          displayName: true,
+          phone: true,
+          email: true,
+          vehicles: {
+            select: {
+              id: true,
+              clientId: true,
+              brand: true,
+              model: true,
+              version: true,
+              year: true,
+              color: true,
+              vehicleClass: true,
+            },
+            orderBy: { createdAt: "asc" },
+          },
+        },
+      });
+      return {
+        client: {
+          id: created.id,
+          displayName: created.displayName,
+          phone: created.phone,
+          email: created.email,
+          vehicleCount: created.vehicles.length,
+        },
+        vehicles: created.vehicles,
+      };
+    },
+    { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+  );
 }
 
 export async function listClients(options: {

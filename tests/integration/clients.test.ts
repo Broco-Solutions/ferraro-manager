@@ -5,9 +5,12 @@ import { prisma } from "@/infrastructure/db/client";
 import {
   archiveClient,
   createClient,
+  createClientWithVehicles,
   createVehicle,
   findPossibleDuplicates,
   listClients,
+  searchClientPickerOptions,
+  searchVehiclePickerOptions,
   updateVehicle,
 } from "@/modules/clients/application/client-service";
 
@@ -93,5 +96,102 @@ describe("clients and vehicles integration", () => {
     await expect(
       prisma.vehicle.findUnique({ where: { id: vehicle.id } }),
     ).resolves.not.toBeNull();
+  });
+
+  it("searches active clients by name, phone and email including clients without vehicles", async () => {
+    const client = await createClient(
+      {
+        displayName: "Búsqueda Integral Ferraro",
+        phone: "+54 341 600 7788",
+        email: "flujo-picker@ferraro.test",
+      },
+      { id: actorId },
+    );
+    createdClientIds.push(client.id);
+
+    for (const query of [
+      "Búsqueda Integral",
+      "3416007788",
+      "flujo-picker@ferraro.test",
+    ]) {
+      const result = await searchClientPickerOptions({ query });
+      expect(result).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ id: client.id, vehicleCount: 0 }),
+        ]),
+      );
+    }
+  });
+
+  it("creates a client with multiple vehicles atomically and scopes vehicle search", async () => {
+    const created = await createClientWithVehicles(
+      {
+        client: {
+          displayName: "Alta Atómica Ferraro",
+          phone: "+54 341 600 7799",
+        },
+        vehicles: [
+          { brand: "Audi", model: "RS3", year: 2025 },
+          { brand: "Porsche", model: "Cayenne", version: "S" },
+        ],
+      },
+      { id: actorId },
+    );
+    createdClientIds.push(created.client.id);
+    expect(created.vehicles).toHaveLength(2);
+
+    const other = await createClient(
+      { displayName: "Dueño Vehículo Ajeno" },
+      { id: actorId },
+    );
+    createdClientIds.push(other.id);
+    await createVehicle(
+      other.id,
+      { brand: "Audi", model: "RS3 ajeno" },
+      { id: actorId },
+    );
+    const vehicles = await searchVehiclePickerOptions({
+      clientId: created.client.id,
+      query: "Audi",
+    });
+    expect(vehicles).toHaveLength(1);
+    expect(vehicles[0]).toMatchObject({
+      clientId: created.client.id,
+      model: "RS3",
+    });
+  });
+
+  it("blocks strong quick-create duplicates but keeps name-only matches as suggestions", async () => {
+    const original = await createClient(
+      {
+        displayName: "María López",
+        phone: "+54 341 600 7711",
+        email: "maria.duplicate@ferraro.test",
+      },
+      { id: actorId },
+    );
+    createdClientIds.push(original.id);
+    await expect(
+      createClientWithVehicles(
+        {
+          client: {
+            displayName: "Otra María",
+            phone: "543416007711",
+          },
+          vehicles: [{ brand: "BMW", model: "X1" }],
+        },
+        { id: actorId },
+      ),
+    ).rejects.toThrow("STRONG_CLIENT_DUPLICATE");
+
+    const byEmail = await findPossibleDuplicates({
+      email: "MARIA.DUPLICATE@FERRARO.TEST",
+    });
+    expect(byEmail[0]).toMatchObject({ id: original.id, strength: "strong" });
+    const byName = await findPossibleDuplicates({ displayName: "MARIA LOPEZ" });
+    expect(byName[0]).toMatchObject({
+      id: original.id,
+      strength: "suggestion",
+    });
   });
 });
