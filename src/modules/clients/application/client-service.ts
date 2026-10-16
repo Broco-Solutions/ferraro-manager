@@ -293,7 +293,7 @@ export async function searchVehiclePickerOptions(options: {
   limit?: number;
 }): Promise<VehiclePickerOption[]> {
   const query = options.query?.trim();
-  const year = query && /^\d{4}$/.test(query) ? Number(query) : undefined;
+  const terms = query?.split(/\s+/).filter(Boolean) ?? [];
   const limit = Math.min(20, Math.max(1, options.limit ?? 20));
   const client = await prisma.client.findFirst({
     where: { id: options.clientId, active: true },
@@ -303,13 +303,18 @@ export async function searchVehiclePickerOptions(options: {
   const where: Prisma.VehicleWhereInput = {
     clientId: options.clientId,
     active: true,
-    OR: query
-      ? [
-          { brand: { contains: query, mode: "insensitive" } },
-          { model: { contains: query, mode: "insensitive" } },
-          { version: { contains: query, mode: "insensitive" } },
-          ...(year ? [{ year }] : []),
-        ]
+    AND: terms.length
+      ? terms.map((term) => {
+          const year = /^\d{4}$/.test(term) ? Number(term) : undefined;
+          return {
+            OR: [
+              { brand: { contains: term, mode: "insensitive" as const } },
+              { model: { contains: term, mode: "insensitive" as const } },
+              { version: { contains: term, mode: "insensitive" as const } },
+              ...(year ? [{ year }] : []),
+            ],
+          };
+        })
       : undefined,
   };
   const select = {

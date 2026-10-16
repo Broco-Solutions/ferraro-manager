@@ -189,6 +189,25 @@
   border-radius: var(--radius-sm);
 }
 
+.inlineCreateClient {
+  display: inline-flex;
+  gap: var(--space-1);
+  align-items: center;
+  justify-self: start;
+  min-height: var(--control-sm);
+  padding: 0;
+  color: var(--foreground-muted);
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  background: transparent;
+  border: 0;
+}
+
+.inlineCreateClient:hover {
+  color: var(--foreground);
+}
+
 .overlay {
   position: fixed;
   z-index: var(--z-overlay);
