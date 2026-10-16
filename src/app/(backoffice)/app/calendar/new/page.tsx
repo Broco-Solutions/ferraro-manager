@@ -36,21 +36,11 @@ export default async function NewAppointmentPage({
           </p>
         </div>
       </header>
-      {options.clients.length ? (
-        <AppointmentForm
-          options={options}
-          idempotencyKey={crypto.randomUUID()}
-          values={{ startLocal: `${date}T09:00`, endLocal: `${date}T13:00` }}
-        />
-      ) : (
-        <section className={styles.empty}>
-          <h2>Primero necesitás un cliente con vehículo.</h2>
-          <p>La agenda siempre conserva esa relación.</p>
-          <Link className={styles.button} href="/app/clients/new">
-            Crear cliente
-          </Link>
-        </section>
-      )}
+      <AppointmentForm
+        options={options}
+        idempotencyKey={crypto.randomUUID()}
+        values={{ startLocal: `${date}T09:00`, endLocal: `${date}T13:00` }}
+      />
     </div>
   );
 }

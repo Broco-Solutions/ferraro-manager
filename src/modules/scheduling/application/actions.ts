@@ -36,6 +36,8 @@ function friendlyError(error: unknown) {
     return "La finalización debe ser posterior al inicio.";
   if (text === "VEHICLE_CLIENT_MISMATCH")
     return "El vehículo no pertenece al cliente seleccionado.";
+  if (text === "APPOINTMENT_IDENTITY_LOCKED")
+    return "Este turno ya tiene información comercial o histórica y no permite cambiar cliente o vehículo.";
   if (text === "SERVICE_NOT_AVAILABLE")
     return "Uno de los servicios ya no está disponible.";
   if (text === "IDEMPOTENCY_CONFLICT")
@@ -50,6 +52,8 @@ export async function saveAppointmentAction(
   const session = await requireUser();
   const id = value(formData, "id");
   const shared = {
+    clientId: value(formData, "clientId"),
+    vehicleId: value(formData, "vehicleId"),
     startLocal: value(formData, "startLocal"),
     endLocal: value(formData, "endLocal"),
     serviceIds: values(formData, "serviceIds"),
@@ -63,8 +67,6 @@ export async function saveAppointmentAction(
       : await createAppointment(
           {
             ...shared,
-            clientId: value(formData, "clientId"),
-            vehicleId: value(formData, "vehicleId"),
             idempotencyKey: value(formData, "idempotencyKey"),
           },
           session.user,

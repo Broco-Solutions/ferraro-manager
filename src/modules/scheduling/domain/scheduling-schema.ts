@@ -22,8 +22,6 @@ export const appointmentInputSchema = z.object({
 });
 
 export const appointmentEditSchema = appointmentInputSchema.omit({
-  clientId: true,
-  vehicleId: true,
   idempotencyKey: true,
 });
 

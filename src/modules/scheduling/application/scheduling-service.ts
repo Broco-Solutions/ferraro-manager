@@ -3,6 +3,11 @@ import { createHash } from "node:crypto";
 import { AppointmentStatus, Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/infrastructure/db/client";
 import {
+  searchClientPickerOptions,
+  searchVehiclePickerOptions,
+} from "@/modules/clients/application/client-service";
+import { appointmentReassignmentEligibility } from "@/modules/scheduling/domain/appointment-reassignment";
+import {
   appointmentEditSchema,
   appointmentInputSchema,
   calendarBlockInputSchema,
@@ -267,17 +272,75 @@ export async function updateAppointment(
   return prisma.$transaction(async (tx) => {
     const current = await tx.appointment.findUnique({
       where: { id },
-      include: { serviceCase: { select: { clientId: true, vehicleId: true } } },
+      include: {
+        serviceCase: {
+          select: {
+            id: true,
+            clientId: true,
+            vehicleId: true,
+            origin: true,
+            acceptedQuoteId: true,
+            agreedAmountUsd: true,
+            agreedSourceCurrency: true,
+            agreedSourceAmount: true,
+            agreedExchangeRateArsPerUsd: true,
+            directCostUsd: true,
+            directCostSourceCurrency: true,
+            directCostSourceAmount: true,
+            directCostExchangeRateArsPerUsd: true,
+            _count: {
+              select: {
+                appointments: true,
+                jobs: true,
+                financialEntries: true,
+                amountRevisions: true,
+              },
+            },
+          },
+        },
+      },
     });
     if (!current) throw new Error("APPOINTMENT_NOT_FOUND");
     if (current.status !== AppointmentStatus.CONFIRMED)
       throw new Error("APPOINTMENT_NOT_EDITABLE");
     const { services, employees } = await validatedRelations(tx, {
-      clientId: current.serviceCase.clientId,
-      vehicleId: current.serviceCase.vehicleId,
+      clientId: data.clientId,
+      vehicleId: data.vehicleId,
       serviceIds: data.serviceIds,
       employeeIds: data.employeeIds,
     });
+    const identityChanged =
+      data.clientId !== current.serviceCase.clientId ||
+      data.vehicleId !== current.serviceCase.vehicleId;
+    if (identityChanged) {
+      const eligibility = appointmentReassignmentEligibility({
+        origin: current.serviceCase.origin,
+        acceptedQuoteId: current.serviceCase.acceptedQuoteId,
+        agreedAmountUsd:
+          current.serviceCase.agreedAmountUsd?.toString() ?? null,
+        agreedSourceCurrency: current.serviceCase.agreedSourceCurrency,
+        agreedSourceAmount:
+          current.serviceCase.agreedSourceAmount?.toString() ?? null,
+        agreedExchangeRateArsPerUsd:
+          current.serviceCase.agreedExchangeRateArsPerUsd?.toString() ?? null,
+        directCostUsd: current.serviceCase.directCostUsd?.toString() ?? null,
+        directCostSourceCurrency: current.serviceCase.directCostSourceCurrency,
+        directCostSourceAmount:
+          current.serviceCase.directCostSourceAmount?.toString() ?? null,
+        directCostExchangeRateArsPerUsd:
+          current.serviceCase.directCostExchangeRateArsPerUsd?.toString() ??
+          null,
+        appointmentCount: current.serviceCase._count.appointments,
+        jobCount: current.serviceCase._count.jobs,
+        financialEntryCount: current.serviceCase._count.financialEntries,
+        amountRevisionCount: current.serviceCase._count.amountRevisions,
+      });
+      if (!eligibility.allowed) throw new Error("APPOINTMENT_IDENTITY_LOCKED");
+      await tx.serviceCase.update({
+        where: { id: current.serviceCase.id },
+        data: { clientId: data.clientId, vehicleId: data.vehicleId },
+      });
+    }
     await assertNoBlock(tx, startAt, endAt, id);
     await tx.appointmentService.deleteMany({ where: { appointmentId: id } });
     await tx.appointmentEmployee.deleteMany({ where: { appointmentId: id } });
@@ -388,21 +451,18 @@ export async function getCalendarRange(start: Date, end: Date) {
   return { appointments, blocks };
 }
 
-export async function listSchedulingOptions() {
-  const [clients, services, employees] = await Promise.all([
-    prisma.client.findMany({
-      where: { active: true, vehicles: { some: { active: true } } },
-      select: {
-        id: true,
-        displayName: true,
-        vehicles: {
-          where: { active: true },
-          select: { id: true, brand: true, model: true, year: true },
-          orderBy: [{ brand: "asc" }, { model: "asc" }],
-        },
-      },
-      orderBy: { displayName: "asc" },
-    }),
+export async function listSchedulingOptions(
+  selectedClientId?: string,
+  selectedVehicleId?: string,
+) {
+  const [clients, vehicles, services, employees] = await Promise.all([
+    searchClientPickerOptions({ selectedId: selectedClientId }),
+    selectedClientId
+      ? searchVehiclePickerOptions({
+          clientId: selectedClientId,
+          selectedId: selectedVehicleId,
+        })
+      : [],
     prisma.service.findMany({
       where: { active: true, category: { active: true } },
       select: {
@@ -419,7 +479,7 @@ export async function listSchedulingOptions() {
       orderBy: { name: "asc" },
     }),
   ]);
-  return { clients, services, employees };
+  return { clients, vehicles, services, employees };
 }
 
 export async function getAppointmentDetail(id: string) {
@@ -428,7 +488,29 @@ export async function getAppointmentDetail(id: string) {
 
   const serviceCase = await prisma.serviceCase.findUnique({
     where: { id: appointment.serviceCaseId },
-    select: { id: true, clientId: true, vehicleId: true },
+    select: {
+      id: true,
+      clientId: true,
+      vehicleId: true,
+      origin: true,
+      acceptedQuoteId: true,
+      agreedAmountUsd: true,
+      agreedSourceCurrency: true,
+      agreedSourceAmount: true,
+      agreedExchangeRateArsPerUsd: true,
+      directCostUsd: true,
+      directCostSourceCurrency: true,
+      directCostSourceAmount: true,
+      directCostExchangeRateArsPerUsd: true,
+      _count: {
+        select: {
+          appointments: true,
+          jobs: true,
+          financialEntries: true,
+          amountRevisions: true,
+        },
+      },
+    },
   });
   if (!serviceCase) return null;
   const client = await prisma.client.findUnique({
@@ -454,10 +536,30 @@ export async function getAppointmentDetail(id: string) {
     select: { id: true, name: true },
   });
   const usersById = new Map(users.map((user) => [user.id, user]));
+  const identityReassignment = appointmentReassignmentEligibility({
+    origin: serviceCase.origin,
+    acceptedQuoteId: serviceCase.acceptedQuoteId,
+    agreedAmountUsd: serviceCase.agreedAmountUsd?.toString() ?? null,
+    agreedSourceCurrency: serviceCase.agreedSourceCurrency,
+    agreedSourceAmount: serviceCase.agreedSourceAmount?.toString() ?? null,
+    agreedExchangeRateArsPerUsd:
+      serviceCase.agreedExchangeRateArsPerUsd?.toString() ?? null,
+    directCostUsd: serviceCase.directCostUsd?.toString() ?? null,
+    directCostSourceCurrency: serviceCase.directCostSourceCurrency,
+    directCostSourceAmount:
+      serviceCase.directCostSourceAmount?.toString() ?? null,
+    directCostExchangeRateArsPerUsd:
+      serviceCase.directCostExchangeRateArsPerUsd?.toString() ?? null,
+    appointmentCount: serviceCase._count.appointments,
+    jobCount: serviceCase._count.jobs,
+    financialEntryCount: serviceCase._count.financialEntries,
+    amountRevisionCount: serviceCase._count.amountRevisions,
+  });
 
   return {
     ...appointment,
     serviceCase: { ...serviceCase, client, vehicle },
+    identityReassignment,
     job,
     services,
     employees: assignments.flatMap((assignment) => {

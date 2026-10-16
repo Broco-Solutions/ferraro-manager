@@ -37,11 +37,12 @@ export default async function AppointmentPage({
     searchParams,
   ]);
   const session = await requireRole("ADMIN", "STAFF");
-  const [appointment, options] = await Promise.all([
-    getAppointmentDetail(appointmentId),
-    listSchedulingOptions(),
-  ]);
+  const appointment = await getAppointmentDetail(appointmentId);
   if (!appointment) notFound();
+  const options = await listSchedulingOptions(
+    appointment.serviceCase.clientId,
+    appointment.serviceCase.vehicleId,
+  );
   const vehicle = appointment.serviceCase.vehicle;
   const durationMinutes = Math.round(
     (appointment.endAt.getTime() - appointment.startAt.getTime()) / 60_000,
@@ -141,6 +142,8 @@ export default async function AppointmentPage({
           options={options}
           values={{
             id: appointment.id,
+            clientId: appointment.serviceCase.clientId,
+            vehicleId: appointment.serviceCase.vehicleId,
             clientLabel: appointment.serviceCase.client.displayName,
             vehicleLabel: `${vehicle.brand} ${vehicle.model}`,
             startLocal: formatBusinessDateTimeInput(appointment.startAt),
@@ -154,6 +157,7 @@ export default async function AppointmentPage({
             internalNotes: appointment.internalNotes,
             visibleToClient: appointment.visibleToClient,
           }}
+          identityReassignment={appointment.identityReassignment}
         />
       ) : (
         <section className={styles.historical}>

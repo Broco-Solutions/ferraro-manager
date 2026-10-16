@@ -763,6 +763,17 @@
   color: var(--foreground-muted);
 }
 
+.identityNotice {
+  max-width: 70ch;
+  margin: var(--space-3) 0 0;
+  padding: var(--space-3);
+  color: var(--foreground-muted);
+  font-size: var(--text-sm);
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
 .toggle {
   min-height: var(--control-md);
   display: flex;

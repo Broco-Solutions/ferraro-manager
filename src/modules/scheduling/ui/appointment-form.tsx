@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState } from "react";
 
+import { ClientVehiclePicker } from "@/modules/clients/ui/client-vehicle-picker";
 import {
   saveAppointmentAction,
   type SchedulingFormState,
@@ -14,12 +15,19 @@ interface OptionData {
   clients: {
     id: string;
     displayName: string;
-    vehicles: {
-      id: string;
-      brand: string;
-      model: string;
-      year: number | null;
-    }[];
+    phone: string | null;
+    email: string | null;
+    vehicleCount: number;
+  }[];
+  vehicles: {
+    id: string;
+    clientId: string;
+    brand: string;
+    model: string;
+    version: string | null;
+    year: number | null;
+    color: string | null;
+    vehicleClass: "SEDAN" | "SUV" | "PICKUP" | "OTHER" | null;
   }[];
   services: {
     id: string;
@@ -48,24 +56,19 @@ export function AppointmentForm({
   options,
   values,
   idempotencyKey,
+  identityReassignment,
 }: {
   options: OptionData;
   values: AppointmentValues;
   idempotencyKey?: string;
+  identityReassignment?: { allowed: boolean; reason: string | null };
 }) {
   const [state, action, pending] = useActionState(
     saveAppointmentAction,
     initialState,
   );
-  const firstClientId = values.clientId ?? options.clients[0]?.id ?? "";
-  const [clientId, setClientId] = useState(firstClientId);
-  const selectedClient = options.clients.find(
-    (client) => client.id === clientId,
-  );
-  const [vehicleId, setVehicleId] = useState(
-    values.vehicleId ?? selectedClient?.vehicles[0]?.id ?? "",
-  );
   const isEdit = Boolean(values.id);
+  const identityLocked = isEdit && identityReassignment?.allowed === false;
 
   return (
     <form action={action} className={styles.form}>
@@ -80,55 +83,32 @@ export function AppointmentForm({
       ) : null}
       <section className={styles.formSection}>
         <div className={styles.formSectionHeading}>
-          <h2>Vehículo</h2>
-          <p>El caso comercial se crea automáticamente.</p>
+          <h2>Cliente y vehículo</h2>
+          <p>
+            {isEdit
+              ? "La identidad sólo puede cambiar cuando el caso todavía no tiene historial comercial."
+              : "El caso comercial se crea automáticamente."}
+          </p>
         </div>
-        {isEdit ? (
-          <div className={styles.identity}>
-            <strong>{values.clientLabel}</strong>
-            <span>{values.vehicleLabel}</span>
-          </div>
+        {identityLocked ? (
+          <>
+            <input name="clientId" type="hidden" value={values.clientId} />
+            <input name="vehicleId" type="hidden" value={values.vehicleId} />
+            <div className={styles.identity}>
+              <strong>{values.clientLabel}</strong>
+              <span>{values.vehicleLabel}</span>
+            </div>
+            <p className={styles.identityNotice} role="note">
+              {identityReassignment?.reason}
+            </p>
+          </>
         ) : (
-          <div className={styles.formGrid}>
-            <label className={styles.field}>
-              <span>Cliente *</span>
-              <select
-                name="clientId"
-                value={clientId}
-                onChange={(event) => {
-                  const next = event.target.value;
-                  setClientId(next);
-                  setVehicleId(
-                    options.clients.find((client) => client.id === next)
-                      ?.vehicles[0]?.id ?? "",
-                  );
-                }}
-                required
-              >
-                {options.clients.map((client) => (
-                  <option value={client.id} key={client.id}>
-                    {client.displayName}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className={styles.field}>
-              <span>Vehículo *</span>
-              <select
-                name="vehicleId"
-                value={vehicleId}
-                onChange={(event) => setVehicleId(event.target.value)}
-                required
-              >
-                {selectedClient?.vehicles.map((vehicle) => (
-                  <option value={vehicle.id} key={vehicle.id}>
-                    {vehicle.brand} {vehicle.model}
-                    {vehicle.year ? ` · ${vehicle.year}` : ""}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
+          <ClientVehiclePicker
+            initialClientId={values.clientId}
+            initialClients={options.clients}
+            initialVehicleId={values.vehicleId}
+            initialVehicles={options.vehicles}
+          />
         )}
       </section>
       <section className={styles.formSection}>

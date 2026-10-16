@@ -8,8 +8,36 @@ import {
 } from "./auth.fixtures";
 
 const clientName = "Agenda E2E Cliente";
+const alternateClientName = "Agenda E2E Alternativo";
+const emptyClientName = "Agenda E2E Sin Vehículo";
+const quickClientName = "Agenda E2E Inline";
 const categoryName = "Agenda E2E Categoría";
 let clientId = "";
+let alternateClientId = "";
+let alternateVehicleId = "";
+
+async function captureCalendarEvidence(page: Page, name: string) {
+  if (!process.env.FE_EVIDENCE_DIR) return;
+  for (const [viewport, width, height] of [
+    ["1440x900", 1440, 900],
+    ["390x844", 390, 844],
+  ] as const) {
+    await page.setViewportSize({ width, height });
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            document.documentElement.scrollWidth <=
+            document.documentElement.clientWidth,
+        ),
+      )
+      .toBe(true);
+    await page.screenshot({
+      fullPage: true,
+      path: `${process.env.FE_EVIDENCE_DIR}/${name}-${viewport}.png`,
+    });
+  }
+}
 
 async function login(page: Page) {
   await resetE2EAuthRateLimit();
@@ -19,14 +47,51 @@ async function login(page: Page) {
     .getByRole("textbox", { name: "Contraseña" })
     .fill(e2eUsers.staff.password);
   await page.getByRole("button", { name: "Ingresar" }).click();
-  await expect(page).toHaveURL(/\/app$/);
+  await expect(page).toHaveURL(/\/app$/, { timeout: 15_000 });
+}
+
+async function selectClientVehicle(
+  page: Page,
+  client: string,
+  vehicle: string,
+) {
+  const clientPicker = page.getByRole("combobox", { name: "Cliente *" });
+  await clientPicker.fill(client);
+  await expect(clientPicker).toHaveAttribute("aria-busy", "true");
+  await expect(clientPicker).not.toHaveAttribute("aria-busy", "true");
+  await clientPicker.press("ArrowDown");
+  await page.getByRole("option", { name: new RegExp(client, "i") }).click();
+  const vehiclePicker = page.getByRole("combobox", { name: "Vehículo *" });
+  await vehiclePicker.fill(vehicle);
+  await expect(vehiclePicker).toHaveAttribute("aria-busy", "true");
+  await expect(vehiclePicker).not.toHaveAttribute("aria-busy", "true");
+  await vehiclePicker.press("ArrowDown");
+  await page.getByRole("option", { name: new RegExp(vehicle, "i") }).click();
+}
+
+async function selectClient(page: Page, client: string) {
+  const clientPicker = page.getByRole("combobox", { name: "Cliente *" });
+  await clientPicker.fill(client);
+  await expect(clientPicker).toHaveAttribute("aria-busy", "true");
+  await expect(clientPicker).not.toHaveAttribute("aria-busy", "true");
+  await clientPicker.press("ArrowDown");
+  await page.getByRole("option", { name: new RegExp(client, "i") }).click();
 }
 
 async function cleanup() {
   const prisma = createTestPrisma();
   try {
     const clients = await prisma.client.findMany({
-      where: { displayName: clientName },
+      where: {
+        displayName: {
+          in: [
+            clientName,
+            alternateClientName,
+            emptyClientName,
+            quickClientName,
+          ],
+        },
+      },
       select: { id: true },
     });
     const ids = clients.map((client) => client.id);
@@ -40,6 +105,9 @@ async function cleanup() {
       select: { id: true },
     });
     const appointmentIds = appointments.map((item) => item.id);
+    await prisma.financialEntry.deleteMany({
+      where: { serviceCaseId: { in: caseIds } },
+    });
     await prisma.appointmentEmployee.deleteMany({
       where: { appointmentId: { in: appointmentIds } },
     });
@@ -78,12 +146,31 @@ test.beforeAll(async () => {
   const prisma = createTestPrisma();
   try {
     const client = await prisma.client.create({
-      data: { displayName: clientName },
+      data: {
+        displayName: clientName,
+        phone: "+54 341 555 0101",
+        normalizedPhone: "543415550101",
+        email: "agenda-existing@ferraro.test",
+      },
     });
     clientId = client.id;
     await prisma.vehicle.create({
       data: { clientId, brand: "BMW", model: "M3", year: 2024 },
     });
+    alternateClientId = (
+      await prisma.client.create({ data: { displayName: alternateClientName } })
+    ).id;
+    alternateVehicleId = (
+      await prisma.vehicle.create({
+        data: {
+          clientId: alternateClientId,
+          brand: "Audi",
+          model: "A3",
+          year: 2025,
+        },
+      })
+    ).id;
+    await prisma.client.create({ data: { displayName: emptyClientName } });
     const category = await prisma.serviceCategory.create({
       data: { name: categoryName },
     });
@@ -106,7 +193,7 @@ test("STAFF schedules overlapping cars and a block prevents a new reservation", 
   test.setTimeout(60_000);
   await login(page);
   await page.goto("/app/calendar/new?date=2026-10-15");
-  await page.getByLabel("Cliente *").selectOption(clientId);
+  await selectClientVehicle(page, clientName, "BMW M3");
   await page.getByLabel("Inicio *").fill("2026-10-15T09:00");
   await page.getByLabel("Fin *").fill("2026-10-15T13:00");
   await page.getByText("Cerámico Agenda E2E").click();
@@ -114,7 +201,7 @@ test("STAFF schedules overlapping cars and a block prevents a new reservation", 
   await expect(page.getByText("Turno confirmado")).toBeVisible();
 
   await page.goto("/app/calendar/new?date=2026-10-15");
-  await page.getByLabel("Cliente *").selectOption(clientId);
+  await selectClientVehicle(page, clientName, "BMW M3");
   await page.getByLabel("Inicio *").fill("2026-10-15T10:00");
   await page.getByLabel("Fin *").fill("2026-10-15T12:00");
   await page.getByRole("button", { name: "Crear turno" }).click();
@@ -128,13 +215,119 @@ test("STAFF schedules overlapping cars and a block prevents a new reservation", 
   await expect(page.getByText("Bloqueo creado correctamente.")).toBeVisible();
 
   await page.goto("/app/calendar/new?date=2026-10-16");
-  await page.getByLabel("Cliente *").selectOption(clientId);
+  await selectClientVehicle(page, clientName, "BMW M3");
   await page.getByLabel("Inicio *").fill("2026-10-16T10:00");
   await page.getByLabel("Fin *").fill("2026-10-16T12:00");
   await page.getByRole("button", { name: "Crear turno" }).click();
   await expect(
     page.getByRole("alert").filter({ hasText: "horario está bloqueado" }),
   ).toBeVisible();
+});
+
+test("quick-create keeps appointment state, creates two vehicles and avoids a strong duplicate", async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  await login(page);
+  await page.goto("/app/calendar/new?date=2026-10-20");
+  await page.getByLabel("Inicio *").fill("2026-10-20T10:15");
+  await page.getByLabel("Fin *").fill("2026-10-20T14:15");
+  await page.getByText("Cerámico Agenda E2E").click();
+
+  const clientPicker = page.getByRole("combobox", { name: "Cliente *" });
+  await clientPicker.fill(quickClientName);
+  await expect(clientPicker).not.toHaveAttribute("aria-busy", "true");
+  await clientPicker.press("ArrowDown");
+  await page
+    .getByRole("button", { name: `Crear “${quickClientName}”` })
+    .click();
+  const dialog = page.getByRole("dialog", {
+    name: "Crear cliente y vehículos",
+  });
+  await dialog.getByLabel("Teléfono").fill("+54 341 555 0202");
+  await dialog.getByLabel("Marca *").fill("BMW");
+  await dialog.getByLabel("Modelo *").fill("M4");
+  await dialog.getByRole("button", { name: "Agregar otro" }).click();
+  await dialog.getByLabel("Marca *").nth(1).fill("Porsche");
+  await dialog.getByLabel("Modelo *").nth(1).fill("Macan");
+  const dialogAxe = await new AxeBuilder({ page })
+    .include('[role="dialog"]')
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(dialogAxe.violations).toEqual([]);
+  if (process.env.FE_EVIDENCE_DIR) {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.screenshot({
+      path: `${process.env.FE_EVIDENCE_DIR}/calendar-quick-create-390x844.png`,
+    });
+  }
+  await dialog.getByRole("button", { name: "Crear y continuar" }).click();
+  await expect(dialog).toBeHidden();
+  await expect(clientPicker).toHaveValue(quickClientName);
+  await expect(page.getByRole("combobox", { name: "Vehículo *" })).toHaveValue(
+    /BMW.*M4/,
+  );
+  await expect(page.getByLabel("Inicio *")).toHaveValue("2026-10-20T10:15");
+  await expect(
+    page.getByRole("checkbox", { name: /Cerámico Agenda E2E/ }),
+  ).toBeChecked();
+  await captureCalendarEvidence(page, "calendar-new-preserved");
+  await page.getByRole("button", { name: "Crear turno" }).click();
+  await expect(page.getByText("Turno confirmado")).toBeVisible();
+
+  await page.goto("/app/calendar/new?date=2026-10-21");
+  const duplicatePicker = page.getByRole("combobox", { name: "Cliente *" });
+  await duplicatePicker.fill("Duplicado");
+  await expect(duplicatePicker).toHaveAttribute("aria-busy", "true");
+  await expect(duplicatePicker).not.toHaveAttribute("aria-busy", "true");
+  await duplicatePicker.press("ArrowDown");
+  await page.getByRole("button", { name: "Crear “Duplicado”" }).click();
+  const duplicateDialog = page.getByRole("dialog", {
+    name: "Crear cliente y vehículos",
+  });
+  await duplicateDialog.getByLabel("Teléfono").fill("+54 341 555 0101");
+  await duplicateDialog.getByLabel("Marca *").fill("Ford");
+  await duplicateDialog.getByLabel("Modelo *").fill("Focus");
+  await duplicateDialog
+    .getByRole("button", { name: "Crear y continuar" })
+    .click();
+  await expect(
+    duplicateDialog.getByText("Ya existe un cliente con estos datos."),
+  ).toBeVisible();
+  await duplicateDialog
+    .getByRole("button", { name: "Usar este cliente" })
+    .click();
+  await expect(page.getByRole("combobox", { name: "Cliente *" })).toHaveValue(
+    clientName,
+  );
+  const prisma = createTestPrisma();
+  await expect(
+    prisma.client.count({ where: { normalizedPhone: "543415550101" } }),
+  ).resolves.toBe(1);
+  await prisma.$disconnect();
+});
+
+test("an existing client without a vehicle can add one inline", async ({
+  page,
+}) => {
+  await login(page);
+  await page.goto("/app/calendar/new?date=2026-10-22");
+  await selectClient(page, emptyClientName);
+  const vehiclePicker = page.getByRole("combobox", { name: "Vehículo *" });
+  await expect(vehiclePicker).not.toHaveAttribute("aria-busy", "true");
+  await expect(
+    page.getByText("Este cliente todavía no tiene vehículos."),
+  ).toBeVisible();
+  await page
+    .getByText("Este cliente todavía no tiene vehículos.")
+    .locator("..")
+    .getByRole("button", { name: "Agregar vehículo" })
+    .click();
+  const dialog = page.getByRole("dialog", { name: "Agregar vehículo" });
+  await dialog.getByLabel("Marca *").fill("Toyota");
+  await dialog.getByLabel("Modelo *").fill("Corolla");
+  await dialog.getByRole("button", { name: "Agregar y seleccionar" }).click();
+  await expect(vehiclePicker).toHaveValue(/Toyota.*Corolla/);
 });
 
 test("calendar views, date control and status labels remain keyboard accessible", async ({
@@ -166,4 +359,75 @@ test("calendar views, date control and status labels remain keyboard accessible"
   await expect(
     page.getByRole("region", { name: /viernes, 16 de octubre de 2026/i }),
   ).toBeVisible();
+});
+
+test("appointment identity can change only before commercial history exists", async ({
+  page,
+}) => {
+  await login(page);
+  const lookup = createTestPrisma();
+  const serviceCase = await lookup.serviceCase.create({
+    data: {
+      clientId,
+      vehicleId: (
+        await lookup.vehicle.findFirstOrThrow({
+          where: { clientId, brand: "BMW", model: "M3" },
+          select: { id: true },
+        })
+      ).id,
+      origin: "DIRECT_APPOINTMENT",
+    },
+  });
+  const safeAppointmentId = (
+    await lookup.appointment.create({
+      data: {
+        serviceCaseId: serviceCase.id,
+        startAt: new Date("2026-10-24T12:00:00.000Z"),
+        endAt: new Date("2026-10-24T13:00:00.000Z"),
+        status: "CONFIRMED",
+      },
+      select: { id: true },
+    })
+  ).id;
+  await lookup.$disconnect();
+  await page.goto(`/app/calendar/${safeAppointmentId}`);
+  await selectClientVehicle(page, alternateClientName, "Audi A3");
+  await page.getByRole("button", { name: "Guardar turno" }).click();
+  await expect(
+    page.getByText("El turno se actualizó correctamente."),
+  ).toBeVisible();
+
+  const prisma = createTestPrisma();
+  const appointment = await prisma.appointment.findUniqueOrThrow({
+    where: { id: safeAppointmentId },
+    select: { serviceCaseId: true },
+  });
+  await expect(
+    prisma.serviceCase.findUniqueOrThrow({
+      where: { id: appointment.serviceCaseId },
+    }),
+  ).resolves.toMatchObject({
+    clientId: alternateClientId,
+    vehicleId: alternateVehicleId,
+  });
+  await prisma.financialEntry.create({
+    data: {
+      direction: "INFLOW",
+      type: "CUSTOMER_PAYMENT",
+      amountUsd: "100",
+      sourceCurrency: "USD",
+      sourceAmount: "100",
+      occurredAt: new Date(),
+      serviceCaseId: appointment.serviceCaseId,
+    },
+  });
+  await prisma.$disconnect();
+
+  await page.reload();
+  await expect(
+    page.getByText(/información comercial o histórica/),
+  ).toBeVisible();
+  await expect(page.getByRole("combobox", { name: "Cliente *" })).toHaveCount(
+    0,
+  );
 });

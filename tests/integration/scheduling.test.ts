@@ -7,12 +7,15 @@ import {
   createAppointment,
   createCalendarBlock,
   getCalendarRange,
+  updateAppointment,
 } from "@/modules/scheduling/application/scheduling-service";
 
 const email = "build3-calendar@ferraro.test";
 let actorId = "";
 let clientId = "";
 let vehicleId = "";
+let alternateClientId = "";
+let alternateVehicleId = "";
 let categoryId = "";
 let serviceId = "";
 const appointmentIds: string[] = [];
@@ -31,6 +34,19 @@ describe("service cases and scheduling integration", () => {
       data: { clientId, brand: "BMW", model: "M3" },
     });
     vehicleId = vehicle.id;
+    const alternateClient = await prisma.client.create({
+      data: { displayName: "Cliente Reasignación Test" },
+    });
+    alternateClientId = alternateClient.id;
+    alternateVehicleId = (
+      await prisma.vehicle.create({
+        data: {
+          clientId: alternateClientId,
+          brand: "Audi",
+          model: "A3",
+        },
+      })
+    ).id;
     const category = await prisma.serviceCategory.create({
       data: { name: `Agenda ${crypto.randomUUID()}` },
     });
@@ -59,11 +75,23 @@ describe("service cases and scheduling integration", () => {
       where: { reason: { startsWith: "Build 3" } },
     });
     await prisma.idempotencyKey.deleteMany({ where: { actorId } });
-    await prisma.serviceCase.deleteMany({ where: { clientId } });
+    const cases = await prisma.serviceCase.findMany({
+      where: { clientId: { in: [clientId, alternateClientId] } },
+      select: { id: true },
+    });
+    await prisma.financialEntry.deleteMany({
+      where: { serviceCaseId: { in: cases.map((item) => item.id) } },
+    });
+    await prisma.serviceCase.deleteMany({
+      where: { id: { in: cases.map((item) => item.id) } },
+    });
     await prisma.service.deleteMany({ where: { id: serviceId } });
     await prisma.serviceCategory.deleteMany({ where: { id: categoryId } });
     await prisma.vehicle.deleteMany({ where: { id: vehicleId } });
-    await prisma.client.deleteMany({ where: { id: clientId } });
+    await prisma.vehicle.deleteMany({ where: { id: alternateVehicleId } });
+    await prisma.client.deleteMany({
+      where: { id: { in: [clientId, alternateClientId] } },
+    });
     await prisma.user.deleteMany({ where: { email } });
     await prisma.$disconnect();
   });
@@ -116,6 +144,95 @@ describe("service cases and scheduling integration", () => {
     expect(
       result.appointments.filter((item) => appointmentIds.includes(item.id)),
     ).toHaveLength(2);
+  });
+
+  it("reassigns a safe direct appointment transactionally", async () => {
+    const created = await createAppointment(
+      {
+        clientId,
+        vehicleId,
+        startLocal: "2026-10-18T09:00",
+        endLocal: "2026-10-18T10:00",
+        serviceIds: [serviceId],
+        employeeIds: [],
+        visibleToClient: true,
+        idempotencyKey: crypto.randomUUID(),
+      },
+      { id: actorId },
+    );
+    appointmentIds.push(created.id);
+    await updateAppointment(
+      created.id,
+      {
+        clientId: alternateClientId,
+        vehicleId: alternateVehicleId,
+        startLocal: "2026-10-18T09:30",
+        endLocal: "2026-10-18T10:30",
+        serviceIds: [serviceId],
+        employeeIds: [],
+        visibleToClient: false,
+      },
+      { id: actorId },
+    );
+    const stored = await prisma.appointment.findUniqueOrThrow({
+      where: { id: created.id },
+      include: { serviceCase: true },
+    });
+    expect(stored.serviceCase).toMatchObject({
+      clientId: alternateClientId,
+      vehicleId: alternateVehicleId,
+    });
+  });
+
+  it("blocks reassignment when the case has financial history", async () => {
+    const created = await createAppointment(
+      {
+        clientId,
+        vehicleId,
+        startLocal: "2026-10-19T09:00",
+        endLocal: "2026-10-19T10:00",
+        serviceIds: [],
+        employeeIds: [],
+        visibleToClient: true,
+        idempotencyKey: crypto.randomUUID(),
+      },
+      { id: actorId },
+    );
+    appointmentIds.push(created.id);
+    const appointment = await prisma.appointment.findUniqueOrThrow({
+      where: { id: created.id },
+      select: { serviceCaseId: true },
+    });
+    await prisma.financialEntry.create({
+      data: {
+        direction: "INFLOW",
+        type: "CUSTOMER_PAYMENT",
+        amountUsd: "100",
+        sourceCurrency: "USD",
+        sourceAmount: "100",
+        occurredAt: new Date(),
+        serviceCaseId: appointment.serviceCaseId,
+      },
+    });
+    await expect(
+      updateAppointment(
+        created.id,
+        {
+          clientId: alternateClientId,
+          vehicleId: alternateVehicleId,
+          startLocal: "2026-10-19T09:00",
+          endLocal: "2026-10-19T10:00",
+          serviceIds: [],
+          employeeIds: [],
+          visibleToClient: true,
+        },
+        { id: actorId },
+      ),
+    ).rejects.toThrow("APPOINTMENT_IDENTITY_LOCKED");
+    const serviceCase = await prisma.serviceCase.findUniqueOrThrow({
+      where: { id: appointment.serviceCaseId },
+    });
+    expect(serviceCase).toMatchObject({ clientId, vehicleId });
   });
 
   it("blocks new reservations but cancellation never creates a job", async () => {
