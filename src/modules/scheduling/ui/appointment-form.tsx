@@ -84,11 +84,12 @@ export function AppointmentForm({
       <section className={styles.formSection}>
         <div className={styles.formSectionHeading}>
           <h2>Cliente y vehículo</h2>
-          <p>
-            {isEdit
-              ? "La identidad sólo puede cambiar cuando el caso todavía no tiene historial comercial."
-              : "El caso comercial se crea automáticamente."}
-          </p>
+          {isEdit ? (
+            <p>
+              La identidad sólo puede cambiar cuando el caso todavía no tiene
+              historial comercial.
+            </p>
+          ) : null}
         </div>
         {identityLocked ? (
           <>

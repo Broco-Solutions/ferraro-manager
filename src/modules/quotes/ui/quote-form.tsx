@@ -129,7 +129,6 @@ export function QuoteForm({
       <section className="form-section">
         <div className="form-section-heading">
           <h2>Cliente y vehículo</h2>
-          <p>La propuesta siempre queda asociada al propietario correcto.</p>
         </div>
         <ClientVehiclePicker
           initialClientId={values.clientId}
@@ -137,7 +136,7 @@ export function QuoteForm({
           initialVehicleId={values.vehicleId}
           initialVehicles={options.vehicles}
         />
-        <div className="form-grid">
+        <div className={`${styles.dateGrid} form-grid`}>
           <label className="field-group">
             <span>Fecha *</span>
             <input
@@ -158,7 +157,7 @@ export function QuoteForm({
         </div>
       </section>
       <section className="quote-lines-section">
-        <div className="form-grid two-columns">
+        <div className={`${styles.currencyGrid} form-grid two-columns`}>
           <label className="field-group">
             <span>Moneda del presupuesto</span>
             <select
@@ -188,10 +187,6 @@ export function QuoteForm({
             <input type="hidden" name="exchangeRateArsPerUsd" value="" />
           )}
         </div>
-        <small>
-          Elegí la moneda antes de cargar importes; cambiarla no transforma
-          valores ya ingresados.
-        </small>
         <div className="section-heading">
           <div>
             <p className="eyebrow">Propuesta</p>
@@ -382,10 +377,6 @@ export function QuoteForm({
               ? "Guardar borrador"
               : "Crear presupuesto"}
         </button>
-        <small className={styles.serverNote}>
-          El servidor verifica los importes con precisión decimal antes de
-          guardar.
-        </small>
       </aside>
     </form>
   );

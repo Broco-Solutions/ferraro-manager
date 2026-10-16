@@ -362,98 +362,100 @@ export function ClientVehiclePicker({
     <div className={styles.picker}>
       <input name="clientId" type="hidden" value={clientId} />
       <input name="vehicleId" type="hidden" value={vehicleId} />
-      <ComboBox
-        allowsCustomValue={false}
-        inputValue={clientInput}
-        menuTrigger="input"
-        onInputChange={(value) => {
-          setClientInput(value);
-          setClientLoading(true);
-          const selected = clients.find((client) => client.id === clientId);
-          if (selected && value !== selected.displayName) {
-            setClientId("");
-            setVehicleId("");
-            setVehicleInput("");
-            setVehicles([]);
-          }
-        }}
-        onSelectionChange={(key) => {
-          if (key) selectClient(String(key));
-        }}
-        selectedKey={clientId || null}
-      >
-        <Label>Cliente *</Label>
-        <div className={styles.comboControl}>
-          <Input
-            aria-busy={clientLoading || undefined}
-            aria-describedby={clientError ? "client-picker-error" : undefined}
-            aria-invalid={Boolean(clientError) || undefined}
-            placeholder="Buscar por nombre, teléfono o email"
-            required
-          />
-          <AriaButton
-            aria-label="Mostrar clientes"
-            className={styles.comboButton}
-          >
-            {clientLoading ? (
-              <SpinnerGapIcon aria-hidden className={styles.spinner} />
-            ) : (
-              <CaretDownIcon aria-hidden />
-            )}
-          </AriaButton>
-        </div>
-        {quickMode === null ? (
-          <Popover className={styles.popover} placement="bottom start">
-            <ListBox
-              className={styles.listBox}
-              items={clients}
-              renderEmptyState={() => (
-                <div className={styles.emptyResult}>
-                  No encontramos clientes con esa búsqueda.
-                </div>
-              )}
-            >
-              {(client) => (
-                <ListBoxItem
-                  className={styles.option}
-                  id={client.id}
-                  textValue={client.displayName}
-                >
-                  {({ isSelected }) => (
-                    <>
-                      <span>
-                        <strong>{client.displayName}</strong>
-                        <small>
-                          {[client.phone, client.email]
-                            .filter(Boolean)
-                            .join(" · ") ||
-                            (client.vehicleCount
-                              ? `${client.vehicleCount} vehículo(s)`
-                              : "Sin vehículos")}
-                        </small>
-                      </span>
-                      {isSelected ? (
-                        <CheckIcon aria-hidden weight="bold" />
-                      ) : null}
-                    </>
-                  )}
-                </ListBoxItem>
-              )}
-            </ListBox>
+      <div className={styles.pickerField}>
+        <ComboBox
+          allowsCustomValue={false}
+          inputValue={clientInput}
+          menuTrigger="input"
+          onInputChange={(value) => {
+            setClientInput(value);
+            setClientLoading(true);
+            const selected = clients.find((client) => client.id === clientId);
+            if (selected && value !== selected.displayName) {
+              setClientId("");
+              setVehicleId("");
+              setVehicleInput("");
+              setVehicles([]);
+            }
+          }}
+          onSelectionChange={(key) => {
+            if (key) selectClient(String(key));
+          }}
+          selectedKey={clientId || null}
+        >
+          <Label>Cliente *</Label>
+          <div className={styles.comboControl}>
+            <Input
+              aria-busy={clientLoading || undefined}
+              aria-describedby={clientError ? "client-picker-error" : undefined}
+              aria-invalid={Boolean(clientError) || undefined}
+              placeholder="Buscar por nombre, teléfono o email"
+              required
+            />
             <AriaButton
-              className={styles.createOption}
-              onPress={() => {
-                resetQuickCreate();
-                openQuickCreate("client");
-              }}
+              aria-label="Mostrar clientes"
+              className={styles.comboButton}
             >
-              <PlusIcon aria-hidden />
-              {clientInput.trim()
-                ? `Crear “${clientInput.trim()}”`
-                : "Crear nuevo cliente"}
+              {clientLoading ? (
+                <SpinnerGapIcon aria-hidden className={styles.spinner} />
+              ) : (
+                <CaretDownIcon aria-hidden />
+              )}
             </AriaButton>
-          </Popover>
-        ) : null}
+          </div>
+          {quickMode === null ? (
+            <Popover className={styles.popover} placement="bottom start">
+              <ListBox
+                className={styles.listBox}
+                items={clients}
+                renderEmptyState={() => (
+                  <div className={styles.emptyResult}>
+                    No encontramos clientes con esa búsqueda.
+                  </div>
+                )}
+              >
+                {(client) => (
+                  <ListBoxItem
+                    className={styles.option}
+                    id={client.id}
+                    textValue={client.displayName}
+                  >
+                    {({ isSelected }) => (
+                      <>
+                        <span>
+                          <strong>{client.displayName}</strong>
+                          <small>
+                            {[client.phone, client.email]
+                              .filter(Boolean)
+                              .join(" · ") ||
+                              (client.vehicleCount
+                                ? `${client.vehicleCount} vehículo(s)`
+                                : "Sin vehículos")}
+                          </small>
+                        </span>
+                        {isSelected ? (
+                          <CheckIcon aria-hidden weight="bold" />
+                        ) : null}
+                      </>
+                    )}
+                  </ListBoxItem>
+                )}
+              </ListBox>
+              <AriaButton
+                className={styles.createOption}
+                onPress={() => {
+                  resetQuickCreate();
+                  openQuickCreate("client");
+                }}
+              >
+                <PlusIcon aria-hidden />
+                {clientInput.trim()
+                  ? `Crear “${clientInput.trim()}”`
+                  : "Crear nuevo cliente"}
+              </AriaButton>
+            </Popover>
+          ) : null}
+        </ComboBox>
         {!clientId ? (
           <button
             className={styles.inlineCreateClient}
@@ -469,132 +471,138 @@ export function ClientVehiclePicker({
               : "Crear nuevo cliente"}
           </button>
         ) : null}
-      </ComboBox>
-      {clientError ? (
-        <small
-          className={styles.fieldError}
-          id="client-picker-error"
-          role="alert"
-        >
-          {clientError}
-        </small>
-      ) : null}
-
-      <ComboBox
-        allowsCustomValue={false}
-        inputValue={vehicleInput}
-        isDisabled={!clientId}
-        menuTrigger="input"
-        onInputChange={(value) => {
-          setVehicleInput(value);
-          setVehicleLoading(true);
-          const selected = vehicles.find((vehicle) => vehicle.id === vehicleId);
-          if (selected && value !== vehicleLabel(selected)) setVehicleId("");
-        }}
-        onSelectionChange={(key) => {
-          if (!key) return;
-          const vehicle = vehicles.find((item) => item.id === String(key));
-          if (vehicle) {
-            setVehicleId(vehicle.id);
-            setVehicleInput(vehicleLabel(vehicle));
-          }
-        }}
-        selectedKey={vehicleId || null}
-      >
-        <Label>Vehículo *</Label>
-        <div className={styles.comboControl}>
-          <Input
-            aria-busy={vehicleLoading || undefined}
-            aria-describedby={vehicleError ? "vehicle-picker-error" : undefined}
-            aria-invalid={Boolean(vehicleError) || undefined}
-            placeholder={
-              clientId
-                ? "Buscar por marca, modelo, versión o año"
-                : "Primero seleccioná un cliente"
-            }
-            required
-          />
-          <AriaButton
-            aria-label="Mostrar vehículos"
-            className={styles.comboButton}
+        {clientError ? (
+          <small
+            className={styles.fieldError}
+            id="client-picker-error"
+            role="alert"
           >
-            {vehicleLoading ? (
-              <SpinnerGapIcon aria-hidden className={styles.spinner} />
-            ) : (
-              <CaretDownIcon aria-hidden />
-            )}
-          </AriaButton>
-        </div>
-        {quickMode === null ? (
-          <Popover className={styles.popover} placement="bottom start">
-            <ListBox
-              className={styles.listBox}
-              items={vehicles}
-              renderEmptyState={() => (
-                <div className={styles.emptyResult}>
-                  Este cliente todavía no tiene vehículos que coincidan.
-                </div>
-              )}
-            >
-              {(vehicle) => (
-                <ListBoxItem
-                  className={styles.option}
-                  id={vehicle.id}
-                  textValue={vehicleLabel(vehicle)}
-                >
-                  {({ isSelected }) => (
-                    <>
-                      <span>
-                        <strong>
-                          {vehicle.brand} {vehicle.model}
-                        </strong>
-                        <small>
-                          {[vehicle.version, vehicle.year, vehicle.color]
-                            .filter(Boolean)
-                            .join(" · ") || "Sin más datos"}
-                        </small>
-                      </span>
-                      {isSelected ? (
-                        <CheckIcon aria-hidden weight="bold" />
-                      ) : null}
-                    </>
-                  )}
-                </ListBoxItem>
-              )}
-            </ListBox>
-            <AriaButton
-              className={styles.createOption}
-              onPress={() => {
-                setQuickVehicleResult(null);
-                openQuickCreate("vehicle");
-              }}
-            >
-              <PlusIcon aria-hidden /> Agregar vehículo
-            </AriaButton>
-          </Popover>
+            {clientError}
+          </small>
         ) : null}
-      </ComboBox>
-      {vehicleError ? (
-        <small
-          className={styles.fieldError}
-          id="vehicle-picker-error"
-          role="alert"
+      </div>
+
+      <div className={styles.pickerField}>
+        <ComboBox
+          allowsCustomValue={false}
+          inputValue={vehicleInput}
+          isDisabled={!clientId}
+          menuTrigger="input"
+          onInputChange={(value) => {
+            setVehicleInput(value);
+            setVehicleLoading(true);
+            const selected = vehicles.find(
+              (vehicle) => vehicle.id === vehicleId,
+            );
+            if (selected && value !== vehicleLabel(selected)) setVehicleId("");
+          }}
+          onSelectionChange={(key) => {
+            if (!key) return;
+            const vehicle = vehicles.find((item) => item.id === String(key));
+            if (vehicle) {
+              setVehicleId(vehicle.id);
+              setVehicleInput(vehicleLabel(vehicle));
+            }
+          }}
+          selectedKey={vehicleId || null}
         >
-          {vehicleError}
-        </small>
-      ) : null}
-      {clientId && !vehicleLoading && vehicles.length === 0 ? (
-        <div className={styles.noVehicles} role="status">
-          <span>Este cliente todavía no tiene vehículos.</span>
-          <button
-            className={styles.inlineAction}
-            onClick={() => openQuickCreate("vehicle")}
-            type="button"
+          <Label>Vehículo *</Label>
+          <div className={styles.comboControl}>
+            <Input
+              aria-busy={vehicleLoading || undefined}
+              aria-describedby={
+                vehicleError ? "vehicle-picker-error" : undefined
+              }
+              aria-invalid={Boolean(vehicleError) || undefined}
+              placeholder={
+                clientId
+                  ? "Buscar por marca, modelo, versión o año"
+                  : "Primero seleccioná un cliente"
+              }
+              required
+            />
+            <AriaButton
+              aria-label="Mostrar vehículos"
+              className={styles.comboButton}
+            >
+              {vehicleLoading ? (
+                <SpinnerGapIcon aria-hidden className={styles.spinner} />
+              ) : (
+                <CaretDownIcon aria-hidden />
+              )}
+            </AriaButton>
+          </div>
+          {quickMode === null ? (
+            <Popover className={styles.popover} placement="bottom start">
+              <ListBox
+                className={styles.listBox}
+                items={vehicles}
+                renderEmptyState={() => (
+                  <div className={styles.emptyResult}>
+                    Este cliente todavía no tiene vehículos que coincidan.
+                  </div>
+                )}
+              >
+                {(vehicle) => (
+                  <ListBoxItem
+                    className={styles.option}
+                    id={vehicle.id}
+                    textValue={vehicleLabel(vehicle)}
+                  >
+                    {({ isSelected }) => (
+                      <>
+                        <span>
+                          <strong>
+                            {vehicle.brand} {vehicle.model}
+                          </strong>
+                          <small>
+                            {[vehicle.version, vehicle.year, vehicle.color]
+                              .filter(Boolean)
+                              .join(" · ") || "Sin más datos"}
+                          </small>
+                        </span>
+                        {isSelected ? (
+                          <CheckIcon aria-hidden weight="bold" />
+                        ) : null}
+                      </>
+                    )}
+                  </ListBoxItem>
+                )}
+              </ListBox>
+              <AriaButton
+                className={styles.createOption}
+                onPress={() => {
+                  setQuickVehicleResult(null);
+                  openQuickCreate("vehicle");
+                }}
+              >
+                <PlusIcon aria-hidden /> Agregar vehículo
+              </AriaButton>
+            </Popover>
+          ) : null}
+        </ComboBox>
+        {vehicleError ? (
+          <small
+            className={styles.fieldError}
+            id="vehicle-picker-error"
+            role="alert"
           >
-            Agregar vehículo
-          </button>
-        </div>
-      ) : null}
+            {vehicleError}
+          </small>
+        ) : null}
+        {clientId && !vehicleLoading && vehicles.length === 0 ? (
+          <div className={styles.noVehicles} role="status">
+            <span>Este cliente todavía no tiene vehículos.</span>
+            <button
+              className={styles.inlineAction}
+              onClick={() => openQuickCreate("vehicle")}
+              type="button"
+            >
+              Agregar vehículo
+            </button>
+          </div>
+        ) : null}
+      </div>
 
       <ModalOverlay
         className={styles.overlay}
