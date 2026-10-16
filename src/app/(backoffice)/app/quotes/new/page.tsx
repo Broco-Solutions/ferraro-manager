@@ -37,19 +37,10 @@ export default async function NewQuotePage() {
           </p>
         </div>
       </header>
-      {options.clients.length ? (
-        <QuoteForm
-          options={options}
-          values={{ issuedOn: today, validUntil: addCivilDays(today, 15) }}
-        />
-      ) : (
-        <section className="empty-state">
-          <h2>Primero necesitás un cliente con vehículo.</h2>
-          <Link href="/app/clients/new" className="ghost-button button-link">
-            Crear cliente
-          </Link>
-        </section>
-      )}
+      <QuoteForm
+        options={options}
+        values={{ issuedOn: today, validUntil: addCivilDays(today, 15) }}
+      />
     </div>
   );
 }

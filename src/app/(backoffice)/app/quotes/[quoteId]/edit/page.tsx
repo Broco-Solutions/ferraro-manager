@@ -19,12 +19,10 @@ export default async function EditQuotePage({
 }) {
   await requireRole("ADMIN");
   const { quoteId } = await params;
-  const [quote, raw] = await Promise.all([
-    getQuoteDetail(quoteId),
-    listQuoteOptions(),
-  ]);
+  const quote = await getQuoteDetail(quoteId);
   if (!quote) notFound();
   if (quote.status !== "DRAFT") redirect(`/app/quotes/${quote.id}`);
+  const raw = await listQuoteOptions(quote.clientId, quote.vehicleId);
   const options = {
     ...raw,
     services: raw.services.map((service) => ({

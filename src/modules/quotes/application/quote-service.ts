@@ -4,6 +4,10 @@ import type { Prisma } from "@/generated/prisma/client";
 import { brandConfig } from "@/config/brand";
 import { prisma } from "@/infrastructure/db/client";
 import {
+  searchClientPickerOptions,
+  searchVehiclePickerOptions,
+} from "@/modules/clients/application/client-service";
+import {
   renderQuotePdf,
   type QuotePdfData,
 } from "@/infrastructure/pdf/quote-document";
@@ -326,21 +330,18 @@ export async function duplicateQuote(quoteId: string, actor: Actor) {
   );
 }
 
-export async function listQuoteOptions() {
-  const [clients, services] = await Promise.all([
-    prisma.client.findMany({
-      where: { active: true, vehicles: { some: { active: true } } },
-      select: {
-        id: true,
-        displayName: true,
-        vehicles: {
-          where: { active: true },
-          select: { id: true, brand: true, model: true, year: true },
-          orderBy: [{ brand: "asc" }, { model: "asc" }],
-        },
-      },
-      orderBy: { displayName: "asc" },
-    }),
+export async function listQuoteOptions(
+  selectedClientId?: string,
+  selectedVehicleId?: string,
+) {
+  const [clients, vehicles, services] = await Promise.all([
+    searchClientPickerOptions({ selectedId: selectedClientId }),
+    selectedClientId
+      ? searchVehiclePickerOptions({
+          clientId: selectedClientId,
+          selectedId: selectedVehicleId,
+        })
+      : [],
     prisma.service.findMany({
       where: { active: true, category: { active: true } },
       select: {
@@ -353,7 +354,7 @@ export async function listQuoteOptions() {
       orderBy: [{ category: { sortOrder: "asc" } }, { sortOrder: "asc" }],
     }),
   ]);
-  return { clients, services };
+  return { clients, vehicles, services };
 }
 
 export async function listQuotes(options: {

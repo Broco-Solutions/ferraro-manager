@@ -2,11 +2,16 @@
 
 import { useActionState, useMemo, useState } from "react";
 
+import { ClientVehiclePicker } from "@/modules/clients/ui/client-vehicle-picker";
 import {
   saveQuoteAction,
   type QuoteFormState,
 } from "@/modules/quotes/application/actions";
 import { usdToArsText } from "@/modules/money/domain/money-text";
+import {
+  calculateQuoteSummary,
+  formatQuoteMoney,
+} from "@/modules/quotes/domain/quote-summary";
 
 import styles from "./quotes.module.css";
 
@@ -16,12 +21,19 @@ interface QuoteOptions {
   clients: {
     id: string;
     displayName: string;
-    vehicles: {
-      id: string;
-      brand: string;
-      model: string;
-      year: number | null;
-    }[];
+    phone: string | null;
+    email: string | null;
+    vehicleCount: number;
+  }[];
+  vehicles: {
+    id: string;
+    clientId: string;
+    brand: string;
+    model: string;
+    version: string | null;
+    year: number | null;
+    color: string | null;
+    vehicleClass: "SEDAN" | "SUV" | "PICKUP" | "OTHER" | null;
   }[];
   services: {
     id: string;
@@ -79,12 +91,6 @@ export function QuoteForm({
     saveQuoteAction,
     initialState,
   );
-  const firstClient = values.clientId ?? options.clients[0]?.id ?? "";
-  const [clientId, setClientId] = useState(firstClient);
-  const selectedClient = options.clients.find((item) => item.id === clientId);
-  const [vehicleId, setVehicleId] = useState(
-    values.vehicleId ?? selectedClient?.vehicles[0]?.id ?? "",
-  );
   const [lines, setLines] = useState<Line[]>(
     values.items?.length
       ? values.items.map((item) => ({ ...item, key: crypto.randomUUID() }))
@@ -99,18 +105,10 @@ export function QuoteForm({
   const [exchangeRate, setExchangeRate] = useState(
     values.exchangeRateArsPerUsd ?? "",
   );
-  const summary = useMemo(() => {
-    const subtotal = lines.reduce((sum, line) => {
-      const quantity = Number(line.quantity) || 0;
-      const price = Number(line.unitPriceUsd) || 0;
-      const discount = Number(line.discountUsd) || 0;
-      return sum + Math.max(0, quantity * price - discount);
-    }, 0);
-    return {
-      subtotal,
-      total: Math.max(0, subtotal - (Number(globalDiscount) || 0)),
-    };
-  }, [lines, globalDiscount]);
+  const summary = useMemo(
+    () => calculateQuoteSummary(lines, globalDiscount, exchangeRate),
+    [exchangeRate, globalDiscount, lines],
+  );
 
   function updateLine(key: string, patch: Partial<Line>) {
     setLines((current) =>
@@ -133,45 +131,13 @@ export function QuoteForm({
           <h2>Cliente y vehículo</h2>
           <p>La propuesta siempre queda asociada al propietario correcto.</p>
         </div>
+        <ClientVehiclePicker
+          initialClientId={values.clientId}
+          initialClients={options.clients}
+          initialVehicleId={values.vehicleId}
+          initialVehicles={options.vehicles}
+        />
         <div className="form-grid">
-          <label className="field-group">
-            <span>Cliente *</span>
-            <select
-              name="clientId"
-              value={clientId}
-              onChange={(event) => {
-                const next = event.target.value;
-                setClientId(next);
-                setVehicleId(
-                  options.clients.find((item) => item.id === next)?.vehicles[0]
-                    ?.id ?? "",
-                );
-              }}
-              required
-            >
-              {options.clients.map((client) => (
-                <option key={client.id} value={client.id}>
-                  {client.displayName}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="field-group">
-            <span>Vehículo *</span>
-            <select
-              name="vehicleId"
-              value={vehicleId}
-              onChange={(event) => setVehicleId(event.target.value)}
-              required
-            >
-              {selectedClient?.vehicles.map((vehicle) => (
-                <option key={vehicle.id} value={vehicle.id}>
-                  {vehicle.brand} {vehicle.model}
-                  {vehicle.year ? ` · ${vehicle.year}` : ""}
-                </option>
-              ))}
-            </select>
-          </label>
           <label className="field-group">
             <span>Fecha *</span>
             <input
@@ -375,32 +341,39 @@ export function QuoteForm({
         </div>
       </section>
       <aside className={styles.summary} aria-label="Resumen del presupuesto">
-        <div>
+        <header className={styles.summaryHeader}>
+          <span>Resumen del presupuesto</span>
+          <small>Importes estimados</small>
+        </header>
+        <div className={styles.summaryAmount}>
           <span>Subtotal estimado</span>
-          <strong>
-            {currency} {summary.subtotal.toFixed(2)}
-          </strong>
+          <strong>{formatQuoteMoney(summary.subtotal, currency)}</strong>
         </div>
-        <label className="field-group">
-          <span>Descuento general {currency}</span>
+        <label className={styles.discountField}>
+          <span>Descuento general ({currency})</span>
           <input
             name="discountUsd"
             value={globalDiscount}
             onChange={(event) => setGlobalDiscount(event.target.value)}
             inputMode="decimal"
           />
+          <small>
+            Opcional · se descuenta una sola vez del subtotal completo.
+          </small>
         </label>
+        <div className={styles.discountPreview} aria-live="polite">
+          <span>− Descuento general</span>
+          <strong>− {formatQuoteMoney(summary.discount, currency)}</strong>
+        </div>
         <div className={styles.summaryTotal}>
           <span>Total estimado</span>
-          <strong>
-            {currency} {summary.total.toFixed(2)}
-          </strong>
+          <strong>{formatQuoteMoney(summary.total, currency)}</strong>
         </div>
-        {currency === "ARS" && Number(exchangeRate) > 0 ? (
-          <small aria-live="polite">
-            Equivalente estimado · USD{" "}
-            {(summary.total / Number(exchangeRate)).toFixed(2)}
-          </small>
+        {currency === "ARS" && summary.totalUsd !== null ? (
+          <div className={styles.usdEquivalent} aria-live="polite">
+            <span>Equivalente estimado</span>
+            <strong>{formatQuoteMoney(summary.totalUsd, "USD")}</strong>
+          </div>
         ) : null}
         <button className="primary-button" disabled={pending}>
           {pending
@@ -409,7 +382,10 @@ export function QuoteForm({
               ? "Guardar borrador"
               : "Crear presupuesto"}
         </button>
-        <small>El servidor recalcula los importes con precisión decimal.</small>
+        <small className={styles.serverNote}>
+          El servidor verifica los importes con precisión decimal antes de
+          guardar.
+        </small>
       </aside>
     </form>
   );

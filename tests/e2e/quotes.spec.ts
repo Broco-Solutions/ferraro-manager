@@ -11,10 +11,10 @@ import {
 } from "./auth.fixtures";
 
 const clientName = "Presupuesto E2E Cliente";
+const inlineClientName = "Presupuesto E2E Inline";
 const serviceName = "PPF Frontal E2E";
 const categoryName = "Presupuesto E2E Protección";
 let clientId = "";
-let vehicleId = "";
 let serviceId = "";
 const evidenceViewports = [
   ["1440x900", 1440, 900],
@@ -48,6 +48,27 @@ async function captureEvidence(page: Page) {
   }
 }
 
+async function captureFormEvidence(page: Page) {
+  if (!process.env.FE_EVIDENCE_DIR) return;
+  for (const [name, width, height] of evidenceViewports) {
+    await page.setViewportSize({ width, height });
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            document.documentElement.scrollWidth <=
+            document.documentElement.clientWidth,
+        ),
+      )
+      .toBe(true);
+    await page.getByLabel("Resumen del presupuesto").scrollIntoViewIfNeeded();
+    await page.screenshot({
+      fullPage: true,
+      path: `${process.env.FE_EVIDENCE_DIR}/quote-form-${name}.png`,
+    });
+  }
+}
+
 async function login(
   page: Page,
   user: (typeof e2eUsers)[keyof typeof e2eUsers],
@@ -57,14 +78,33 @@ async function login(
   await page.getByLabel("Email").fill(user.email);
   await page.getByRole("textbox", { name: "Contraseña" }).fill(user.password);
   await page.getByRole("button", { name: "Ingresar" }).click();
-  await expect(page).toHaveURL(/\/app$/);
+  await expect(page).toHaveURL(/\/app$/, { timeout: 15_000 });
+}
+
+async function selectClientVehicle(
+  page: Page,
+  client: string,
+  vehicle: string,
+) {
+  const clientPicker = page.getByRole("combobox", { name: "Cliente *" });
+  await clientPicker.fill(client);
+  await expect(clientPicker).toHaveAttribute("aria-busy", "true");
+  await expect(clientPicker).not.toHaveAttribute("aria-busy", "true");
+  await clientPicker.press("ArrowDown");
+  await page.getByRole("option", { name: new RegExp(client, "i") }).click();
+  const vehiclePicker = page.getByRole("combobox", { name: "Vehículo *" });
+  await vehiclePicker.fill(vehicle);
+  await expect(vehiclePicker).toHaveAttribute("aria-busy", "true");
+  await expect(vehiclePicker).not.toHaveAttribute("aria-busy", "true");
+  await vehiclePicker.press("ArrowDown");
+  await page.getByRole("option", { name: new RegExp(vehicle, "i") }).click();
 }
 
 async function cleanup() {
   const prisma = createTestPrisma();
   try {
     const clients = await prisma.client.findMany({
-      where: { displayName: clientName },
+      where: { displayName: { startsWith: "Presupuesto E2E" } },
       select: { id: true },
     });
     const clientIds = clients.map((item) => item.id);
@@ -129,17 +169,20 @@ test.beforeAll(async () => {
     clientId = (
       await prisma.client.create({ data: { displayName: clientName } })
     ).id;
-    vehicleId = (
-      await prisma.vehicle.create({
-        data: {
-          clientId,
-          brand: "BMW",
-          model: "M3",
-          year: 2026,
-          color: "Negro",
-        },
-      })
-    ).id;
+    await prisma.vehicle.create({
+      data: {
+        clientId,
+        brand: "BMW",
+        model: "M3",
+        year: 2026,
+        color: "Negro",
+      },
+    });
+    await prisma.client.createMany({
+      data: Array.from({ length: 25 }, (_, index) => ({
+        displayName: `Presupuesto E2E Escala ${String(index).padStart(2, "0")}`,
+      })),
+    });
     const category = await prisma.serviceCategory.create({
       data: { name: categoryName },
     });
@@ -165,12 +208,25 @@ test("ADMIN creates, emits, accepts and converts a quote into the same case appo
   test.setTimeout(90_000);
   await login(page, e2eUsers.admin);
   await page.goto("/app/quotes/new");
-  await page.getByLabel("Cliente *").selectOption(clientId);
-  await page.getByLabel("Vehículo *").selectOption(vehicleId);
+  await selectClientVehicle(page, clientName, "BMW M3");
   await page.getByLabel("Desde catálogo").selectOption(serviceId);
   await expect(page.getByLabel("Nombre *")).toHaveValue(serviceName);
-  await page.getByLabel("Descuento general USD").fill("50");
+  await page.getByLabel("Descuento general (USD)").fill("50");
   await page.getByLabel("Observaciones").fill("Propuesta E2E premium");
+  const summary = page.getByLabel("Resumen del presupuesto");
+  await expect(summary.getByText("Subtotal estimado")).toBeVisible();
+  await expect(summary.getByText("Descuento general (USD)")).toBeVisible();
+  await expect(
+    summary.getByText(/se descuenta una sola vez del subtotal completo/i),
+  ).toBeVisible();
+  await expect(summary.getByText("USD 850,00")).toBeVisible();
+  await expect(summary.getByText("− USD 50,00")).toBeVisible();
+  await expect(summary.getByText("USD 800,00")).toBeVisible();
+  const formAccessibility = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(formAccessibility.violations).toEqual([]);
+  await captureFormEvidence(page);
   await page.getByRole("button", { name: "Crear presupuesto" }).click();
   await expect(page.getByText("El borrador quedó guardado.")).toBeVisible();
   await expect(page.getByText("USD 800.00").last()).toBeVisible();
@@ -238,6 +294,62 @@ test("ADMIN creates, emits, accepts and converts a quote into the same case appo
   }
 });
 
+test("inline client with two vehicles preserves quote lines and the new route avoids the recoverable boundary", async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  const pageErrors: string[] = [];
+  const serverErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+  page.on("response", (response) => {
+    if (response.status() >= 500) serverErrors.push(response.url());
+  });
+  await login(page, e2eUsers.admin);
+  await page.goto("/app/quotes/new");
+  await expect(page.getByText("Error recuperable")).toHaveCount(0);
+  await page.getByLabel("Desde catálogo").selectOption(serviceId);
+  await page.getByLabel("Observaciones").fill("Debe conservarse inline");
+
+  const clientPicker = page.getByRole("combobox", { name: "Cliente *" });
+  await clientPicker.fill(inlineClientName);
+  await expect(clientPicker).toHaveAttribute("aria-busy", "true");
+  await expect(clientPicker).not.toHaveAttribute("aria-busy", "true");
+  await clientPicker.press("ArrowDown");
+  await page
+    .getByRole("button", { name: `Crear “${inlineClientName}”` })
+    .click();
+  const dialog = page.getByRole("dialog", {
+    name: "Crear cliente y vehículos",
+  });
+  await dialog.getByLabel("Email").fill("quote-inline@ferraro.test");
+  await dialog.getByLabel("Marca *").fill("Mercedes-Benz");
+  await dialog.getByLabel("Modelo *").fill("A200");
+  await dialog.getByRole("button", { name: "Agregar otro" }).click();
+  await dialog.getByLabel("Marca *").nth(1).fill("Volkswagen");
+  await dialog.getByLabel("Modelo *").nth(1).fill("Golf GTI");
+  await dialog.getByRole("button", { name: "Crear y continuar" }).click();
+  await expect(dialog).toBeHidden();
+  await expect(page.getByLabel("Nombre *")).toHaveValue(serviceName);
+  await expect(page.getByLabel("Observaciones")).toHaveValue(
+    "Debe conservarse inline",
+  );
+  await expect(page.getByRole("combobox", { name: "Vehículo *" })).toHaveValue(
+    /Mercedes-Benz.*A200/,
+  );
+  await page.getByRole("button", { name: "Crear presupuesto" }).click();
+  await expect(page.getByText("El borrador quedó guardado.")).toBeVisible();
+  expect(pageErrors).toEqual([]);
+  expect(serverErrors).toEqual([]);
+
+  const prisma = createTestPrisma();
+  await expect(
+    prisma.vehicle.count({
+      where: { client: { displayName: inlineClientName } },
+    }),
+  ).resolves.toBe(2);
+  await prisma.$disconnect();
+});
+
 test("STAFF cannot access quote data or its PDF route", async ({ page }) => {
   await login(page, e2eUsers.staff);
   await page.goto("/app/quotes");
@@ -258,12 +370,14 @@ test("ADMIN issues an ARS quote and acceptance stores canonical USD on its case"
 }) => {
   await login(page, e2eUsers.admin);
   await page.goto("/app/quotes/new");
-  await page.getByLabel("Cliente *").selectOption(clientId);
-  await page.getByLabel("Vehículo *").selectOption(vehicleId);
+  await selectClientVehicle(page, clientName, "BMW M3");
   await page.getByLabel("Moneda del presupuesto").selectOption("ARS");
   await page.getByLabel("Cotización ARS/USD *").fill("1560");
   await page.getByLabel("Desde catálogo").selectOption(serviceId);
   await page.getByLabel("Precio unitario ARS *").fill("780000");
+  await expect(
+    page.getByLabel("Resumen del presupuesto").getByText("USD 500,00"),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Crear presupuesto" }).click();
   await expect(page.getByText("El borrador quedó guardado.")).toBeVisible();
   await expect(page.getByText("ARS 780000.00").last()).toBeVisible();
