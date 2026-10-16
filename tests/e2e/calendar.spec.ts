@@ -257,8 +257,11 @@ test("quick-create keeps appointment state, creates two vehicles and avoids a st
   expect(dialogAxe.violations).toEqual([]);
   if (process.env.FE_EVIDENCE_DIR) {
     await page.setViewportSize({ width: 390, height: 844 });
+    await dialog
+      .getByRole("heading", { name: "Crear cliente y vehículos" })
+      .scrollIntoViewIfNeeded();
     await page.screenshot({
-      path: `${process.env.FE_EVIDENCE_DIR}/calendar-quick-create-390x844.png`,
+      path: `${process.env.FE_EVIDENCE_DIR}/calendar-quick-create-top-390x844.png`,
     });
   }
   await dialog.getByRole("button", { name: "Crear y continuar" }).click();

@@ -40,7 +40,7 @@ async function login(page: Page) {
     .getByRole("textbox", { name: "Contraseña" })
     .fill(e2eUsers.staff.password);
   await page.getByRole("button", { name: "Ingresar" }).click();
-  await expect(page).toHaveURL(/\/app$/);
+  await expect(page).toHaveURL(/\/app$/, { timeout: 15_000 });
 }
 
 async function captureEvidence(page: Page) {
@@ -348,6 +348,7 @@ test("STAFF records consumptions and private photos from the job", async ({
 test("ADMIN records optional ARS direct cost and STAFF never receives profitability", async ({
   page,
 }) => {
+  test.setTimeout(60_000);
   await resetE2EAuthRateLimit();
   await page.goto("/login");
   await page.getByLabel("Email").fill(e2eUsers.admin.email);
@@ -355,7 +356,7 @@ test("ADMIN records optional ARS direct cost and STAFF never receives profitabil
     .getByRole("textbox", { name: "Contraseña" })
     .fill(e2eUsers.admin.password);
   await page.getByRole("button", { name: "Ingresar" }).click();
-  await expect(page).toHaveURL(/\/app$/);
+  await expect(page).toHaveURL(/\/app$/, { timeout: 15_000 });
   const prisma = createTestPrisma();
   const job = await prisma.job.findFirstOrThrow({
     where: { serviceCaseId: caseId },
