@@ -255,3 +255,25 @@ El alta de usuarios sólo era posible con `admin:bootstrap`, porque el signup p�
 - No hay migración: se reutilizan `role`, `active` y `lastLoginAt`.
 - No hay envío de emails ni invitaciones; la contraseña se comparte por fuera del sistema.
 - Un ADMIN que restablece su propia contraseña cierra su sesión y debe volver a ingresar.
+
+## DEC-012 — Identidad editable sólo antes de historia comercial
+
+- **Fecha:** 2026-10-16
+- **Estado:** aceptada
+- **Build afectado:** flujo cliente → vehículo
+
+### Contexto
+
+Crear turnos y presupuestos obligaba a navegar primero por Clientes, y la edición de turno bloqueaba siempre cliente/vehículo. Desbloquearla sin reglas permitiría reescribir la identidad de un `ServiceCase` que ya posee presupuesto, cobros, costos o trabajos históricos.
+
+### Decisión
+
+Agenda y Presupuestos comparten `ClientVehiclePicker`, con búsqueda server-side acotada y quick create transaccional. Clientes activos sin vehículo siguen siendo elegibles. Un alta se bloquea por teléfono normalizado o email case-insensitive ya existentes; una coincidencia de nombre sólo sugiere el registro porque los homónimos son válidos.
+
+La reasignación de turno actualiza `ServiceCase.clientId` y `vehicleId` en transacción sólo si el caso tiene origen `DIRECT_APPOINTMENT`, exactamente una appointment y ninguna dependencia comercial o histórica: quote aceptado, job, movimiento financiero, importe acordado, costo directo o revisión económica. El servidor vuelve a comprobar elegibilidad, actividad y pertenencia vehículo→cliente al guardar.
+
+### Consecuencias
+
+- El usuario resuelve cliente y garage sin salir ni perder fecha, servicios, líneas o importes del formulario.
+- Un caso con historia muestra identidad fija y una explicación; para otra identidad corresponde cancelar y crear un turno nuevo según la operación.
+- No hay migración ni constraint por nombre. Las reglas existentes de descuentos, Decimal, permisos e idempotencia no cambian.

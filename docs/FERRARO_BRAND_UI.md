@@ -125,6 +125,14 @@ Evidencia FE-05: `/tmp/ferraro-redesign-evidence/fe05`, seis viewports obligator
 
 Evidencia FE-06: `/tmp/ferraro-redesign-evidence/fe06`, baseline y ocho capturas finales con vacío, solape, multidía, bloqueo y tres estados. Axe WCAG A/AA sin violations, 200% efectivo sin overflow y reduced motion verificado.
 
+## Picker cliente y vehículo
+
+- Agenda y Presupuestos reutilizan `ClientVehiclePicker`: dos combobox React Aria con teclado, foco visible, loading, error y vacíos explícitos. Cliente consulta como máximo 20 resultados server-side después de un debounce corto; vehículo depende siempre del cliente activo seleccionado.
+- Un cliente sin garage sigue siendo seleccionable y muestra “Este cliente todavía no tiene vehículos” con la acción inline correspondiente. Cambiar de cliente limpia inmediatamente el vehículo previo; un único vehículo activo puede autoseleccionarse.
+- Quick create usa un dialog centrado en desktop y sheet inferior en mobile, conserva el formulario que queda detrás y devuelve el foco. Permite cliente más varios vehículos, o sólo un vehículo para el cliente actual. Los errores enfocan el primer control inválido.
+- Coincidencias fuertes por teléfono normalizado o email bloquean el alta y ofrecen usar el registro existente. Nombres equivalentes sin acentos/case sólo sugieren porque pueden existir homónimos.
+- La edición de turno muestra el mismo picker sólo mientras el caso directo carezca de historia comercial. Cuando está bloqueada conserva la identidad como lectura y explica la protección del historial.
+
 ## Relaciones, garage y catálogo
 
 - La lista de clientes es una secuencia plana, no una grilla de cards: nombre/contacto domina, garage resume vehículos reales y estado/acción cierran la fila. En mobile se recompone en dos niveles.
@@ -150,7 +158,7 @@ Evidencia FE-08: `/tmp/ferraro-redesign-evidence/fe08`, seis baselines y seis ca
 ## Presupuestos y documento A4
 
 - La lista es una secuencia de propuestas con número/fecha, cliente/vehículo, total y estado. Borrador, enviado, aceptado, rechazado y vencido tienen texto/icono y semántica propia.
-- El editor reserva una columna oscura para subtotal, descuento y total en desktop; en tablet/mobile el resumen vuelve al flujo. El total visual es orientativo y el servidor conserva el recálculo decimal autoritativo.
+- El editor reserva una columna oscura para subtotal, descuento general y total en desktop; en tablet/mobile el resumen vuelve al flujo. El descuento general permanece editable, se explica como una única resta sobre el subtotal y no reemplaza los descuentos por línea. Separador, jerarquía y amarillo controlado hacen dominante el total. Los montos se presentan con locale `es-AR`; el valor visual es orientativo y el servidor conserva el recálculo Decimal autoritativo.
 - El detalle adopta una hoja clara con regla amarilla controlada, identidades, líneas y total. Las acciones de emitir/aceptar/rechazar/duplicar/agendar permanecen fuera de la hoja y explican su impacto.
 - El PDF usa A4 blanco, una regla amarilla, negro/gris oficiales, Inter Variable embebida y el lockup FERRARO DETAIL vectorial oficial. El logo no se reconstruye con texto ni se rasteriza; sus paths son los del asset verificado.
 - Encabezado, cabecera de tabla, footer y paginación soportan multipágina. La información comercial sigue siendo texto extraíble y legible en impresión en grises.

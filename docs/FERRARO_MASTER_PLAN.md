@@ -639,11 +639,14 @@ No se agregan gráficos si una lista o comparación numérica habilita mejor una
 - Formularios por secciones y progressive disclosure; nunca wizard largo para tareas simples.
 - Defaults: hoy en zona del negocio, duración del servicio, último vehículo usado cuando el contexto lo determina.
 - Autocomplete y creación inline controlada para cliente/vehículo, evitando abandonar el flujo.
+- Agenda y presupuestos comparten un picker cliente→vehículo: búsqueda server-side acotada, clientes sin vehículo visibles, vehículos dependientes y alta transaccional de cliente con uno o varios vehículos. Teléfono/email son duplicados fuertes; nombre similar sólo sugiere.
 - Feedback en toda mutación: pending, éxito y error específico; doble submit bloqueado.
 - Confirmación sólo para acciones destructivas o de impacto difícil de revertir.
 - Estados distintos: loading, empty, filtered-empty, permission denied y error recuperable.
 - Mantener datos ingresados ante error y colocar foco en el primer campo inválido.
 - Densidad media-alta en desktop; jerarquía y acciones táctiles en mobile.
+
+La identidad de un turno directo sólo puede cambiar antes de generar historia comercial: sin quote aceptado, jobs, movimientos financieros, importes/costos/revisiones ni otras appointments en el mismo caso. Después queda fija y la UI explica por qué; nunca se reescribe historia para simplificar una edición.
 
 ## 34. Responsive Strategy
 

@@ -39,6 +39,14 @@ El checkpoint quedó resuelto el 2026-10-10 mediante el deployment `dpl_4FCq5cKW
 - Ejecutar `pnpm storage:cleanup` al menos diariamente. Sólo elimina intents no confirmados que llevan más de 24 horas expirados; nunca purga fotos confirmadas o borradas lógicamente.
 - Ejecutar `pnpm domain:reconcile` diariamente y después de incidentes. Un exit code distinto de cero bloquea releases y requiere investigar ledger/materializados.
 
+### Smoke test cliente → vehículo
+
+- En `/app/calendar/new` y `/app/quotes/new`, buscar cliente por nombre, teléfono y email; confirmar que un cliente sin vehículo aparece y permite agregarlo inline.
+- Crear un cliente con dos vehículos y comprobar que el turno/presupuesto conserva todo lo ya cargado. Repetir un teléfono o email existente y verificar que ofrece usar el cliente actual sin crear otro.
+- Editar un turno directo sin downstream y reasignarlo; luego repetir sobre un caso con pago, quote aceptado o job y comprobar que la identidad queda bloqueada.
+- En presupuesto USD y ARS, cambiar cantidad, precio, descuento de línea y descuento general. Confirmar subtotal − descuento general = total y equivalente USD para ARS; el servidor debe recalcular al guardar.
+- Si `/app/quotes/new` cae en el error boundary, revisar primero volumen/latencia de las búsquedas server-side, respuestas 5xx y logs de Prisma. La carga inicial no debe volver a traer todos los clientes y vehículos al navegador.
+
 ## Backups
 
 - PostgreSQL productivo debe ser administrado, con backups automáticos y point-in-time recovery. Default recomendado: retención mínima de 14 días.

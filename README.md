@@ -45,6 +45,12 @@ Desarrollo, preview y producción deben usar bases y secretos separados. Producc
 
 El runbook de health, cleanup, backup, restore, migración y rollback está en [`docs/OPERATIONS.md`](./docs/OPERATIONS.md). La aplicación no reemplaza los backups administrados del proveedor.
 
+## Flujo cliente y vehículo
+
+Nuevo turno y nuevo presupuesto comparten un selector buscable de cliente y vehículo. La búsqueda de clientes es server-side y acotada; incluye clientes activos aunque todavía no tengan vehículos. Sin abandonar ni vaciar el formulario se puede crear un cliente con uno o varios vehículos, o agregar un vehículo a un cliente existente. Teléfono normalizado y email bloquean duplicados fuertes; un nombre parecido sólo genera una sugerencia.
+
+En un turno existente la identidad sólo puede reasignarse cuando su `ServiceCase` nació de un turno directo y todavía no tiene presupuesto aceptado, jobs, movimientos financieros, montos/costos/revisiones ni otras visitas. Una vez que existe historia comercial, la UI mantiene cliente y vehículo fijos para preservarla.
+
 ## Ferraro Manager V1
 
 La branch de integración contiene los módulos V1 definidos por el Master Plan: clientes/vehículos, catálogo, agenda, trabajos, presupuestos/PDF, finanzas, inventario, compras, consumos, fotos, portal privado, dashboard y búsqueda. El estado verificable de cada gate está en [`docs/EXECUTION_LOG.md`](./docs/EXECUTION_LOG.md). PPF HOUSE y multi-tenancy permanecen fuera de alcance.
