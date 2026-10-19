@@ -139,6 +139,7 @@ export function IconButton({
 }
 
 interface ConfirmDialogProps {
+  confirmVariant?: ButtonVariant;
   isDisabled?: boolean;
   cancelLabel?: string;
   confirmLabel: string;
@@ -151,6 +152,7 @@ interface ConfirmDialogProps {
 }
 
 export function ConfirmDialog({
+  confirmVariant = "danger",
   isDisabled,
   cancelLabel = "Cancelar",
   confirmLabel,
@@ -183,7 +185,7 @@ export function ConfirmDialog({
                 {cancelLabel}
               </AriaButton>
               <AriaButton
-                className={buttonClassName("danger")}
+                className={buttonClassName(confirmVariant)}
                 isDisabled={isDisabled}
                 onPress={onConfirm}
                 slot="close"

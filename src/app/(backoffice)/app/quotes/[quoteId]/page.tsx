@@ -164,6 +164,7 @@ export default async function QuoteDetailPage({
               <input type="hidden" name="quoteId" value={quote.id} />
               <ConfirmButton
                 className="primary-button"
+                variant="primary"
                 message="¿Confirmar que el cliente aceptó? El total pasará a ser el importe acordado."
               >
                 Marcar aceptado

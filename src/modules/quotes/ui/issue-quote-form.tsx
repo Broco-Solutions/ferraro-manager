@@ -32,6 +32,7 @@ export function IssueQuoteForm({
         </p>
       ) : null}
       <ConfirmButton
+        variant="primary"
         className={buttonClassName}
         disabled={pending}
         message="¿Emitir este presupuesto? Su contenido quedará bloqueado y se generará el PDF definitivo."

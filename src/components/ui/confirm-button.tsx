@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import type { ButtonVariant } from "@/design-system/contracts";
 
 import { ConfirmDialog } from "./overlays";
 
@@ -9,6 +10,7 @@ interface ConfirmButtonProps {
   message: string;
   className?: string;
   disabled?: boolean;
+  variant?: ButtonVariant;
 }
 
 export function ConfirmButton({
@@ -16,12 +18,15 @@ export function ConfirmButton({
   message,
   className,
   disabled,
+  variant = "danger",
 }: ConfirmButtonProps) {
   const anchorRef = useRef<HTMLSpanElement>(null);
 
   return (
     <span ref={anchorRef}>
       <ConfirmDialog
+        triggerVariant={variant}
+        confirmVariant={variant}
         isDisabled={disabled}
         confirmLabel={children}
         description={message}
