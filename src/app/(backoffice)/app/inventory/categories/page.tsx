@@ -62,18 +62,20 @@ export default async function InventoryCategoriesPage() {
               >
                 {category.active ? "Activa" : "Inactiva"}
               </span>
-              <form action={toggleInventoryCategoryAction}>
-                <input type="hidden" name="categoryId" value={category.id} />
-                <input
-                  type="hidden"
-                  name="active"
-                  value={String(!category.active)}
-                />
-                <button className="text-button">
-                  {category.active ? "Desactivar" : "Activar"}
-                </button>
-              </form>
-              <DeleteRecordLink kind="inventoryCategory" id={category.id} />
+              <div className="header-actions">
+                <form action={toggleInventoryCategoryAction}>
+                  <input type="hidden" name="categoryId" value={category.id} />
+                  <input
+                    type="hidden"
+                    name="active"
+                    value={String(!category.active)}
+                  />
+                  <button className="text-button">
+                    {category.active ? "Desactivar" : "Activar"}
+                  </button>
+                </form>
+                <DeleteRecordLink kind="inventoryCategory" id={category.id} />
+              </div>
             </article>
           ))}
         </section>

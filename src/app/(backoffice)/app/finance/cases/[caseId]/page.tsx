@@ -45,15 +45,18 @@ export default async function CaseFinancePage({
         title={summary.client.displayName}
         description={`${summary.vehicle.brand} ${summary.vehicle.model}${summary.vehicle.year ? ` · ${summary.vehicle.year}` : ""}`}
         actions={
-          <Link
-            href={`/app/finance/new?caseId=${caseId}`}
-            className={buttonClassName("primary")}
-          >
-            Registrar cobro
-          </Link>
+          <>
+            <Link
+              href={`/app/finance/new?caseId=${caseId}`}
+              className={buttonClassName("primary")}
+            >
+              Registrar cobro
+            </Link>
+            <DeleteRecordLink kind="serviceCase" id={caseId} />
+          </>
         }
       />
-      <DeleteRecordLink kind="serviceCase" id={caseId} />
+
       {query.amount ? (
         <p className="success-banner">Importe acordado actualizado.</p>
       ) : null}

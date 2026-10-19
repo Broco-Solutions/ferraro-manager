@@ -64,18 +64,20 @@ export default async function FinancialCategoriesPage() {
               >
                 {category.active ? "Activa" : "Archivada"}
               </span>
-              <form action={toggleFinancialCategoryAction}>
-                <input type="hidden" name="categoryId" value={category.id} />
-                <input
-                  type="hidden"
-                  name="active"
-                  value={category.active ? "false" : "true"}
-                />
-                <button className="text-button">
-                  {category.active ? "Archivar" : "Reactivar"}
-                </button>
-              </form>
-              <DeleteRecordLink kind="financialCategory" id={category.id} />
+              <div className="header-actions">
+                <form action={toggleFinancialCategoryAction}>
+                  <input type="hidden" name="categoryId" value={category.id} />
+                  <input
+                    type="hidden"
+                    name="active"
+                    value={category.active ? "false" : "true"}
+                  />
+                  <button className="text-button">
+                    {category.active ? "Archivar" : "Reactivar"}
+                  </button>
+                </form>
+                <DeleteRecordLink kind="financialCategory" id={category.id} />
+              </div>
             </article>
           ))}
         </section>

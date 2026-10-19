@@ -103,48 +103,50 @@ export default async function AppointmentPage({
             </span>
           </div>
         </div>
-        {appointment.status === "CONFIRMED" ? (
-          <div className={styles.actions}>
-            <Link
-              className={styles.button}
-              href={`/app/calendar/${appointment.id}/edit`}
-            >
-              Editar turno
-            </Link>
-            {session.user.role === "ADMIN" ? (
+        <div className={styles.actions}>
+          {appointment.status === "CONFIRMED" ? (
+            <>
               <Link
                 className={styles.button}
-                href={`/app/finance/cases/${appointment.serviceCaseId}`}
+                href={`/app/calendar/${appointment.id}/edit`}
               >
-                Ver cobros
+                Editar turno
               </Link>
-            ) : null}
-            <Link
-              className={styles.buttonPrimary}
-              href={`/app/calendar/${appointment.id}/complete`}
-            >
-              Marcar realizado
-            </Link>
-            <form action={cancelAppointmentAction}>
-              <input type="hidden" name="id" value={appointment.id} />
-              <ConfirmButton
-                className={styles.button}
-                message="¿Cancelar este turno? El cliente y el caso se conservarán."
+              {session.user.role === "ADMIN" ? (
+                <Link
+                  className={styles.button}
+                  href={`/app/finance/cases/${appointment.serviceCaseId}`}
+                >
+                  Ver cobros
+                </Link>
+              ) : null}
+              <Link
+                className={styles.buttonPrimary}
+                href={`/app/calendar/${appointment.id}/complete`}
               >
-                Cancelar turno
-              </ConfirmButton>
-            </form>
-          </div>
-        ) : appointment.job ? (
-          <Link
-            className={styles.button}
-            href={`/app/jobs/${appointment.job.id}`}
-          >
-            Ver trabajo
-          </Link>
-        ) : null}
+                Marcar realizado
+              </Link>
+              <form action={cancelAppointmentAction}>
+                <input type="hidden" name="id" value={appointment.id} />
+                <ConfirmButton
+                  className={styles.button}
+                  message="¿Cancelar este turno? El cliente y el caso se conservarán."
+                >
+                  Cancelar turno
+                </ConfirmButton>
+              </form>
+            </>
+          ) : appointment.job ? (
+            <Link
+              className={styles.button}
+              href={`/app/jobs/${appointment.job.id}`}
+            >
+              Ver trabajo
+            </Link>
+          ) : null}
+          <DeleteRecordLink kind="appointment" id={appointment.id} />
+        </div>
       </header>
-      <DeleteRecordLink kind="appointment" id={appointment.id} />
       <section
         className={styles.formSection}
         aria-labelledby="appointment-summary-title"

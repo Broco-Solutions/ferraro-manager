@@ -87,10 +87,11 @@ export default async function QuoteDetailPage({
                 Editar
               </Link>
             ) : null}
+            <DeleteRecordLink kind="quote" id={quote.id} />
           </>
         }
       />
-      <DeleteRecordLink kind="quote" id={quote.id} />
+
       <section className={styles.sheet}>
         <div className={styles.sheetHeader}>
           <div>

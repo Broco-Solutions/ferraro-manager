@@ -14,10 +14,10 @@ export async function DeleteRecordLink({
   if (session.user.role !== "ADMIN") return null;
   return (
     <Link
-      className={buttonClassName("danger", "sm")}
+      className={buttonClassName("danger")}
       href={`${recordManagerPath(kind)}&q=${id}`}
     >
-      Eliminar definitivamente
+      Eliminar
     </Link>
   );
 }

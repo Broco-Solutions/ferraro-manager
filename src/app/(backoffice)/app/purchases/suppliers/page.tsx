@@ -77,18 +77,20 @@ export default async function SuppliersPage() {
               >
                 {supplier.active ? "Activo" : "Inactivo"}
               </span>
-              <form action={toggleSupplierAction}>
-                <input type="hidden" name="supplierId" value={supplier.id} />
-                <input
-                  type="hidden"
-                  name="active"
-                  value={String(!supplier.active)}
-                />
-                <button className="text-button">
-                  {supplier.active ? "Desactivar" : "Activar"}
-                </button>
-              </form>
-              <DeleteRecordLink kind="supplier" id={supplier.id} />
+              <div className="header-actions">
+                <form action={toggleSupplierAction}>
+                  <input type="hidden" name="supplierId" value={supplier.id} />
+                  <input
+                    type="hidden"
+                    name="active"
+                    value={String(!supplier.active)}
+                  />
+                  <button className="text-button">
+                    {supplier.active ? "Desactivar" : "Activar"}
+                  </button>
+                </form>
+                <DeleteRecordLink kind="supplier" id={supplier.id} />
+              </div>
             </article>
           ))}
         </section>

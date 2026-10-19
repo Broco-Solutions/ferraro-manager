@@ -93,10 +93,11 @@ export default async function JobDetailPage({
                 Ver turno
               </Link>
             ) : null}
+            <DeleteRecordLink kind="job" id={job.id} />
           </>
         }
       />
-      <DeleteRecordLink kind="job" id={job.id} />
+
       <section className={styles.summary} aria-label="Resumen del trabajo">
         <div>
           <span>Origen</span>

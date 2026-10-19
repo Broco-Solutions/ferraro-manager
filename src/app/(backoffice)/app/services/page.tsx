@@ -71,14 +71,16 @@ export default async function ServicesPage({
                 <div>
                   <p className={styles.eyebrow}>Categoría</p>
                   <h2>{category.name}</h2>
+                </div>
+                <div className="header-actions">
+                  <span
+                    aria-label={`${category.services.length} servicios`}
+                    className={styles.count}
+                  >
+                    {category.services.length}
+                  </span>
                   <DeleteRecordLink kind="serviceCategory" id={category.id} />
                 </div>
-                <span
-                  aria-label={`${category.services.length} servicios`}
-                  className={styles.count}
-                >
-                  {category.services.length}
-                </span>
               </header>
               {category.services.length ? (
                 <div className={styles.serviceList}>

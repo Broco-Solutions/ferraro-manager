@@ -72,13 +72,15 @@ export default async function InventoryItemPage({
             {item.sku ? `SKU ${item.sku} · ` : ""}medido en {unitLabel}.
           </p>
         </div>
-        <div className={`hero-stock ${low ? "is-low" : ""}`}>
-          <small>Stock actual</small>
-          <strong>{item.currentStock.toFixed(3)}</strong>
-          <span>{unitLabel}</span>
+        <div className="header-actions">
+          <div className={`hero-stock ${low ? "is-low" : ""}`}>
+            <small>Stock actual</small>
+            <strong>{item.currentStock.toFixed(3)}</strong>
+            <span>{unitLabel}</span>
+          </div>
+          <DeleteRecordLink kind="inventoryItem" id={item.id} />
         </div>
       </header>
-      <DeleteRecordLink kind="inventoryItem" id={item.id} />
       {notice.saved ? (
         <p className="success-banner">Artículo guardado.</p>
       ) : null}

@@ -51,22 +51,45 @@ test("staff cannot see permanent deletion or access its management route", async
 }) => {
   await login(page, "staff");
   await page.goto(`/app/clients/${clientId}`);
-  await expect(
-    page.getByRole("link", { name: "Eliminar definitivamente" }),
-  ).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Eliminar" })).toHaveCount(0);
   await page.goto("/app/admin/records");
   await expect(
     page.getByRole("heading", { name: "No tenés acceso a esta sección" }),
   ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Eliminar definitivamente" }),
-  ).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Eliminar" })).toHaveCount(0);
 });
 
 test("admin confirms actual deletion, sees dependencies and can remove an archived client in order", async ({
   page,
 }) => {
   await login(page, "admin");
+  await page.goto(`/app/clients/${clientId}`);
+  const header = page.locator("main header").first();
+  const remove = header.getByRole("link", { name: "Eliminar", exact: true });
+  const edit = header.getByRole("link", { name: "Editar", exact: true });
+  const restore = header.getByRole("button", {
+    name: "Restaurar",
+    exact: true,
+  });
+  await expect(remove).toBeVisible();
+  const boxes = await Promise.all([
+    remove.boundingBox(),
+    edit.boundingBox(),
+    restore.boundingBox(),
+  ]);
+  expect(boxes[0]?.height).toBe(boxes[1]?.height);
+  expect(boxes[0]?.height).toBe(boxes[2]?.height);
+  expect(boxes[0]?.y).toBe(boxes[1]?.y);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(remove).toBeVisible();
+  expect(
+    await page.evaluate(
+      () =>
+        document.documentElement.scrollWidth <=
+        document.documentElement.clientWidth,
+    ),
+  ).toBe(true);
+  await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/app/admin");
   await page
     .getByRole("article")
@@ -86,39 +109,25 @@ test("admin confirms actual deletion, sees dependencies and can remove an archiv
   await expect(
     page.getByRole("article").filter({ hasText: label }),
   ).toBeVisible();
-  await page
-    .getByRole("button", { name: "Eliminar definitivamente", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Eliminar", exact: true }).click();
   const dialog = page.getByRole("alertdialog");
   await expect(dialog).toContainText("no se puede deshacer");
   await dialog.getByRole("button", { name: "Cancelar" }).click();
   await expect(dialog).toHaveCount(0);
-  await page
-    .getByRole("button", { name: "Eliminar definitivamente", exact: true })
-    .click();
-  await dialog
-    .getByRole("button", { name: "Eliminar definitivamente", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Eliminar", exact: true }).click();
+  await dialog.getByRole("button", { name: "Eliminar", exact: true }).click();
   await expect(page.getByRole("main").getByRole("alert")).toContainText(
     "registros asociados",
   );
   await page.getByRole("link", { name: "vehículo (1)", exact: true }).click();
   await expect(page.getByRole("article")).toContainText("Ford Fiesta");
   await expect(page.getByLabel("Tipo de registro")).toHaveValue("vehicle");
-  await page
-    .getByRole("button", { name: "Eliminar definitivamente", exact: true })
-    .click();
-  await dialog
-    .getByRole("button", { name: "Eliminar definitivamente", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Eliminar", exact: true }).click();
+  await dialog.getByRole("button", { name: "Eliminar", exact: true }).click();
   await expect(page.getByRole("status")).toContainText("Registro eliminado");
   await page.goto(`/app/admin/records?kind=client&q=${clientId}`);
-  await page
-    .getByRole("button", { name: "Eliminar definitivamente", exact: true })
-    .click();
-  await dialog
-    .getByRole("button", { name: "Eliminar definitivamente", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Eliminar", exact: true }).click();
+  await dialog.getByRole("button", { name: "Eliminar", exact: true }).click();
   await expect(page.getByRole("status")).toContainText("Registro eliminado");
   const prisma = createTestPrisma();
   try {

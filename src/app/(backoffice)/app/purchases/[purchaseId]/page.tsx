@@ -45,19 +45,22 @@ export default async function PurchaseDetailPage({
         title={purchase.number}
         description={`${formatBusinessDate(purchase.businessDate, { timeZone: "UTC" })}${purchase.reference ? ` · ${purchase.reference}` : ""}`}
         actions={
-          <div className={styles.heroTotal}>
-            <small>Total</small>
-            <strong>USD {purchase.totalUsd.toFixed(2)}</strong>
-            <Badge
-              intent={purchase.status === "POSTED" ? "success" : "danger"}
-              withIcon
-            >
-              {purchase.status === "POSTED" ? "Posteada" : "Anulada"}
-            </Badge>
-          </div>
+          <>
+            <div className={styles.heroTotal}>
+              <small>Total</small>
+              <strong>USD {purchase.totalUsd.toFixed(2)}</strong>
+              <Badge
+                intent={purchase.status === "POSTED" ? "success" : "danger"}
+                withIcon
+              >
+                {purchase.status === "POSTED" ? "Posteada" : "Anulada"}
+              </Badge>
+            </div>
+            <DeleteRecordLink kind="purchase" id={purchase.id} />
+          </>
         }
       />
-      <DeleteRecordLink kind="purchase" id={purchase.id} />
+
       {notice.created ? (
         <p className="success-banner">
           Compra registrada: stock y egreso se actualizaron juntos.

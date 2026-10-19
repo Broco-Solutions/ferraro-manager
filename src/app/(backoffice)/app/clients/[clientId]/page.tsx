@@ -90,6 +90,7 @@ export default async function ClientDetailPage({
                 {client.active ? "Archivar" : "Restaurar"}
               </Button>
             </form>
+            <DeleteRecordLink kind="client" id={client.id} />
           </div>
         }
         description={
@@ -100,7 +101,6 @@ export default async function ClientDetailPage({
         eyebrow={client.active ? "Cliente activo" : "Cliente archivado"}
         title={client.displayName}
       />
-      <DeleteRecordLink kind="client" id={client.id} />
 
       <dl className={styles.detailSummary}>
         <div>
@@ -175,7 +175,6 @@ export default async function ClientDetailPage({
                   </span>
                 </div>
                 <div className={styles.vehicleActions}>
-                  <DeleteRecordLink kind="vehicle" id={vehicle.id} />
                   <Link
                     className={styles.textAction}
                     href={`/app/clients/${client.id}/vehicles/${vehicle.id}/edit`}
@@ -194,6 +193,7 @@ export default async function ClientDetailPage({
                       {vehicle.active ? "Archivar" : "Restaurar"}
                     </button>
                   </form>
+                  <DeleteRecordLink kind="vehicle" id={vehicle.id} />
                 </div>
               </article>
             ))}

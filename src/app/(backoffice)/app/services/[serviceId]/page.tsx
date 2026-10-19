@@ -40,17 +40,20 @@ export default async function ServiceDetailPage({
       ) : null}
       <DetailHeader
         actions={
-          <form action={toggleServiceAction}>
-            <input name="id" type="hidden" value={service.id} />
-            <input
-              name="active"
-              type="hidden"
-              value={String(!service.active)}
-            />
-            <Button type="submit" variant="ghost">
-              {service.active ? "Desactivar" : "Activar"}
-            </Button>
-          </form>
+          <>
+            <form action={toggleServiceAction}>
+              <input name="id" type="hidden" value={service.id} />
+              <input
+                name="active"
+                type="hidden"
+                value={String(!service.active)}
+              />
+              <Button type="submit" variant="ghost">
+                {service.active ? "Desactivar" : "Activar"}
+              </Button>
+            </form>
+            <DeleteRecordLink kind="service" id={service.id} />
+          </>
         }
         description={
           service.basePriceUsd
@@ -64,7 +67,6 @@ export default async function ServiceDetailPage({
         eyebrow={service.category.name}
         title={service.name}
       />
-      <DeleteRecordLink kind="service" id={service.id} />
 
       <ServiceForm
         categories={categories}

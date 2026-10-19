@@ -33,7 +33,7 @@ export function DeleteRecordButton({
           disabled={pending}
           message={`¿Eliminar definitivamente este ${recordLabels[kind]}: «${label}»? Esta acción no se puede deshacer. ${deletionConsequences[kind] ?? ""} Si tiene registros asociados, primero deberás eliminarlos.`}
         >
-          {pending ? "Eliminando…" : "Eliminar definitivamente"}
+          {pending ? "Eliminando…" : "Eliminar"}
         </ConfirmButton>
       </form>
       {state.error ? (
