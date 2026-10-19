@@ -18,7 +18,7 @@ export default async function NewBlockPage({
       ? params.date
       : getBusinessDateKey(new Date());
   return (
-    <div className={styles.formPage}>
+    <div className={styles.formPageMedium}>
       <Link
         className={styles.backLink}
         href={`/app/calendar?view=day&date=${date}`}

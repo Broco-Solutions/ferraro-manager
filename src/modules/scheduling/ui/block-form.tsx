@@ -1,12 +1,14 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
 import {
   saveCalendarBlockAction,
   type SchedulingFormState,
 } from "@/modules/scheduling/application/actions";
 import styles from "@/modules/scheduling/ui/calendar.module.css";
+import { SchedulePicker } from "@/modules/scheduling/ui/schedule-picker";
+import { getBusinessDateKey } from "@/shared/date-time/business-time";
 
 const initialState: SchedulingFormState = { status: "idle" };
 
@@ -21,6 +23,10 @@ export function BlockForm({
     saveCalendarBlockAction,
     initialState,
   );
+  const [schedule, setSchedule] = useState({
+    start: startLocal,
+    end: endLocal,
+  });
   return (
     <form action={action} className={styles.form}>
       {state.message ? (
@@ -42,24 +48,13 @@ export function BlockForm({
               required
             />
           </label>
-          <label className={styles.field}>
-            <span>Inicio *</span>
-            <input
-              type="datetime-local"
-              name="startLocal"
-              defaultValue={startLocal}
-              required
+          <div className={styles.fieldSpan}>
+            <SchedulePicker
+              onChange={setSchedule}
+              today={getBusinessDateKey(new Date())}
+              value={schedule}
             />
-          </label>
-          <label className={styles.field}>
-            <span>Fin *</span>
-            <input
-              type="datetime-local"
-              name="endLocal"
-              defaultValue={endLocal}
-              required
-            />
-          </label>
+          </div>
           <label className={`${styles.toggle} ${styles.fieldSpan}`}>
             <input type="checkbox" name="allDay" />
             <span>Mostrar como día completo</span>

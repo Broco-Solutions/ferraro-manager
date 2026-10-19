@@ -194,14 +194,14 @@ test("STAFF schedules overlapping cars and a block prevents a new reservation", 
   await login(page);
   await page.goto("/app/calendar/new?date=2026-10-15");
   await selectClientVehicle(page, clientName, "BMW M3");
-  await page.getByLabel("Inicio *").fill("2026-10-15T09:00");
-  await page.getByLabel("Fin *").fill("2026-10-15T13:00");
+  await page.getByLabel("Hora de inicio").fill("09:00");
+  await page.getByLabel("Hora de fin").fill("13:00");
   await page.getByText("Cerámico Agenda E2E").click();
   await page.getByRole("button", { name: "Crear turno" }).click();
   await expect(page.getByText("Turno confirmado")).toBeVisible();
   await expect(page.getByText("Turno agendado correctamente.")).toBeVisible();
   await expect(page).toHaveURL(/\/app\/calendar\/[^/?]+\?created=1$/);
-  await expect(page.getByLabel("Inicio *")).toHaveCount(0);
+  await expect(page.getByLabel("Hora de inicio")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Crear turno" })).toHaveCount(
     0,
   );
@@ -209,13 +209,13 @@ test("STAFF schedules overlapping cars and a block prevents a new reservation", 
 
   await page.goto("/app/calendar/new?date=2026-10-15");
   await selectClientVehicle(page, clientName, "BMW M3");
-  await page.getByLabel("Inicio *").fill("2026-10-15T10:00");
-  await page.getByLabel("Fin *").fill("2026-10-15T12:00");
+  await page.getByLabel("Hora de inicio").fill("10:00");
+  await page.getByLabel("Hora de fin").fill("12:00");
   await page.getByRole("button", { name: "Crear turno" }).click();
   await expect(page.getByText("Turno confirmado")).toBeVisible();
   await expect(page.getByText("Turno agendado correctamente.")).toBeVisible();
   await expect(page).toHaveURL(/\/app\/calendar\/[^/?]+\?created=1$/);
-  await expect(page.getByLabel("Inicio *")).toHaveCount(0);
+  await expect(page.getByLabel("Hora de inicio")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Crear turno" })).toHaveCount(
     0,
   );
@@ -223,15 +223,15 @@ test("STAFF schedules overlapping cars and a block prevents a new reservation", 
 
   await page.goto("/app/calendar/blocks/new?date=2026-10-16");
   await page.getByLabel("Motivo *").fill("Agenda E2E bloqueo");
-  await page.getByLabel("Inicio *").fill("2026-10-16T09:00");
-  await page.getByLabel("Fin *").fill("2026-10-16T18:00");
+  await page.getByLabel("Hora de inicio").fill("09:00");
+  await page.getByLabel("Hora de fin").fill("18:00");
   await page.getByRole("button", { name: "Crear bloqueo" }).click();
   await expect(page.getByText("Bloqueo creado correctamente.")).toBeVisible();
 
   await page.goto("/app/calendar/new?date=2026-10-16");
   await selectClientVehicle(page, clientName, "BMW M3");
-  await page.getByLabel("Inicio *").fill("2026-10-16T10:00");
-  await page.getByLabel("Fin *").fill("2026-10-16T12:00");
+  await page.getByLabel("Hora de inicio").fill("10:00");
+  await page.getByLabel("Hora de fin").fill("12:00");
   await page.getByRole("button", { name: "Crear turno" }).click();
   await expect(
     page.getByRole("alert").filter({ hasText: "horario está bloqueado" }),
@@ -244,8 +244,8 @@ test("quick-create keeps appointment state, creates two vehicles and avoids a st
   test.setTimeout(90_000);
   await login(page);
   await page.goto("/app/calendar/new?date=2026-10-20");
-  await page.getByLabel("Inicio *").fill("2026-10-20T10:15");
-  await page.getByLabel("Fin *").fill("2026-10-20T14:15");
+  await page.getByLabel("Hora de inicio").fill("10:15");
+  await page.getByLabel("Hora de fin").fill("14:15");
   await page.getByText("Cerámico Agenda E2E").click();
 
   const clientPicker = page.getByRole("combobox", { name: "Cliente *" });
@@ -255,7 +255,7 @@ test("quick-create keeps appointment state, creates two vehicles and avoids a st
     .getByRole("button", { name: "Cancelar" })
     .click();
   await expect(page.getByRole("dialog")).toBeHidden();
-  await expect(page.getByLabel("Inicio *")).toHaveValue("2026-10-20T10:15");
+  await expect(page.getByLabel("Hora de inicio")).toHaveValue("10:15");
   await page.getByRole("button", { name: "Nuevo cliente + vehículo" }).click();
   const dialog = page.getByRole("dialog", {
     name: "Crear cliente y vehículos",
@@ -288,7 +288,7 @@ test("quick-create keeps appointment state, creates two vehicles and avoids a st
   await expect(page.getByRole("combobox", { name: "Vehículo *" })).toHaveValue(
     /BMW.*M4/,
   );
-  await expect(page.getByLabel("Inicio *")).toHaveValue("2026-10-20T10:15");
+  await expect(page.getByLabel("Hora de inicio")).toHaveValue("10:15");
   await expect(
     page.getByRole("checkbox", { name: /Cerámico Agenda E2E/ }),
   ).toBeChecked();
@@ -297,7 +297,7 @@ test("quick-create keeps appointment state, creates two vehicles and avoids a st
   await expect(page.getByText("Turno confirmado")).toBeVisible();
   await expect(page.getByText("Turno agendado correctamente.")).toBeVisible();
   await expect(page).toHaveURL(/\/app\/calendar\/[^/?]+\?created=1$/);
-  await expect(page.getByLabel("Inicio *")).toHaveCount(0);
+  await expect(page.getByLabel("Hora de inicio")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Crear turno" })).toHaveCount(
     0,
   );
@@ -383,7 +383,10 @@ test("calendar views, date control and status labels remain keyboard accessible"
     page.getByRole("region", { name: "Semana desplazable" }),
   ).toBeVisible();
 
-  await page.getByLabel("Elegir fecha").fill("2026-10-16");
+  await page.getByRole("button", { name: "Elegir fecha" }).click();
+  await page
+    .getByRole("button", { name: /viernes, 16 de octubre de 2026/i })
+    .click();
   await expect(page).toHaveURL(/view=week&date=2026-10-16/);
   await expect(page.getByText("Agenda E2E bloqueo")).toBeVisible();
 
@@ -424,7 +427,7 @@ test("appointment identity can change only before commercial history exists", as
   ).id;
   await lookup.$disconnect();
   await page.goto(`/app/calendar/${safeAppointmentId}`);
-  await expect(page.getByLabel("Inicio *")).toHaveCount(0);
+  await expect(page.getByLabel("Hora de inicio")).toHaveCount(0);
   await page.getByRole("link", { name: "Editar turno" }).click();
   await expect(page).toHaveURL(
     new RegExp(`/app/calendar/${safeAppointmentId}/edit$`),
@@ -479,8 +482,8 @@ test("late, early and overnight appointments remain reachable with wheel, keyboa
   await login(page);
   await page.goto("/app/calendar/new?date=2026-10-25");
   await selectClientVehicle(page, clientName, "BMW M3");
-  await page.getByLabel("Inicio *").fill("2026-10-25T20:00");
-  await page.getByLabel("Fin *").fill("2026-10-25T21:00");
+  await page.getByLabel("Hora de inicio").fill("20:00");
+  await page.getByLabel("Hora de fin").fill("21:00");
   await page.getByRole("button", { name: "Crear turno" }).click();
   await expect(page.getByText("Turno agendado correctamente.")).toBeVisible();
 

@@ -11,6 +11,10 @@ import {
   createCalendarBlock,
   updateAppointment,
 } from "@/modules/scheduling/application/scheduling-service";
+import {
+  type AppointmentTone,
+  isAppointmentTone,
+} from "@/modules/scheduling/domain/appointment-tones";
 
 export interface SchedulingFormState {
   status: "idle" | "error";
@@ -60,6 +64,9 @@ export async function saveAppointmentAction(
     employeeIds: values(formData, "employeeIds"),
     internalNotes: value(formData, "internalNotes"),
     visibleToClient: value(formData, "visibleToClient") === "on",
+    color: isAppointmentTone(value(formData, "color"))
+      ? (value(formData, "color") as AppointmentTone)
+      : null,
   };
   try {
     const appointment = id

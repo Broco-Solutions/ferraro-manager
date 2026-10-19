@@ -31,7 +31,7 @@ export default async function EditAppointmentPage({
   const vehicle = appointment.serviceCase.vehicle;
 
   return (
-    <div className={styles.formPage}>
+    <div className={styles.formPageWide}>
       <Link
         className={styles.backLink}
         href={`/app/calendar/${appointment.id}`}
@@ -65,6 +65,7 @@ export default async function EditAppointmentPage({
           employeeIds: appointment.employees.map((employee) => employee.userId),
           internalNotes: appointment.internalNotes,
           visibleToClient: appointment.visibleToClient,
+          color: appointment.color,
         }}
         identityReassignment={appointment.identityReassignment}
       />

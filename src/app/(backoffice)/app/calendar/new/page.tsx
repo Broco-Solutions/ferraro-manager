@@ -20,7 +20,7 @@ export default async function NewAppointmentPage({
       : getBusinessDateKey(new Date());
   const options = await listSchedulingOptions();
   return (
-    <div className={styles.formPage}>
+    <div className={styles.formPageWide}>
       <Link
         className={styles.backLink}
         href={`/app/calendar?view=day&date=${date}`}

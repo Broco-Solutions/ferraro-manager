@@ -15,6 +15,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { ConfirmButton } from "@/components/ui/confirm-button";
 import { cancelCalendarBlockAction } from "@/modules/scheduling/application/actions";
 import { getCalendarRange } from "@/modules/scheduling/application/scheduling-service";
+import { resolveAppointmentTone } from "@/modules/scheduling/domain/appointment-tones";
 import styles from "@/modules/scheduling/ui/calendar.module.css";
 import { CalendarDateField } from "@/modules/scheduling/ui/date-field";
 import { DayTimelineScroller } from "@/modules/scheduling/ui/day-timeline-scroller";
@@ -248,6 +249,12 @@ function appointmentStatus(status: Appointment["status"]) {
   return { label: "Confirmado", Icon: CalendarCheckIcon };
 }
 
+function statusClassName(status: Appointment["status"]) {
+  if (status === "CANCELLED") return styles.eventCancelled;
+  if (status === "COMPLETED") return styles.eventCompleted;
+  return "";
+}
+
 function TimelineAppointment({
   appointment,
   style,
@@ -257,18 +264,13 @@ function TimelineAppointment({
 }) {
   const status = appointmentStatus(appointment.status);
   const vehicle = appointment.serviceCase.vehicle;
-  const className = `${styles.event} ${
-    appointment.status === "CANCELLED"
-      ? styles.eventCancelled
-      : appointment.status === "COMPLETED"
-        ? styles.eventCompleted
-        : ""
-  }`;
+  const className = `${styles.event} ${styles.toned} ${statusClassName(appointment.status)}`;
 
   return (
     <Link
       aria-label={`${formatBusinessTime(appointment.startAt)} a ${formatBusinessTime(appointment.endAt)}, ${vehicle.brand} ${vehicle.model}, ${status.label}`}
       className={className}
+      data-tone={resolveAppointmentTone(appointment.color, appointment.id)}
       href={`/app/calendar/${appointment.id}`}
       style={style}
     >
@@ -283,6 +285,7 @@ function TimelineAppointment({
         </span>
       </span>
       <span className={styles.eventIdentity}>
+        <span aria-hidden className={styles.toneDot} />
         <strong>
           {vehicle.brand} {vehicle.model}
         </strong>
@@ -457,7 +460,7 @@ function WeekEvent({
   icon: ReactNode;
 }) {
   return (
-    <span className={styles.weekEvent}>
+    <span className={`${styles.weekEvent} ${styles.weekEventBlock}`}>
       <span className={styles.status}>
         {icon}
         {children}
@@ -517,7 +520,11 @@ function WeekView({
                   const status = appointmentStatus(appointment.status);
                   return (
                     <Link
-                      className={styles.weekEvent}
+                      className={`${styles.weekEvent} ${styles.toned} ${statusClassName(appointment.status)}`}
+                      data-tone={resolveAppointmentTone(
+                        appointment.color,
+                        appointment.id,
+                      )}
                       href={`/app/calendar/${appointment.id}`}
                       key={appointment.id}
                     >
@@ -585,11 +592,15 @@ function MonthView({
               id: `block-${block.id}`,
               label: `Bloqueo · ${block.reason}`,
               href: `/app/calendar?view=day&date=${day}`,
+              tone: undefined,
+              className: styles.monthEventBlock,
             })),
             ...dayAppointments.map((appointment) => ({
               id: `appointment-${appointment.id}`,
               label: `${formatBusinessTime(appointment.startAt)} ${appointment.serviceCase.vehicle.model}`,
               href: `/app/calendar/${appointment.id}`,
+              tone: resolveAppointmentTone(appointment.color, appointment.id),
+              className: `${styles.toned} ${statusClassName(appointment.status)}`,
             })),
           ];
           return (
@@ -610,7 +621,8 @@ function MonthView({
               <div className={styles.monthEvents}>
                 {entries.slice(0, 3).map((entry) => (
                   <Link
-                    className={styles.monthEvent}
+                    className={`${styles.monthEvent} ${entry.className}`}
+                    data-tone={entry.tone}
                     href={entry.href}
                     key={entry.id}
                   >
@@ -711,8 +723,9 @@ export default async function CalendarPage({
             Hoy
           </Link>
           <CalendarDateField
-            className={styles.dateInput}
+            className={styles.datePickerButton}
             date={dateKey}
+            today={today}
             view={view}
           />
         </div>

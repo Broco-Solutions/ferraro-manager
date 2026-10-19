@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { APPOINTMENT_TONES } from "./appointment-tones";
+
 const localDateTime = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, "Elegí fecha y hora.");
@@ -18,6 +20,7 @@ export const appointmentInputSchema = z.object({
     .transform((value) => value || undefined)
     .optional(),
   visibleToClient: z.boolean().default(true),
+  color: z.enum(APPOINTMENT_TONES).nullish(),
   idempotencyKey: z.string().uuid(),
 });
 

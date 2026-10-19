@@ -131,6 +131,7 @@ export async function createAppointment(input: AppointmentInput, actor: Actor) {
         status: "CONFIRMED",
         internalNotes: data.internalNotes,
         visibleToClient: data.visibleToClient,
+        color: data.color,
         createdById: actor.id,
         updatedById: actor.id,
         services: {
@@ -351,6 +352,7 @@ export async function updateAppointment(
         endAt,
         internalNotes: data.internalNotes,
         visibleToClient: data.visibleToClient,
+        color: data.color,
         updatedById: actor.id,
         services: {
           create: services.map((service, index) => ({
@@ -420,6 +422,7 @@ export async function getCalendarRange(start: Date, end: Date) {
         startAt: true,
         endAt: true,
         status: true,
+        color: true,
         serviceCase: {
           select: {
             client: { select: { displayName: true } },
