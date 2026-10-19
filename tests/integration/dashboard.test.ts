@@ -277,6 +277,18 @@ describe("dashboard semantics and permission-aware search", () => {
     expect(staff.vehicles.map((item) => item.id)).toContain(vehicleId);
     expect(staff.services.map((item) => item.id)).toContain(serviceId);
     expect(staff.quotes).toEqual([]);
-    expect(JSON.stringify(staff)).not.toContain("999");
+    expect(staff.services.find((item) => item.id === serviceId)).toEqual({
+      id: serviceId,
+      name: `M3 Protection ${suffix}`,
+      active: true,
+      estimatedDurationMinutes: null,
+      category: { name: `Dashboard service ${suffix}` },
+    });
+    for (const job of staff.jobs) {
+      expect(Object.keys(job.serviceCase).sort()).toEqual([
+        "client",
+        "vehicle",
+      ]);
+    }
   });
 });
