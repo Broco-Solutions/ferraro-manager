@@ -1,5 +1,8 @@
 # Ferraro Management System — Master Plan
 
+> Actualización 2026-10-19: por pedido explícito del cliente se habilita borrado definitivo por ADMIN para los módulos operativos, bloqueado por dependencias. La política vigente se detalla en [DEC-2026-10-19](DECISIONS.md#dec-2026-10-19--borrado-definitivo-de-registros-por-admin) y reemplaza las restricciones históricas de sólo archivar/anular que figuran en este plan. Las cuentas de usuario mantienen su política de desactivación.
+
+
 > **Contrato maestro del proyecto.** Este documento es la fuente de verdad funcional y técnica de FERRARO. Cada BUILD se planifica, implementa y acepta contra este contenido. Cualquier desviación estructural, cambio de alcance, invariante o decisión arquitectónica posterior debe explicarse y registrarse; nunca se modifica silenciosamente. Las decisiones posteriores se registran en [`docs/DECISIONS.md`](./DECISIONS.md).
 
 - **Estado:** contrato funcional actualizado a la implementación; las decisiones posteriores se registran en `docs/DECISIONS.md`.

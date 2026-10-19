@@ -184,6 +184,7 @@ test("ADMIN posts one purchase into stock and cash while STAFF is denied", async
   ).toBeVisible();
   await expect(page.getByText("+30.000 m")).toBeVisible();
   await expect(page.getByText("Egreso USD 1200.00")).toBeVisible();
+  await expect(page).toHaveTitle(/Detalle de compra/);
   const accessibility = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
     .analyze();

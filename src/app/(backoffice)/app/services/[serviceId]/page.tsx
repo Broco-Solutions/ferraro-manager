@@ -1,3 +1,4 @@
+import { DeleteRecordLink } from "@/modules/deletion/ui/delete-record-link";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -63,6 +64,7 @@ export default async function ServiceDetailPage({
         eyebrow={service.category.name}
         title={service.name}
       />
+      <DeleteRecordLink kind="service" id={service.id} />
 
       <ServiceForm
         categories={categories}

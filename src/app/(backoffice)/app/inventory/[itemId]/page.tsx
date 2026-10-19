@@ -1,3 +1,4 @@
+import { DeleteRecordLink } from "@/modules/deletion/ui/delete-record-link";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -77,6 +78,7 @@ export default async function InventoryItemPage({
           <span>{unitLabel}</span>
         </div>
       </header>
+      <DeleteRecordLink kind="inventoryItem" id={item.id} />
       {notice.saved ? (
         <p className="success-banner">Artículo guardado.</p>
       ) : null}

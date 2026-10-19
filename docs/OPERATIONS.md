@@ -95,3 +95,11 @@ Objetivos iniciales razonables para un negocio pequeño: RPO ≤ 24 h y RTO ≤ 
 - Rotar `BETTER_AUTH_SECRET`, credenciales DB y storage mediante el proveedor y una ventana controlada; cambiar el secreto de auth invalida sesiones activas.
 - Usar credenciales de storage limitadas al bucket/prefijo de Ferraro y nunca compartirlas con PPF HOUSE.
 - Mantener producción, preview y desarrollo completamente separados. PPF HOUSE no comparte repo, DB, bucket ni deployment.
+
+## Borrado definitivo por ADMIN
+
+Desde **Administración → Eliminar registros**, elegir módulo, buscar y confirmar. También hay accesos desde los detalles de clientes, vehículos, turnos, servicios, trabajos, compras, presupuestos e inventario. Los enlaces de dependencias llevan a los registros que deben eliminarse primero. Incluye archivados y anulados. Las cuentas de usuario siguen desactivándose desde Usuarios.
+
+El borrado de compras/consumos retira sus movimientos y reversiones en una transacción, actualiza stock y bloquea resultados negativos. No eliminar un asiento de compra/consumo por separado: el mensaje enlaza a su origen. Para comprobar integridad, ejecutar `pnpm domain:reconcile`.
+
+La migración compatible `20261019160000_permanent_deletion_cleanup` sólo añade una cola de archivos privados pendientes. No requiere variables nuevas. `pnpm storage:cleanup`, ya incluido en la rutina diaria, procesa ahora esa cola además de uploads vencidos. El borrado de datos se confirma aunque el storage esté caído; los archivos pendientes se reintentan con ese comando. Un rollback de aplicación no recupera registros eliminados: para eso se necesita el procedimiento de restauración de backup.

@@ -1,3 +1,4 @@
+import { DeleteRecordLink } from "@/modules/deletion/ui/delete-record-link";
 import {
   CalendarBlankIcon,
   ClockIcon,
@@ -143,6 +144,7 @@ export default async function AppointmentPage({
           </Link>
         ) : null}
       </header>
+      <DeleteRecordLink kind="appointment" id={appointment.id} />
       <section
         className={styles.formSection}
         aria-labelledby="appointment-summary-title"

@@ -1,3 +1,4 @@
+import { DeleteRecordLink } from "@/modules/deletion/ui/delete-record-link";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -95,6 +96,7 @@ export default async function JobDetailPage({
           </>
         }
       />
+      <DeleteRecordLink kind="job" id={job.id} />
       <section className={styles.summary} aria-label="Resumen del trabajo">
         <div>
           <span>Origen</span>

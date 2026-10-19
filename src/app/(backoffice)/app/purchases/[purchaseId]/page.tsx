@@ -1,3 +1,4 @@
+import { DeleteRecordLink } from "@/modules/deletion/ui/delete-record-link";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -56,6 +57,7 @@ export default async function PurchaseDetailPage({
           </div>
         }
       />
+      <DeleteRecordLink kind="purchase" id={purchase.id} />
       {notice.created ? (
         <p className="success-banner">
           Compra registrada: stock y egreso se actualizaron juntos.

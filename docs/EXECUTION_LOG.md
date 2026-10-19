@@ -396,3 +396,11 @@ Registro resumido de la ejecución autónoma de V1. El contrato funcional contin
 - **Cambio:** día de 00:00 a 24:00, escala horaria uniforme y región con scroll vertical nativo y foco de teclado en escritorio. Abre a las 07:00 al cambiar de día y permite recorrer horarios anteriores/posteriores. Se reserva espacio inferior para las tarjetas de altura mínima cercanas a medianoche. Mobile mantiene la lista y el scroll de página.
 - **Verificación:** lint y build con TypeScript verdes; 6/6 E2E de Agenda. La regresión crea un turno real a las 20:00, verifica rueda de mouse, Home/End, eventos a las 06:00, 23:45 y 23:55, apertura del detalle, continuidad después de medianoche, mobile, ausencia de overflow horizontal y axe sin violaciones. Capturas revisadas en `/tmp/ferraro-calendar-scroll-evidence`.
 - **Alcance:** presentación y navegación de la agenda; sin migraciones, variables nuevas ni cambios en reglas de turnos, duración o solapamientos.
+
+### 2026-10-19 — Borrado definitivo exclusivo de ADMIN
+
+- Se incorporó `/app/admin/records`, con búsqueda/paginación para veinte tipos de registros, incluidos archivados, anulados y fotos retiradas; accesos contextuales desde los módulos principales.
+- La server action y la transacción exigen ADMIN activo. Confirmación irreversible, errores recuperables y enlaces a dependencias. Borrado físico sin cascadas entre entidades comerciales.
+- Compras/consumos retiran asientos y reversiones propios y ajustan stock con bloqueos y Decimal; se rechazan salidas sin stock suficiente. Se protege contra solicitudes concurrentes y resultados idempotentes eliminados. Trabajos reabren su turno; casos vacíos restituyen el presupuesto emitido.
+- Migración `20261019160000_permanent_deletion_cleanup` aplicada en la base local aislada y Railway producción: agrega únicamente la cola durable para eliminar archivos. `storage:cleanup` reintenta pendientes, sin nuevas variables.
+- Validación: lint, typecheck, build, formato de archivos modificados y diff sin errores; 63 pruebas unitarias, suite de integración y 14 casos específicos de borrado; conciliación local con cero diferencias; 38 E2E en una pasada final, incluido ADMIN/STAFF, confirmación/cancelación, dependencias, borrado real, accesibilidad y móvil. Se sincronizaron dos E2E existentes con el destino de navegación/título antes de interactuar o auditar.

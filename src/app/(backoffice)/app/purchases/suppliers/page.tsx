@@ -1,3 +1,4 @@
+import { DeleteRecordLink } from "@/modules/deletion/ui/delete-record-link";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -87,6 +88,7 @@ export default async function SuppliersPage() {
                   {supplier.active ? "Desactivar" : "Activar"}
                 </button>
               </form>
+              <DeleteRecordLink kind="supplier" id={supplier.id} />
             </article>
           ))}
         </section>

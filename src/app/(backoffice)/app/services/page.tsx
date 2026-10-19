@@ -1,3 +1,4 @@
+import { DeleteRecordLink } from "@/modules/deletion/ui/delete-record-link";
 import {
   ClockIcon,
   PlusIcon,
@@ -70,6 +71,7 @@ export default async function ServicesPage({
                 <div>
                   <p className={styles.eyebrow}>Categoría</p>
                   <h2>{category.name}</h2>
+                  <DeleteRecordLink kind="serviceCategory" id={category.id} />
                 </div>
                 <span
                   aria-label={`${category.services.length} servicios`}

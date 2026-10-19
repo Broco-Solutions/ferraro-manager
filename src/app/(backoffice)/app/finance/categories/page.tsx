@@ -1,3 +1,4 @@
+import { DeleteRecordLink } from "@/modules/deletion/ui/delete-record-link";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -74,6 +75,7 @@ export default async function FinancialCategoriesPage() {
                   {category.active ? "Archivar" : "Reactivar"}
                 </button>
               </form>
+              <DeleteRecordLink kind="financialCategory" id={category.id} />
             </article>
           ))}
         </section>

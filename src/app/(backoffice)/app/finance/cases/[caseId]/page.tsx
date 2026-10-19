@@ -1,3 +1,4 @@
+import { DeleteRecordLink } from "@/modules/deletion/ui/delete-record-link";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -52,6 +53,7 @@ export default async function CaseFinancePage({
           </Link>
         }
       />
+      <DeleteRecordLink kind="serviceCase" id={caseId} />
       {query.amount ? (
         <p className="success-banner">Importe acordado actualizado.</p>
       ) : null}

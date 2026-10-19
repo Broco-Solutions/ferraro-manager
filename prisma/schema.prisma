@@ -844,6 +844,15 @@ model JobPhoto {
   @@map("job_photos")
 }
 
+model PendingStorageDeletion {
+  id        String   @id @default(uuid()) @db.Uuid
+  objectKey String   @unique
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@index([createdAt])
+  @@map("pending_storage_deletions")
+}
+
 model Session {
   id        String   @id @default(uuid()) @db.Uuid
   expiresAt DateTime

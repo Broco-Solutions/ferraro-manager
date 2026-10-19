@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import {
   LockKeyIcon,
+  TrashIcon,
   PaletteIcon,
   UsersThreeIcon,
 } from "@phosphor-icons/react/dist/ssr";
@@ -27,6 +28,22 @@ export default async function AdminFoundationPage() {
         className={styles.adminList}
         aria-label="Configuración administrativa"
       >
+        <article className={styles.adminRow}>
+          <TrashIcon aria-hidden="true" size={24} weight="duotone" />
+          <div>
+            <strong>Eliminar registros</strong>
+            <p>
+              Borrado definitivo de clientes, vehículos, turnos, trabajos,
+              presupuestos, compras, inventario y finanzas.
+            </p>
+          </div>
+          <Link
+            className={buttonClassName("secondary", "sm")}
+            href="/app/admin/records"
+          >
+            Ver registros
+          </Link>
+        </article>
         <article className={styles.adminRow}>
           <UsersThreeIcon aria-hidden="true" size={24} weight="duotone" />
           <div>

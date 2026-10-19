@@ -288,3 +288,16 @@ Guardar un turno abre su detalle de consulta, con confirmación explícita; edit
 El alta rápida compartida pide nombre, teléfono opcional y marca/modelo, con un vehículo inicial y opción secundaria de agregar otro. Los formularios de vehículos sólo muestran marca/modelo; los atributos omitidos se preservan en registros existentes y no se elimina ninguna columna.
 
 La emisión de presupuestos maneja errores dentro de su detalle y bloquea el botón mientras procesa. El runtime de Vercel exige almacenamiento S3 privado: los logs productivos mostraron que escribir en `/var/task/.data` impedía guardar el PDF. Se reutiliza el bucket `ferraro-private` de Railway; no se agrega infraestructura ni una migración.
+
+## DEC-2026-10-19 — Borrado definitivo de registros por ADMIN
+
+- **Estado:** aceptada por el cliente
+- **Alcance:** clientes, vehículos, turnos, bloqueos, servicios y variantes, categorías, presupuestos, casos comerciales, trabajos, consumos y fotos, proveedores, compras, inventario y movimientos financieros.
+
+El usuario pidió expresamente borrado físico y eligió bloquearlo cuando existen registros asociados. Esta decisión reemplaza la restricción anterior de sólo archivar/anular para estos módulos; las cuentas del equipo conservan su política de desactivación.
+
+`/app/admin/records` permite buscar también registros archivados/anulados. Los detalles principales enlazan al registro a eliminar. Cada operación exige confirmación irreversible y valida ADMIN activo tanto en la server action como dentro de la transacción. Las dependencias se muestran con enlaces para eliminarlas primero. No hay borrado en cadena de clientes, vehículos, turnos o trabajos.
+
+Se consideran partes propias los ítems de presupuesto/compra, asignaciones, variantes, revisiones comerciales, enlaces de portal y fotos/archivos del trabajo. Las compras y consumos se eliminan junto con sus asientos y reversiones, recalculando stock con Decimal y bloqueo de filas; se rechaza una salida neta que empeore stock negativo. Un movimiento de compra/consumo sólo se elimina mediante su operación de origen. Las reversiones manuales deben eliminarse antes del asiento original. Eliminar un trabajo reabre su turno completado; eliminar un caso sin dependencias devuelve su presupuesto aceptado al estado emitido.
+
+Los archivos privados se encolan en `pending_storage_deletions` dentro de la misma transacción. Se intenta borrarlos al terminar y `pnpm storage:cleanup` reintenta pendientes; una caída de storage no revierte ni oculta un borrado físico exitoso. Se invalidan referencias de resultados idempotentes eliminados, conservando la protección contra reejecuciones.

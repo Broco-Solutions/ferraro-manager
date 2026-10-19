@@ -127,6 +127,9 @@ test("ADMIN sets an agreed amount and records a deposit without operational stat
   await page.getByRole("button", { name: "Actualizar" }).click();
   await expect(page.getByText("Importe acordado actualizado.")).toBeVisible();
   await page.getByRole("link", { name: "Registrar cobro" }).click();
+  await expect(page).toHaveURL(
+    new RegExp(`/app/finance/new\\?caseId=${caseId}$`),
+  );
   await expect(
     page.locator('[data-money-field][data-hydrated="true"]'),
   ).toBeVisible();

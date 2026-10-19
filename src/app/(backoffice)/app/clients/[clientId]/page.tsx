@@ -1,3 +1,4 @@
+import { DeleteRecordLink } from "@/modules/deletion/ui/delete-record-link";
 import { CarProfileIcon } from "@phosphor-icons/react/dist/ssr";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -99,6 +100,7 @@ export default async function ClientDetailPage({
         eyebrow={client.active ? "Cliente activo" : "Cliente archivado"}
         title={client.displayName}
       />
+      <DeleteRecordLink kind="client" id={client.id} />
 
       <dl className={styles.detailSummary}>
         <div>
@@ -173,6 +175,7 @@ export default async function ClientDetailPage({
                   </span>
                 </div>
                 <div className={styles.vehicleActions}>
+                  <DeleteRecordLink kind="vehicle" id={vehicle.id} />
                   <Link
                     className={styles.textAction}
                     href={`/app/clients/${client.id}/vehicles/${vehicle.id}/edit`}
