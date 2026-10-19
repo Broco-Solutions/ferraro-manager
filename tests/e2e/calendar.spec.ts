@@ -470,3 +470,132 @@ test("appointment identity can change only before commercial history exists", as
     0,
   );
 });
+
+test("late, early and overnight appointments remain reachable with wheel, keyboard and mobile scrolling", async ({
+  page,
+}) => {
+  test.setTimeout(60_000);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await login(page);
+  await page.goto("/app/calendar/new?date=2026-10-25");
+  await selectClientVehicle(page, clientName, "BMW M3");
+  await page.getByLabel("Inicio *").fill("2026-10-25T20:00");
+  await page.getByLabel("Fin *").fill("2026-10-25T21:00");
+  await page.getByRole("button", { name: "Crear turno" }).click();
+  await expect(page.getByText("Turno agendado correctamente.")).toBeVisible();
+
+  const prisma = createTestPrisma();
+  try {
+    const vehicle = await prisma.vehicle.findFirstOrThrow({
+      where: { clientId, brand: "BMW", model: "M3" },
+    });
+    await prisma.serviceCase.create({
+      data: {
+        clientId,
+        vehicleId: vehicle.id,
+        origin: "DIRECT_APPOINTMENT",
+        appointments: {
+          create: [
+            {
+              startAt: new Date("2026-10-25T09:00:00Z"),
+              endAt: new Date("2026-10-25T09:30:00Z"),
+            },
+            {
+              startAt: new Date("2026-10-26T02:45:00Z"),
+              endAt: new Date("2026-10-26T03:15:00Z"),
+            },
+            {
+              startAt: new Date("2026-10-26T02:55:00Z"),
+              endAt: new Date("2026-10-26T02:59:00Z"),
+            },
+          ],
+        },
+      },
+    });
+  } finally {
+    await prisma.$disconnect();
+  }
+
+  await page.getByRole("link", { name: "← Agenda", exact: true }).click();
+  await expect(page).toHaveURL(/view=day&date=2026-10-25/);
+  const scroller = page.getByRole("region", {
+    name: "Horarios del 2026-10-25",
+  });
+  const evening = scroller.getByRole("link", { name: /20:00 a 21:00/ });
+  const overnight = scroller.getByRole("link", { name: /23:45 a 00:15/ });
+  const lastMinutes = scroller.getByRole("link", { name: /23:55 a 23:59/ });
+  await expect
+    .poll(() => scroller.evaluate((element) => element.scrollTop))
+    .toBeGreaterThan(0);
+  const initialScroll = await scroller.evaluate((element) => element.scrollTop);
+  await scroller.scrollIntoViewIfNeeded();
+  await scroller.hover();
+  await page.mouse.wheel(0, 1800);
+  await expect
+    .poll(() => scroller.evaluate((element) => element.scrollTop))
+    .toBeGreaterThan(initialScroll);
+  await expect(evening).toBeInViewport({ ratio: 1 });
+  await expect(overnight).toBeInViewport({ ratio: 1 });
+  await expect(lastMinutes).toBeInViewport({ ratio: 1 });
+
+  await scroller.focus();
+  await scroller.press("Home");
+  await expect
+    .poll(() => scroller.evaluate((element) => element.scrollTop))
+    .toBe(0);
+  await expect(
+    scroller.getByRole("link", { name: /06:00 a 06:30/ }),
+  ).toBeInViewport({ ratio: 1 });
+  await scroller.press("End");
+  await expect(lastMinutes).toBeInViewport({ ratio: 1 });
+  if (process.env.FE_EVIDENCE_DIR) {
+    await page.screenshot({
+      path: `${process.env.FE_EVIDENCE_DIR}/calendar-late-desktop.png`,
+      fullPage: true,
+    });
+  }
+  const accessibility = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(accessibility.violations).toEqual([]);
+  await evening.click();
+  await expect(
+    page.getByRole("heading", { name: "Detalle del turno" }),
+  ).toBeVisible();
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/app/calendar?view=day&date=2026-10-25");
+  await expect
+    .poll(() =>
+      scroller.evaluate(
+        (element) => element.scrollHeight - element.clientHeight,
+      ),
+    )
+    .toBeLessThanOrEqual(1);
+  await lastMinutes.scrollIntoViewIfNeeded();
+  await expect(lastMinutes).toBeInViewport({ ratio: 1 });
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          document.documentElement.scrollWidth <=
+          document.documentElement.clientWidth,
+      ),
+    )
+    .toBe(true);
+  if (process.env.FE_EVIDENCE_DIR) {
+    await page.screenshot({
+      path: `${process.env.FE_EVIDENCE_DIR}/calendar-late-mobile.png`,
+      fullPage: true,
+    });
+  }
+  await overnight.click();
+  await expect(
+    page.getByRole("heading", { name: "Detalle del turno" }),
+  ).toBeVisible();
+  await page.goto("/app/calendar?view=day&date=2026-10-26");
+  const nextDay = page.getByRole("region", { name: "Horarios del 2026-10-26" });
+  await expect(
+    nextDay.getByRole("link", { name: /23:45 a 00:15/ }),
+  ).toBeVisible();
+});

@@ -258,17 +258,24 @@
   font-weight: var(--weight-semibold);
 }
 
+.dayScroller {
+  position: relative;
+  max-height: min(70dvh, 48rem);
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
 .timeline {
+  --hour-height: 3.5rem;
   display: grid;
   grid-template-columns: 4.5rem minmax(0, 1fr);
-  min-height: 48rem;
-  padding: var(--space-4) var(--space-5) var(--space-5);
+  padding: var(--space-4) var(--space-5) calc(3.25rem + var(--space-5));
 }
 
 .timeRail,
 .timelineCanvas {
   position: relative;
-  min-height: 44rem;
+  height: calc(24 * var(--hour-height));
 }
 
 .timeLabel {
@@ -286,9 +293,9 @@
   background-image: repeating-linear-gradient(
     to bottom,
     transparent 0,
-    transparent calc(7.6923% - 1px),
-    var(--border) calc(7.6923% - 1px),
-    var(--border) 7.6923%
+    transparent calc(var(--hour-height) - 1px),
+    var(--border) calc(var(--hour-height) - 1px),
+    var(--border) var(--hour-height)
   );
 }
 
@@ -985,6 +992,11 @@
     background: var(--surface);
   }
 
+  .dayScroller {
+    max-height: none;
+    overflow: visible;
+  }
+
   .timeline {
     display: block;
     min-height: 0;
@@ -1000,6 +1012,7 @@
   }
 
   .timelineCanvas {
+    height: auto;
     min-height: 0;
     display: grid;
     gap: var(--space-3);

@@ -388,3 +388,11 @@ Registro resumido de la ejecución autónoma de V1. El contrato funcional contin
 - **Responsive/accesibilidad:** axe sin violaciones en formularios, diálogo y detalle representativos; revisión visual de escritorio y móvil sin overflow. Evidencia temporal en `/tmp/ferraro-ux-fixes-evidence-20261019`. Detector mecánico de UI sin hallazgos.
 - **Calidad adicional:** `domain:reconcile` sin diferencias y `git diff --check` verde. `format:check` sólo señala el formato preexistente de `tests/e2e/auth.spec.ts`, que no se modificó.
 - **Entrega:** cambios de código locales y configuración S3 productiva preparada. No hubo push, merge, deployment, migraciones productivas ni alteraciones de clientes/presupuestos reales. Queda pendiente publicar y verificar el release para activar los cambios y las variables en producción.
+
+## FIX — Agenda de 24 horas y scroll diario
+
+- **Fecha:** 2026-10-19.
+- **Causa:** la grilla diaria terminaba a las 20:00; un turno a esa hora se posicionaba al 100% de su altura y se recortaba por el contenedor. Los turnos posteriores quedaban fuera de la superficie.
+- **Cambio:** día de 00:00 a 24:00, escala horaria uniforme y región con scroll vertical nativo y foco de teclado en escritorio. Abre a las 07:00 al cambiar de día y permite recorrer horarios anteriores/posteriores. Se reserva espacio inferior para las tarjetas de altura mínima cercanas a medianoche. Mobile mantiene la lista y el scroll de página.
+- **Verificación:** lint y build con TypeScript verdes; 6/6 E2E de Agenda. La regresión crea un turno real a las 20:00, verifica rueda de mouse, Home/End, eventos a las 06:00, 23:45 y 23:55, apertura del detalle, continuidad después de medianoche, mobile, ausencia de overflow horizontal y axe sin violaciones. Capturas revisadas en `/tmp/ferraro-calendar-scroll-evidence`.
+- **Alcance:** presentación y navegación de la agenda; sin migraciones, variables nuevas ni cambios en reglas de turnos, duración o solapamientos.

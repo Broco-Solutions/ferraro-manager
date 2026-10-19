@@ -17,6 +17,7 @@ import { cancelCalendarBlockAction } from "@/modules/scheduling/application/acti
 import { getCalendarRange } from "@/modules/scheduling/application/scheduling-service";
 import styles from "@/modules/scheduling/ui/calendar.module.css";
 import { CalendarDateField } from "@/modules/scheduling/ui/date-field";
+import { DayTimelineScroller } from "@/modules/scheduling/ui/day-timeline-scroller";
 import {
   addCivilDays,
   businessDayRange,
@@ -41,8 +42,8 @@ type TimelineStyle = CSSProperties & {
   "--event-top": string;
 };
 
-const DAY_START_MINUTES = 7 * 60;
-const DAY_END_MINUTES = 20 * 60;
+const DAY_START_MINUTES = 0;
+const DAY_END_MINUTES = 24 * 60;
 const DAY_DURATION_MINUTES = DAY_END_MINUTES - DAY_START_MINUTES;
 
 function safeDateKey(value?: string) {
@@ -400,47 +401,50 @@ function DayTimeline({
           <span className={styles.selectedLabel}>Seleccionado</span>
         ) : null}
       </header>
-      <div className={styles.timeline}>
-        <div aria-hidden className={styles.timeRail}>
-          {Array.from({ length: 14 }, (_, index) => (
-            <span
-              className={styles.timeLabel}
-              key={index}
-              style={
-                {
-                  "--time-top": `${(index / 13) * 100}%`,
-                } as CSSProperties
-              }
-            >
-              {String(index + 7).padStart(2, "0")}:00
-            </span>
-          ))}
+      <DayTimelineScroller day={day}>
+        <div className={styles.timeline}>
+          <div aria-hidden className={styles.timeRail}>
+            {Array.from({ length: 25 }, (_, index) => (
+              <span
+                className={styles.timeLabel}
+                data-calendar-hour={index}
+                key={index}
+                style={
+                  {
+                    "--time-top": `${(index / 24) * 100}%`,
+                  } as CSSProperties
+                }
+              >
+                {String(index).padStart(2, "0")}:00
+              </span>
+            ))}
+          </div>
+          <div className={styles.timelineCanvas}>
+            {positioned.map((entry) =>
+              entry.kind === "appointment" ? (
+                <TimelineAppointment
+                  appointment={entry.appointment}
+                  key={`appointment-${entry.appointment.id}`}
+                  style={timelineStyle(entry, day)}
+                />
+              ) : (
+                <TimelineBlock
+                  block={entry.block}
+                  key={`block-${entry.block.id}`}
+                  style={timelineStyle(entry, day)}
+                />
+              ),
+            )}
+            {!positioned.length ? (
+              <div className={styles.emptyDay}>
+                <CalendarBlankIcon aria-hidden size={28} />
+                <strong>Sin actividad en este día</strong>
+                <span>El horario está disponible para nuevos turnos.</span>
+              </div>
+            ) : null}
+          </div>
         </div>
-        <div className={styles.timelineCanvas}>
-          {positioned.map((entry) =>
-            entry.kind === "appointment" ? (
-              <TimelineAppointment
-                appointment={entry.appointment}
-                key={`appointment-${entry.appointment.id}`}
-                style={timelineStyle(entry, day)}
-              />
-            ) : (
-              <TimelineBlock
-                block={entry.block}
-                key={`block-${entry.block.id}`}
-                style={timelineStyle(entry, day)}
-              />
-            ),
-          )}
-          {!positioned.length ? (
-            <div className={styles.emptyDay}>
-              <CalendarBlankIcon aria-hidden size={28} />
-              <strong>Sin actividad en este día</strong>
-              <span>El horario está disponible para nuevos turnos.</span>
-            </div>
-          ) : null}
-        </div>
-      </div>
+      </DayTimelineScroller>
     </section>
   );
 }

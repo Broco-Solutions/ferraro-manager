@@ -116,7 +116,7 @@ Evidencia FE-05: `/tmp/ferraro-redesign-evidence/fe05`, seis viewports obligator
 
 ## Agenda temporal
 
-- Día desktop representa 07:00–20:00 con altura proporcional y carriles calculados sólo para layout; la duración y los solapes continúan definidos por los timestamps existentes.
+- Día desktop representa las 24 horas con altura proporcional y scroll vertical interno accesible por mouse y teclado; abre a las 07:00 y permite recorrer horarios anteriores y posteriores. Los eventos cercanos a medianoche conservan espacio para su altura mínima. Los carriles son sólo de layout; duración y solapes continúan definidos por los timestamps existentes. En mobile se conserva la lista cronológica con scroll de página.
 - Semana mantiene siete columnas con ancho mínimo y scroll/snap en tablet. Mobile muestra el día elegido como lista cronológica y no reduce la semana a columnas ilegibles.
 - Mes siempre muestra seis semanas completas, días externos atenuados, encabezados lunes–domingo, tres eventos resumidos y contador `+N`. En mobile se presenta el día elegido.
 - Confirmado, realizado, cancelado y bloqueo difieren por texto, icono, borde/forma y color. El bloqueo usa trama y confirmación accesible; no se interpreta el amarillo como warning.
