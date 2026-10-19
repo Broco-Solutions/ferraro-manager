@@ -24,6 +24,8 @@ El signup público está cerrado. Las cuentas internas se provisionan de forma c
 
 Para fotos, `STORAGE_DRIVER=local` guarda objetos privados en `.data/private` únicamente durante desarrollo y tests. Preview y producción deben usar `STORAGE_DRIVER=s3`, un bucket privado S3-compatible y CORS limitado al origen de la aplicación para cargas `POST`; ninguna URL del bucket se expone como lectura pública.
 
+Los PDF definitivos de presupuestos usan el mismo storage privado. En Vercel se rechaza `STORAGE_DRIVER=local`; S3 requiere bucket, access key y secret key. Los cambios de variables se aplican al crear un nuevo deployment. Si falla la emisión, el detalle muestra un error recuperable dentro del presupuesto y permite reintentar.
+
 ## Calidad
 
 ```bash
@@ -48,6 +50,8 @@ El runbook de health, cleanup, backup, restore, migración y rollback está en [
 ## Flujo cliente y vehículo
 
 Nuevo turno y nuevo presupuesto comparten un selector buscable de cliente y vehículo. La búsqueda de clientes es server-side y acotada; incluye clientes activos aunque todavía no tengan vehículos. Sin abandonar ni vaciar el formulario se puede crear un cliente con uno o varios vehículos, o agregar un vehículo a un cliente existente. Teléfono normalizado y email bloquean duplicados fuertes; un nombre parecido sólo genera una sugerencia.
+
+«Nuevo cliente + vehículo» abre un alta rápida con nombre, teléfono opcional y marca/modelo. Los formularios de vehículo sólo muestran marca y modelo; los atributos históricos se conservan al editar. Después de agendar se abre el detalle del turno con la confirmación de éxito. La edición se realiza desde «Editar turno» en una ruta separada.
 
 En un turno existente la identidad sólo puede reasignarse cuando su `ServiceCase` nació de un turno directo y todavía no tiene presupuesto aceptado, jobs, movimientos financieros, montos/costos/revisiones ni otras visitas. Una vez que existe historia comercial, la UI mantiene cliente y vehículo fijos para preservarla.
 

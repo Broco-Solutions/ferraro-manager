@@ -72,7 +72,8 @@ export async function saveAppointmentAction(
           session.user,
         );
     revalidatePath("/app/calendar");
-    redirect(`/app/calendar/${appointment.id}?saved=1`);
+    revalidatePath(`/app/calendar/${appointment.id}`);
+    redirect(`/app/calendar/${appointment.id}?${id ? "saved" : "created"}=1`);
   } catch (error) {
     if (error && typeof error === "object" && "digest" in error) throw error;
     return { status: "error", message: friendlyError(error) };

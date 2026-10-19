@@ -199,6 +199,13 @@ test("STAFF schedules overlapping cars and a block prevents a new reservation", 
   await page.getByText("Cerámico Agenda E2E").click();
   await page.getByRole("button", { name: "Crear turno" }).click();
   await expect(page.getByText("Turno confirmado")).toBeVisible();
+  await expect(page.getByText("Turno agendado correctamente.")).toBeVisible();
+  await expect(page).toHaveURL(/\/app\/calendar\/[^/?]+\?created=1$/);
+  await expect(page.getByLabel("Inicio *")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Crear turno" })).toHaveCount(
+    0,
+  );
+  await expect(page.getByRole("link", { name: "Editar turno" })).toBeVisible();
 
   await page.goto("/app/calendar/new?date=2026-10-15");
   await selectClientVehicle(page, clientName, "BMW M3");
@@ -206,6 +213,13 @@ test("STAFF schedules overlapping cars and a block prevents a new reservation", 
   await page.getByLabel("Fin *").fill("2026-10-15T12:00");
   await page.getByRole("button", { name: "Crear turno" }).click();
   await expect(page.getByText("Turno confirmado")).toBeVisible();
+  await expect(page.getByText("Turno agendado correctamente.")).toBeVisible();
+  await expect(page).toHaveURL(/\/app\/calendar\/[^/?]+\?created=1$/);
+  await expect(page.getByLabel("Inicio *")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Crear turno" })).toHaveCount(
+    0,
+  );
+  await expect(page.getByRole("link", { name: "Editar turno" })).toBeVisible();
 
   await page.goto("/app/calendar/blocks/new?date=2026-10-16");
   await page.getByLabel("Motivo *").fill("Agenda E2E bloqueo");
@@ -235,15 +249,19 @@ test("quick-create keeps appointment state, creates two vehicles and avoids a st
   await page.getByText("Cerámico Agenda E2E").click();
 
   const clientPicker = page.getByRole("combobox", { name: "Cliente *" });
-  await clientPicker.fill(quickClientName);
-  await expect(clientPicker).not.toHaveAttribute("aria-busy", "true");
-  await clientPicker.press("ArrowDown");
+  await page.getByRole("button", { name: "Nuevo cliente + vehículo" }).click();
   await page
-    .getByRole("button", { name: `Crear “${quickClientName}”` })
+    .getByRole("dialog")
+    .getByRole("button", { name: "Cancelar" })
     .click();
+  await expect(page.getByRole("dialog")).toBeHidden();
+  await expect(page.getByLabel("Inicio *")).toHaveValue("2026-10-20T10:15");
+  await page.getByRole("button", { name: "Nuevo cliente + vehículo" }).click();
   const dialog = page.getByRole("dialog", {
     name: "Crear cliente y vehículos",
   });
+  await expect(dialog.getByRole("textbox")).toHaveCount(4);
+  await dialog.getByLabel("Nombre *").fill(quickClientName);
   await dialog.getByLabel("Teléfono").fill("+54 341 555 0202");
   await dialog.getByLabel("Marca *").fill("BMW");
   await dialog.getByLabel("Modelo *").fill("M4");
@@ -277,6 +295,18 @@ test("quick-create keeps appointment state, creates two vehicles and avoids a st
   await captureCalendarEvidence(page, "calendar-new-preserved");
   await page.getByRole("button", { name: "Crear turno" }).click();
   await expect(page.getByText("Turno confirmado")).toBeVisible();
+  await expect(page.getByText("Turno agendado correctamente.")).toBeVisible();
+  await expect(page).toHaveURL(/\/app\/calendar\/[^/?]+\?created=1$/);
+  await expect(page.getByLabel("Inicio *")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Crear turno" })).toHaveCount(
+    0,
+  );
+  await expect(page.getByRole("link", { name: "Editar turno" })).toBeVisible();
+  const detailAxe = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(detailAxe.violations).toEqual([]);
+  await captureCalendarEvidence(page, "calendar-detail");
 
   await page.goto("/app/calendar/new?date=2026-10-21");
   const duplicatePicker = page.getByRole("combobox", { name: "Cliente *" });
@@ -284,7 +314,7 @@ test("quick-create keeps appointment state, creates two vehicles and avoids a st
   await expect(duplicatePicker).toHaveAttribute("aria-busy", "true");
   await expect(duplicatePicker).not.toHaveAttribute("aria-busy", "true");
   await duplicatePicker.press("ArrowDown");
-  await page.getByRole("button", { name: "Crear “Duplicado”" }).click();
+  await page.getByRole("button", { name: "Nuevo cliente + vehículo" }).click();
   const duplicateDialog = page.getByRole("dialog", {
     name: "Crear cliente y vehículos",
   });
@@ -394,6 +424,11 @@ test("appointment identity can change only before commercial history exists", as
   ).id;
   await lookup.$disconnect();
   await page.goto(`/app/calendar/${safeAppointmentId}`);
+  await expect(page.getByLabel("Inicio *")).toHaveCount(0);
+  await page.getByRole("link", { name: "Editar turno" }).click();
+  await expect(page).toHaveURL(
+    new RegExp(`/app/calendar/${safeAppointmentId}/edit$`),
+  );
   await selectClientVehicle(page, alternateClientName, "Audi A3");
   await page.getByRole("button", { name: "Guardar turno" }).click();
   await expect(
@@ -427,6 +462,7 @@ test("appointment identity can change only before commercial history exists", as
   await prisma.$disconnect();
 
   await page.reload();
+  await page.getByRole("link", { name: "Editar turno" }).click();
   await expect(
     page.getByText(/información comercial o histórica/),
   ).toBeVisible();

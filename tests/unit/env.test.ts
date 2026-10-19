@@ -12,6 +12,36 @@ const validEnv: NodeJS.ProcessEnv = {
 };
 
 describe("server environment", () => {
+  it("rejects local storage on Vercel, while allowing local production builds", () => {
+    expect(() => parseServerEnv({ ...validEnv, VERCEL: "1" })).toThrow(
+      "STORAGE_DRIVER",
+    );
+    expect(
+      parseServerEnv({ ...validEnv, NODE_ENV: "production" }).STORAGE_DRIVER,
+    ).toBe("local");
+  });
+
+  it("requires complete S3 credentials without exposing their values", () => {
+    expect(() => parseServerEnv({ ...validEnv, STORAGE_DRIVER: "s3" })).toThrow(
+      "STORAGE_S3_BUCKET",
+    );
+    const storage = {
+      STORAGE_DRIVER: "s3",
+      STORAGE_S3_BUCKET: "ferraro-test",
+      STORAGE_S3_ACCESS_KEY_ID: "test-access-key",
+      STORAGE_S3_SECRET_ACCESS_KEY: "test-secret-key",
+    };
+    expect(
+      parseServerEnv({ ...validEnv, ...storage, VERCEL: "1" }).STORAGE_DRIVER,
+    ).toBe("s3");
+    expect(() =>
+      parseServerEnv({
+        ...validEnv,
+        ...storage,
+        STORAGE_S3_SECRET_ACCESS_KEY: undefined,
+      }),
+    ).toThrow("STORAGE_S3_SECRET_ACCESS_KEY");
+  });
   it("accepts the contractual timezone and currency", () => {
     const parsed = parseServerEnv(validEnv);
 

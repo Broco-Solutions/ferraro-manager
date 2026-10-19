@@ -11,6 +11,7 @@ const serverEnvSchema = z.object({
     .literal("America/Argentina/Buenos_Aires")
     .default("America/Argentina/Buenos_Aires"),
   BUSINESS_CURRENCY: z.literal("USD").default("USD"),
+  VERCEL: z.string().optional(),
   STORAGE_DRIVER: z.enum(["local", "s3"]).default("local"),
   STORAGE_S3_ENDPOINT: z.string().url().optional(),
   STORAGE_S3_REGION: z.string().min(1).default("auto"),
@@ -37,7 +38,24 @@ export function parseServerEnv(input: NodeJS.ProcessEnv): ServerEnv {
     throw new Error(`Invalid server environment: ${invalidKeys}`);
   }
 
-  return result.data;
+  const data = result.data;
+  if (data.VERCEL === "1" && data.STORAGE_DRIVER !== "s3") {
+    throw new Error(
+      "Invalid server environment: STORAGE_DRIVER must be s3 on Vercel",
+    );
+  }
+  if (data.STORAGE_DRIVER === "s3") {
+    const required = [
+      "STORAGE_S3_BUCKET",
+      "STORAGE_S3_ACCESS_KEY_ID",
+      "STORAGE_S3_SECRET_ACCESS_KEY",
+    ] as const;
+    const missing = required.filter((key) => !data[key]);
+    if (missing.length) {
+      throw new Error(`Invalid server environment: ${missing.join(", ")}`);
+    }
+  }
+  return data;
 }
 
 export const env = parseServerEnv(process.env);

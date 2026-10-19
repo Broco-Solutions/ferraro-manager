@@ -139,6 +139,7 @@ export function IconButton({
 }
 
 interface ConfirmDialogProps {
+  isDisabled?: boolean;
   cancelLabel?: string;
   confirmLabel: string;
   description: ReactNode;
@@ -150,6 +151,7 @@ interface ConfirmDialogProps {
 }
 
 export function ConfirmDialog({
+  isDisabled,
   cancelLabel = "Cancelar",
   confirmLabel,
   description,
@@ -162,6 +164,7 @@ export function ConfirmDialog({
   return (
     <AriaDialogTrigger>
       <AriaButton
+        isDisabled={isDisabled}
         className={buttonClassName(triggerVariant, "md", triggerClassName)}
       >
         {triggerLabel}
@@ -181,6 +184,7 @@ export function ConfirmDialog({
               </AriaButton>
               <AriaButton
                 className={buttonClassName("danger")}
+                isDisabled={isDisabled}
                 onPress={onConfirm}
                 slot="close"
               >

@@ -277,3 +277,14 @@ La reasignación de turno actualiza `ServiceCase.clientId` y `vehicleId` en tran
 - El usuario resuelve cliente y garage sin salir ni perder fecha, servicios, líneas o importes del formulario.
 - Un caso con historia muestra identidad fija y una explicación; para otra identidad corresponde cancelar y crear un turno nuevo según la operación.
 - No hay migración ni constraint por nombre. Las reglas existentes de descuentos, Decimal, permisos e idempotencia no cambian.
+
+## DEC-013 — Turnos con detalle de consulta y alta mínima
+
+- **Fecha:** 2026-10-19
+- **Estado:** aceptada
+
+Guardar un turno abre su detalle de consulta, con confirmación explícita; editar requiere entrar a `/app/calendar/[appointmentId]/edit`. Se conservan los controles de estado e identidad de DEC-012. El alta desde presupuesto aceptado tiene el mismo destino.
+
+El alta rápida compartida pide nombre, teléfono opcional y marca/modelo, con un vehículo inicial y opción secundaria de agregar otro. Los formularios de vehículos sólo muestran marca/modelo; los atributos omitidos se preservan en registros existentes y no se elimina ninguna columna.
+
+La emisión de presupuestos maneja errores dentro de su detalle y bloquea el botón mientras procesa. El runtime de Vercel exige almacenamiento S3 privado: los logs productivos mostraron que escribir en `/var/task/.data` impedía guardar el PDF. Se reutiliza el bucket `ferraro-private` de Railway; no se agrega infraestructura ni una migración.

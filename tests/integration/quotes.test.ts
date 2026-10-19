@@ -2,10 +2,11 @@ import { rm } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { PrismaClient } from "@/generated/prisma/client";
 import { createPostgresAdapter } from "@/infrastructure/db/adapter";
+import * as privateStorage from "@/infrastructure/storage/private-storage";
 import { setAgreedAmount } from "@/modules/finance/application/finance-service";
 import {
   acceptQuote,
@@ -167,6 +168,22 @@ describe("quotes and conversion integration", () => {
       where: { id: serviceId },
       data: { name: `PPF nuevo ${suffix}`, basePriceUsd: "900" },
     });
+    const failedStorage = vi
+      .spyOn(privateStorage, "putPrivateObject")
+      .mockRejectedValueOnce(new Error("STORAGE_TEST_FAILURE"));
+    try {
+      await expect(issueQuote(quoteId, { id: actorId })).rejects.toThrow(
+        "STORAGE_TEST_FAILURE",
+      );
+      const draft = await prisma.quote.findUniqueOrThrow({
+        where: { id: quoteId },
+      });
+      expect(draft.status).toBe("DRAFT");
+      expect(draft.pdfArtifactKey).toBeNull();
+      expect(draft.pdfSha256).toBeNull();
+    } finally {
+      failedStorage.mockRestore();
+    }
     await issueQuote(quoteId, { id: actorId });
     const pdf = await getQuotePdf(quoteId);
     expect(pdf.subarray(0, 4).toString()).toBe("%PDF");

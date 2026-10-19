@@ -9,9 +9,9 @@ import { requireRole } from "@/modules/identity/application/authorization";
 import {
   acceptQuoteAction,
   duplicateQuoteAction,
-  issueQuoteAction,
   rejectQuoteAction,
 } from "@/modules/quotes/application/actions";
+import { IssueQuoteForm } from "@/modules/quotes/ui/issue-quote-form";
 import { getQuoteDetail } from "@/modules/quotes/application/quote-service";
 import styles from "@/modules/quotes/ui/quotes.module.css";
 
@@ -156,15 +156,7 @@ export default async function QuoteDetailPage({
       </section>
       <section className={styles.actions} aria-label="Acciones del presupuesto">
         {quote.status === "DRAFT" ? (
-          <form action={issueQuoteAction}>
-            <input type="hidden" name="quoteId" value={quote.id} />
-            <ConfirmButton
-              className="primary-button"
-              message="¿Emitir este presupuesto? Su contenido quedará bloqueado y se generará el PDF definitivo."
-            >
-              Emitir presupuesto
-            </ConfirmButton>
-          </form>
+          <IssueQuoteForm quoteId={quote.id} buttonClassName="primary-button" />
         ) : null}
         {quote.status === "SENT" ? (
           <>

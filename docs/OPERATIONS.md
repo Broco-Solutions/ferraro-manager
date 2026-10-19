@@ -32,6 +32,10 @@ El checkpoint quedó resuelto el 2026-10-10 mediante el deployment `dpl_4FCq5cKW
 
 ## Health y observabilidad
 
+- Los PDF emitidos y las fotos comparten el adaptador privado. Vercel debe usar `STORAGE_DRIVER=s3`, con `STORAGE_S3_ENDPOINT`, `STORAGE_S3_REGION`, `STORAGE_S3_BUCKET`, `STORAGE_S3_ACCESS_KEY_ID`, `STORAGE_S3_SECRET_ACCESS_KEY` y `STORAGE_S3_FORCE_PATH_STYLE` según el proveedor. En Vercel el filesystem de la aplicación no es un destino persistente válido.
+- Tras configurar storage, verificar escritura, lectura y borrado con un objeto de prueba de nombre único; luego crear un deployment nuevo para que reciba las variables. Las credenciales se almacenan como secretos y no se versionan.
+- Una falla de emisión registra `quote_issue_failed` con identificador y código técnico; el detalle conserva una acción de reintento. El presupuesto sólo pasa a emitido después de guardar el PDF.
+
 - `GET /api/health` comprueba conectividad de PostgreSQL y responde `200 {"status":"ok"}` o `503 {"status":"unavailable"}` sin revelar detalles.
 - Configurar uptime externo sobre ese endpoint cada 1–5 minutos y alertar después de dos fallos consecutivos.
 - Los eventos técnicos salen como JSON estructurado. No registrar contraseñas, tokens, URLs firmadas, contenido de fotos ni PII innecesaria.

@@ -85,6 +85,7 @@ function VehicleFields({
         <input
           aria-invalid={Boolean(errors?.[`${prefix}.brand`]) || undefined}
           autoComplete="off"
+          maxLength={80}
           name={`${prefix}.brand`}
           required
         />
@@ -95,33 +96,11 @@ function VehicleFields({
         <input
           aria-invalid={Boolean(errors?.[`${prefix}.model`]) || undefined}
           autoComplete="off"
+          maxLength={80}
           name={`${prefix}.model`}
           required
         />
         <ErrorText>{errors?.[`${prefix}.model`]}</ErrorText>
-      </label>
-      <label className={styles.quickField}>
-        <span>Versión</span>
-        <input name={`${prefix}.version`} />
-      </label>
-      <label className={styles.quickField}>
-        <span>Año</span>
-        <input inputMode="numeric" name={`${prefix}.year`} />
-        <ErrorText>{errors?.[`${prefix}.year`]}</ErrorText>
-      </label>
-      <label className={styles.quickField}>
-        <span>Color</span>
-        <input name={`${prefix}.color`} />
-      </label>
-      <label className={styles.quickField}>
-        <span>Clase</span>
-        <select name={`${prefix}.vehicleClass`}>
-          <option value="">Sin especificar</option>
-          <option value="SEDAN">Sedán</option>
-          <option value="SUV">SUV</option>
-          <option value="PICKUP">Pickup</option>
-          <option value="OTHER">Otro</option>
-        </select>
       </label>
     </div>
   );
@@ -282,18 +261,10 @@ export function ClientVehiclePicker({
     const client: QuickClientInput["client"] = {
       displayName: fieldValue(formData, "client.displayName"),
       phone: fieldValue(formData, "client.phone"),
-      whatsapp: fieldValue(formData, "client.whatsapp"),
-      email: fieldValue(formData, "client.email"),
-      instagram: fieldValue(formData, "client.instagram"),
-      notes: fieldValue(formData, "client.notes"),
     };
     const quickVehicles = vehicleDrafts.map((_, index) => ({
       brand: fieldValue(formData, `vehicles.${index}.brand`),
       model: fieldValue(formData, `vehicles.${index}.model`),
-      version: fieldValue(formData, `vehicles.${index}.version`),
-      year: fieldValue(formData, `vehicles.${index}.year`),
-      color: fieldValue(formData, `vehicles.${index}.color`),
-      vehicleClass: fieldValue(formData, `vehicles.${index}.vehicleClass`),
     }));
     setQuickSaving(true);
     const result = await quickCreateClientAction({
@@ -329,10 +300,6 @@ export function ClientVehiclePicker({
       vehicle: {
         brand: fieldValue(formData, "vehicle.brand"),
         model: fieldValue(formData, "vehicle.model"),
-        version: fieldValue(formData, "vehicle.version"),
-        year: fieldValue(formData, "vehicle.year"),
-        color: fieldValue(formData, "vehicle.color"),
-        vehicleClass: fieldValue(formData, "vehicle.vehicleClass"),
       },
     });
     setQuickSaving(false);
@@ -456,21 +423,17 @@ export function ClientVehiclePicker({
             </Popover>
           ) : null}
         </ComboBox>
-        {!clientId ? (
-          <button
-            className={styles.inlineCreateClient}
-            onClick={() => {
-              resetQuickCreate();
-              openQuickCreate("client");
-            }}
-            type="button"
-          >
-            <PlusIcon aria-hidden />
-            {clientInput.trim()
-              ? `Crear “${clientInput.trim()}”`
-              : "Crear nuevo cliente"}
-          </button>
-        ) : null}
+        <button
+          className={styles.inlineCreateClient}
+          onClick={() => {
+            resetQuickCreate();
+            openQuickCreate("client");
+          }}
+          type="button"
+        >
+          <PlusIcon aria-hidden />
+          Nuevo cliente + vehículo
+        </button>
         {clientError ? (
           <small
             className={styles.fieldError}
@@ -647,7 +610,8 @@ export function ClientVehiclePicker({
                             undefined
                           }
                           autoFocus
-                          defaultValue={clientInput}
+                          defaultValue={clientId ? "" : clientInput}
+                          maxLength={120}
                           name="client.displayName"
                           required
                         />
@@ -657,26 +621,12 @@ export function ClientVehiclePicker({
                       </label>
                       <label className={styles.quickField}>
                         <span>Teléfono</span>
-                        <input inputMode="tel" name="client.phone" />
-                      </label>
-                      <label className={styles.quickField}>
-                        <span>WhatsApp</span>
-                        <input inputMode="tel" name="client.whatsapp" />
-                      </label>
-                      <label className={styles.quickField}>
-                        <span>Email</span>
-                        <input name="client.email" type="email" />
-                        <ErrorText>{clientFields?.["client.email"]}</ErrorText>
-                      </label>
-                      <label className={styles.quickField}>
-                        <span>Instagram</span>
-                        <input name="client.instagram" />
-                      </label>
-                      <label
-                        className={`${styles.quickField} ${styles.spanTwo}`}
-                      >
-                        <span>Notas</span>
-                        <textarea name="client.notes" rows={2} />
+                        <input
+                          autoComplete="tel"
+                          inputMode="tel"
+                          maxLength={40}
+                          name="client.phone"
+                        />
                       </label>
                     </div>
                   </section>

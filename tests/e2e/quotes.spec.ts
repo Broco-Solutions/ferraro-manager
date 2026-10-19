@@ -1,4 +1,4 @@
-import { rm, writeFile } from "node:fs/promises";
+import { mkdir, rm, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import AxeBuilder from "@axe-core/playwright";
@@ -252,6 +252,49 @@ test("ADMIN creates, emits, accepts and converts a quote into the same case appo
   expect(accessibility.violations).toEqual([]);
   await captureEvidence(page);
 
+  if ((process.env.STORAGE_DRIVER ?? "local") === "local") {
+    // A file in place of this quote's storage directory reproduces a write failure
+    // without affecting any other quote or changing the running server's config.
+    const draftId = new URL(page.url()).pathname.split("/").at(-1)!;
+    const storageDirectory = path.resolve(
+      process.cwd(),
+      ".data/private/quotes",
+    );
+    const blockedPath = path.join(storageDirectory, draftId);
+    await mkdir(storageDirectory, { recursive: true });
+    await writeFile(blockedPath, "storage failure fixture", { flag: "wx" });
+    try {
+      await page.getByRole("button", { name: "Emitir presupuesto" }).click();
+      await page
+        .getByRole("alertdialog", { name: "Confirmar acción" })
+        .getByRole("button", { name: "Emitir presupuesto" })
+        .click();
+      await expect(
+        page
+          .getByRole("alert")
+          .filter({ hasText: "No pudimos emitir el presupuesto" }),
+      ).toBeVisible();
+      await expect(
+        page.getByText("No pudimos cargar esta sección"),
+      ).toHaveCount(0);
+      await expect(
+        page.getByRole("button", { name: "Emitir presupuesto" }),
+      ).toBeEnabled();
+      const prisma = createTestPrisma();
+      try {
+        const draft = await prisma.quote.findUniqueOrThrow({
+          where: { id: draftId },
+        });
+        expect(draft.status).toBe("DRAFT");
+        expect(draft.pdfArtifactKey).toBeNull();
+      } finally {
+        await prisma.$disconnect();
+      }
+    } finally {
+      await unlink(blockedPath);
+    }
+  }
+
   await page.getByRole("button", { name: "Emitir presupuesto" }).click();
   await page
     .getByRole("alertdialog", { name: "Confirmar acción" })
@@ -260,6 +303,14 @@ test("ADMIN creates, emits, accepts and converts a quote into the same case appo
   await expect(
     page.getByText("Presupuesto emitido y PDF congelado."),
   ).toBeVisible();
+  const pdfHref = await page
+    .getByRole("link", { name: "Descargar PDF" })
+    .getAttribute("href");
+  const pdf = await page.request.get(pdfHref!);
+  const samePdf = await page.request.get(pdfHref!);
+  expect(pdf.ok()).toBe(true);
+  expect(samePdf.ok()).toBe(true);
+  expect(await samePdf.body()).toEqual(await pdf.body());
   await page.getByRole("button", { name: "Marcar aceptado" }).click();
   await page
     .getByRole("alertdialog", { name: "Confirmar acción" })
@@ -273,6 +324,8 @@ test("ADMIN creates, emits, accepts and converts a quote into the same case appo
   await page.getByLabel("Fin *").fill("2027-03-12T14:00");
   await page.getByRole("button", { name: "Crear turno" }).click();
   await expect(page.getByText("Turno confirmado")).toBeVisible();
+  await expect(page.getByText("Turno agendado correctamente.")).toBeVisible();
+  await expect(page.getByLabel("Inicio *")).toHaveCount(0);
 
   const prisma = createTestPrisma();
   try {
@@ -315,13 +368,11 @@ test("inline client with two vehicles preserves quote lines and the new route av
   await expect(clientPicker).toHaveAttribute("aria-busy", "true");
   await expect(clientPicker).not.toHaveAttribute("aria-busy", "true");
   await clientPicker.press("ArrowDown");
-  await page
-    .getByRole("button", { name: `Crear “${inlineClientName}”` })
-    .click();
+  await page.getByRole("button", { name: "Nuevo cliente + vehículo" }).click();
   const dialog = page.getByRole("dialog", {
     name: "Crear cliente y vehículos",
   });
-  await dialog.getByLabel("Email").fill("quote-inline@ferraro.test");
+  await expect(dialog.getByRole("textbox")).toHaveCount(4);
   await dialog.getByLabel("Marca *").fill("Mercedes-Benz");
   await dialog.getByLabel("Modelo *").fill("A200");
   await dialog.getByRole("button", { name: "Agregar otro" }).click();

@@ -92,11 +92,15 @@ export async function saveVehicleAction(
   const parsed = vehicleInputSchema.safeParse({
     brand: stringValue(formData, "brand"),
     model: stringValue(formData, "model"),
-    version: stringValue(formData, "version"),
-    year: stringValue(formData, "year"),
-    color: stringValue(formData, "color"),
-    vehicleClass: stringValue(formData, "vehicleClass"),
-    notes: stringValue(formData, "notes"),
+    version: formData.has("version")
+      ? stringValue(formData, "version")
+      : undefined,
+    year: formData.has("year") ? stringValue(formData, "year") : undefined,
+    color: formData.has("color") ? stringValue(formData, "color") : undefined,
+    vehicleClass: formData.has("vehicleClass")
+      ? stringValue(formData, "vehicleClass")
+      : undefined,
+    notes: formData.has("notes") ? stringValue(formData, "notes") : undefined,
   });
   if (!clientId)
     return { status: "error", message: "Falta identificar el cliente." };

@@ -53,6 +53,7 @@ test("ADMIN creates a service and a model exception; STAFF is denied", async ({
   await page.getByLabel("Nueva categoría").fill(categoryName);
   await page.getByRole("button", { name: "Agregar" }).click();
   await page.getByRole("link", { name: "Nuevo servicio" }).click();
+  await expect(page).toHaveURL(/\/app\/services\/new$/);
   await page.getByLabel("Categoría *").selectOption({ label: categoryName });
   await page.getByLabel("Nombre *").fill(serviceName);
   await page.getByLabel("Precio base USD").fill("450");

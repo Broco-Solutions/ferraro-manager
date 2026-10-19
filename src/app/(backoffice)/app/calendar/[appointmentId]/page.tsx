@@ -11,11 +11,7 @@ import { notFound } from "next/navigation";
 import { ConfirmButton } from "@/components/ui/confirm-button";
 import { Badge } from "@/components/ui/status";
 import { cancelAppointmentAction } from "@/modules/scheduling/application/actions";
-import {
-  getAppointmentDetail,
-  listSchedulingOptions,
-} from "@/modules/scheduling/application/scheduling-service";
-import { AppointmentForm } from "@/modules/scheduling/ui/appointment-form";
+import { getAppointmentDetail } from "@/modules/scheduling/application/scheduling-service";
 import styles from "@/modules/scheduling/ui/calendar.module.css";
 import { requireRole } from "@/modules/identity/application/authorization";
 import {
@@ -30,7 +26,11 @@ export default async function AppointmentPage({
   searchParams,
 }: {
   params: Promise<{ appointmentId: string }>;
-  searchParams: Promise<{ saved?: string; cancelled?: string }>;
+  searchParams: Promise<{
+    saved?: string;
+    created?: string;
+    cancelled?: string;
+  }>;
 }) {
   const [{ appointmentId }, notices] = await Promise.all([
     params,
@@ -39,10 +39,6 @@ export default async function AppointmentPage({
   const session = await requireRole("ADMIN", "STAFF");
   const appointment = await getAppointmentDetail(appointmentId);
   if (!appointment) notFound();
-  const options = await listSchedulingOptions(
-    appointment.serviceCase.clientId,
-    appointment.serviceCase.vehicleId,
-  );
   const vehicle = appointment.serviceCase.vehicle;
   const durationMinutes = Math.round(
     (appointment.endAt.getTime() - appointment.startAt.getTime()) / 60_000,
@@ -61,9 +57,13 @@ export default async function AppointmentPage({
       >
         ← Agenda
       </Link>
-      {notices.saved || notices.cancelled ? (
+      {notices.created || notices.saved || notices.cancelled ? (
         <p className={styles.notice} role="status">
-          El turno se actualizó correctamente.
+          {notices.created
+            ? "Turno agendado correctamente."
+            : notices.cancelled
+              ? "Turno cancelado correctamente."
+              : "El turno se actualizó correctamente."}
         </p>
       ) : null}
       <header className={styles.detailHero}>
@@ -104,6 +104,12 @@ export default async function AppointmentPage({
         </div>
         {appointment.status === "CONFIRMED" ? (
           <div className={styles.actions}>
+            <Link
+              className={styles.button}
+              href={`/app/calendar/${appointment.id}/edit`}
+            >
+              Editar turno
+            </Link>
             {session.user.role === "ADMIN" ? (
               <Link
                 className={styles.button}
@@ -137,29 +143,71 @@ export default async function AppointmentPage({
           </Link>
         ) : null}
       </header>
-      {appointment.status === "CONFIRMED" ? (
-        <AppointmentForm
-          options={options}
-          values={{
-            id: appointment.id,
-            clientId: appointment.serviceCase.clientId,
-            vehicleId: appointment.serviceCase.vehicleId,
-            clientLabel: appointment.serviceCase.client.displayName,
-            vehicleLabel: `${vehicle.brand} ${vehicle.model}`,
-            startLocal: formatBusinessDateTimeInput(appointment.startAt),
-            endLocal: formatBusinessDateTimeInput(appointment.endAt),
-            serviceIds: appointment.services
-              .map((service) => service.serviceId)
-              .filter((id): id is string => Boolean(id)),
-            employeeIds: appointment.employees.map(
-              (employee) => employee.userId,
-            ),
-            internalNotes: appointment.internalNotes,
-            visibleToClient: appointment.visibleToClient,
-          }}
-          identityReassignment={appointment.identityReassignment}
-        />
-      ) : (
+      <section
+        className={styles.formSection}
+        aria-labelledby="appointment-summary-title"
+      >
+        <div className={styles.formSectionHeading}>
+          <h2 id="appointment-summary-title">Detalle del turno</h2>
+        </div>
+        <dl className={styles.summaryGrid}>
+          <div>
+            <dt>Cliente</dt>
+            <dd>{appointment.serviceCase.client.displayName}</dd>
+          </div>
+          <div>
+            <dt>Vehículo</dt>
+            <dd>
+              {vehicle.brand} {vehicle.model}
+            </dd>
+          </div>
+          <div>
+            <dt>Inicio</dt>
+            <dd>{formatBusinessDateTime(appointment.startAt)}</dd>
+          </div>
+          <div>
+            <dt>Fin</dt>
+            <dd>{formatBusinessDateTime(appointment.endAt)}</dd>
+          </div>
+          <div>
+            <dt>Servicios</dt>
+            <dd>
+              {appointment.services.length ? (
+                <ul>
+                  {appointment.services.map((service) => (
+                    <li key={service.id}>{service.nameSnapshot}</li>
+                  ))}
+                </ul>
+              ) : (
+                "Sin servicios asignados"
+              )}
+            </dd>
+          </div>
+          <div>
+            <dt>Responsables</dt>
+            <dd>
+              {appointment.employees.length ? (
+                <ul>
+                  {appointment.employees.map((employee) => (
+                    <li key={employee.userId}>{employee.user.name}</li>
+                  ))}
+                </ul>
+              ) : (
+                "Sin responsables asignados"
+              )}
+            </dd>
+          </div>
+          <div className={styles.summaryWide}>
+            <dt>Notas internas</dt>
+            <dd>{appointment.internalNotes || "Sin notas"}</dd>
+          </div>
+          <div>
+            <dt>Visible para el cliente</dt>
+            <dd>{appointment.visibleToClient ? "Sí" : "No"}</dd>
+          </div>
+        </dl>
+      </section>
+      {appointment.status !== "CONFIRMED" ? (
         <section className={styles.historical}>
           <div>
             <p className={styles.eyebrow}>Histórico</p>
@@ -171,7 +219,7 @@ export default async function AppointmentPage({
               : "El trabajo realizado tiene su propio detalle e historial."}
           </p>
         </section>
-      )}
+      ) : null}
     </div>
   );
 }

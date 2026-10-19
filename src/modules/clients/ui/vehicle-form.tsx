@@ -4,7 +4,7 @@ import { useActionState } from "react";
 
 import { FormActions, FormGrid } from "@/components/patterns/page";
 import { Button } from "@/components/ui/button";
-import { Field, Input, Select, Textarea } from "@/components/ui/field";
+import { Field, Input } from "@/components/ui/field";
 import {
   saveVehicleAction,
   type FormActionState,
@@ -64,41 +64,6 @@ export function VehicleForm({
             name="model"
             required
           />
-        </Field>
-        <Field label="Versión" optional>
-          <Input
-            defaultValue={values.version ?? ""}
-            maxLength={100}
-            name="version"
-          />
-        </Field>
-        <Field label="Año" optional>
-          <Input
-            defaultValue={values.year ?? ""}
-            inputMode="numeric"
-            max={2100}
-            min={1900}
-            name="year"
-          />
-        </Field>
-        <Field label="Color" optional>
-          <Input
-            defaultValue={values.color ?? ""}
-            maxLength={60}
-            name="color"
-          />
-        </Field>
-        <Field label="Segmento" optional>
-          <Select defaultValue={values.vehicleClass ?? ""} name="vehicleClass">
-            <option value="">Sin definir</option>
-            <option value="SEDAN">Sedan</option>
-            <option value="SUV">SUV</option>
-            <option value="PICKUP">Pickup</option>
-            <option value="OTHER">Otro</option>
-          </Select>
-        </Field>
-        <Field className={styles.fieldSpan} label="Observaciones" optional>
-          <Textarea defaultValue={values.notes ?? ""} name="notes" rows={4} />
         </Field>
       </FormGrid>
       <FormActions>

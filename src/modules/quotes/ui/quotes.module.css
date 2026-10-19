@@ -310,3 +310,10 @@
     width: 100%;
   }
 }
+.issueError {
+  max-width: 34rem;
+  padding: var(--space-3);
+  color: var(--danger);
+  background: var(--danger-surface);
+  border-radius: var(--radius-sm);
+}

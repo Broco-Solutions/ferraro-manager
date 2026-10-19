@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { logger } from "@/infrastructure/logging/logger";
 
 import { requireRole } from "@/modules/identity/application/authorization";
 import {
@@ -106,10 +107,29 @@ export async function saveQuoteAction(
   }
 }
 
-export async function issueQuoteAction(formData: FormData) {
+export async function issueQuoteAction(
+  _state: QuoteFormState,
+  formData: FormData,
+): Promise<QuoteFormState> {
   const session = await requireRole("ADMIN");
   const id = value(formData, "quoteId");
-  await issueQuote(id, session.user);
+  try {
+    await issueQuote(id, session.user);
+  } catch (error) {
+    logger.error("quote_issue_failed", {
+      quoteId: id,
+      error: error instanceof Error ? error.name : "UnknownError",
+      code:
+        error && typeof error === "object" && "code" in error
+          ? String(error.code)
+          : undefined,
+    });
+    return {
+      status: "error",
+      message:
+        "No pudimos emitir el presupuesto. Intentá nuevamente; si el problema continúa, avisá a un administrador.",
+    };
+  }
   revalidatePath("/app/quotes");
   revalidatePath(`/app/quotes/${id}`);
   redirect(`/app/quotes/${id}?issued=1`);
@@ -160,7 +180,7 @@ export async function scheduleAcceptedQuoteAction(
     );
     revalidatePath("/app/calendar");
     revalidatePath(`/app/quotes/${value(formData, "quoteId")}`);
-    redirect(`/app/calendar/${appointment.id}?saved=1`);
+    redirect(`/app/calendar/${appointment.id}?created=1`);
   } catch (error) {
     if (error && typeof error === "object" && "digest" in error) throw error;
     const message = error instanceof Error ? error.message : "";
