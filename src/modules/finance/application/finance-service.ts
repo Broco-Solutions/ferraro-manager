@@ -1,3 +1,7 @@
+import {
+  lockSalary,
+  reopenSalaryPayment,
+} from "@/modules/salaries/application/salary-service";
 import { createHash } from "node:crypto";
 
 import {
@@ -156,6 +160,8 @@ export async function reverseFinancialEntry(
           sourceAmount: true,
           exchangeRateArsPerUsd: true,
           occurredAt: true,
+          salaryMonthId: true,
+          salaryMonth: { select: { salaryId: true } },
           serviceCaseId: true,
           categoryId: true,
           paymentMethod: true,
@@ -164,6 +170,8 @@ export async function reverseFinancialEntry(
       if (!original) throw new Error("FINANCIAL_ENTRY_NOT_FOUND");
       if (original.type === "REVERSAL")
         throw new Error("REVERSAL_NOT_REVERSIBLE");
+      if (original.salaryMonth)
+        await lockSalary(tx, original.salaryMonth.salaryId);
       const existing = await tx.financialEntry.findUnique({
         where: { reversalOfId: original.id },
         select: { id: true },
@@ -182,11 +190,20 @@ export async function reverseFinancialEntry(
           serviceCaseId: original.serviceCaseId,
           categoryId: original.categoryId,
           paymentMethod: original.paymentMethod,
+          salaryMonthId: original.salaryMonthId,
           reversalOfId: original.id,
           createdById: actor.id,
         },
         select: { id: true },
       });
+      if (original.salaryMonthId)
+        await reopenSalaryPayment(
+          tx,
+          original.id,
+          original.salaryMonthId,
+          actor,
+          reason,
+        );
       return { id: reversal.id, replayed: false };
     });
   } catch (error) {
@@ -410,6 +427,7 @@ export async function listFinancialEntries(options: {
     "PURCHASE",
     "MANUAL_INCOME",
     "MANUAL_EXPENSE",
+    "SALARY_PAYMENT",
     "REVERSAL",
   ];
   const type = allowedTypes.includes(options.type as FinancialEntryType)
@@ -434,6 +452,7 @@ export async function listFinancialEntries(options: {
       description: true,
       reversalOfId: true,
       reversedBy: { select: { id: true } },
+      salaryMonth: { select: { salaryId: true, month: true } },
       category: { select: { name: true } },
       serviceCase: {
         select: {

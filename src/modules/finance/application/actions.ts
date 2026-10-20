@@ -79,6 +79,8 @@ export async function reverseFinancialEntryAction(formData: FormData) {
     session.user,
   );
   revalidatePath("/app/finance");
+  revalidatePath("/app/finance/salaries", "layout");
+  revalidatePath("/app");
   if (serviceCaseId) {
     revalidatePath(`/app/finance/cases/${serviceCaseId}`);
     redirect(`/app/finance/cases/${serviceCaseId}?reversed=1`);

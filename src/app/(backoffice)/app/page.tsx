@@ -217,7 +217,12 @@ export default async function AppHomePage() {
               <p className={styles.eyebrow}>Administración · mes en curso</p>
               <h2 id="finance-summary">Pulso financiero</h2>
             </div>
-            <p>Lectura de caja, actividad y saldos realizados.</p>
+            <div>
+              <p>Lectura de caja, actividad y saldos realizados.</p>
+              <Link href="/app/finance/salaries" className="text-link">
+                Ver sueldos pendientes
+              </Link>
+            </div>
           </header>
           <div className={styles.kpis}>
             <Kpi
@@ -246,6 +251,16 @@ export default async function AppHomePage() {
               detail={`${admin.pendingCases.length} caso(s) prioritario(s)`}
               label="Saldo pendiente realizado"
               value={money.format(admin.pendingBalanceUsd.toNumber())}
+            />
+            <Kpi
+              attention={admin.salaries.pendingCount > 0}
+              detail={`${admin.salaries.pendingCount} sueldo(s); ${admin.salaries.previousCount} de meses anteriores · ARS`}
+              label="Sueldos pendientes"
+              value={new Intl.NumberFormat("es-AR", {
+                style: "currency",
+                currency: "ARS",
+                currencyDisplay: "code",
+              }).format(admin.salaries.pendingArs.toNumber())}
             />
             {admin.marginCaseCount > 0 ? (
               <Kpi

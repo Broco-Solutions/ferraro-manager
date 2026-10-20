@@ -58,3 +58,5 @@ En un turno existente la identidad sólo puede reasignarse cuando su `ServiceCas
 ## Ferraro Manager V1
 
 La branch de integración contiene los módulos V1 definidos por el Master Plan: clientes/vehículos, catálogo, agenda, trabajos, presupuestos/PDF, finanzas, inventario, compras, consumos, fotos, portal privado, dashboard y búsqueda. El estado verificable de cada gate está en [`docs/EXECUTION_LOG.md`](./docs/EXECUTION_LOG.md). PPF HOUSE y multi-tenancy permanecen fuera de alcance.
+
+La gestión de sueldos recurrentes, ajustes y pagos está documentada en [Sueldos mensuales](docs/SALARIES.md).

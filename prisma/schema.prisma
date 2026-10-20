@@ -59,6 +59,7 @@ enum FinancialEntryType {
   PURCHASE
   MANUAL_INCOME
   MANUAL_EXPENSE
+  SALARY_PAYMENT
   REVERSAL
 }
 
@@ -88,6 +89,12 @@ enum PhotoStage {
   AFTER
 }
 
+enum SalaryMonthStatus {
+  PENDING
+  PAID
+  CANCELLED
+}
+
 model User {
   id                          String                      @id @default(uuid()) @db.Uuid
   name                        String
@@ -99,6 +106,8 @@ model User {
   lastLoginAt                 DateTime?
   createdAt                   DateTime                    @default(now())
   updatedAt                   DateTime                    @updatedAt
+  salariesCreated             Salary[]
+  salaryEvents                SalaryEvent[]
   sessions                    Session[]
   accounts                    Account[]
   idempotency                 IdempotencyKey[]
@@ -384,6 +393,9 @@ model FinancialEntry {
   serviceCaseId String?            @db.Uuid
   categoryId    String?            @db.Uuid
   purchaseId    String?            @unique @db.Uuid
+  salaryMonthId String?            @db.Uuid
+  salaryMonth   SalaryMonth?       @relation("SalaryPayments", fields: [salaryMonthId], references: [id], onDelete: Restrict)
+  activeSalaryPayment SalaryMonth? @relation("ActiveSalaryPayment")
   reversalOfId  String?            @unique @db.Uuid
   createdAt     DateTime           @default(now()) @db.Timestamptz(3)
   createdById   String?            @db.Uuid
@@ -398,6 +410,7 @@ model FinancialEntry {
   @@index([serviceCaseId, occurredAt])
   @@index([categoryId, occurredAt])
   @@index([type, occurredAt])
+  @@index([salaryMonthId])
   @@map("financial_entries")
 }
 
@@ -926,4 +939,67 @@ model IdempotencyKey {
   @@index([actorId])
   @@index([expiresAt])
   @@map("idempotency_keys")
+}
+
+model Salary {
+  id          String        @id @default(uuid()) @db.Uuid
+  name        String
+  startMonth  String        @db.VarChar(7)
+  endMonth    String?       @db.VarChar(7)
+  version     Int           @default(0)
+  createdAt   DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime      @updatedAt @db.Timestamptz(3)
+  createdById String?       @db.Uuid
+  createdBy   User?         @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  rates       SalaryRate[]
+  months      SalaryMonth[]
+  events      SalaryEvent[]
+
+  @@map("salaries")
+}
+
+model SalaryRate {
+  id             String   @id @default(uuid()) @db.Uuid
+  salaryId       String   @db.Uuid
+  effectiveMonth String   @db.VarChar(7)
+  amountArs      Decimal  @db.Decimal(19, 2)
+  salary         Salary   @relation(fields: [salaryId], references: [id], onDelete: Restrict)
+  createdAt      DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime @updatedAt @db.Timestamptz(3)
+
+  @@unique([salaryId, effectiveMonth])
+  @@map("salary_rates")
+}
+
+model SalaryMonth {
+  id             String            @id @default(uuid()) @db.Uuid
+  salaryId       String            @db.Uuid
+  month          String            @db.VarChar(7)
+  amountArs      Decimal           @db.Decimal(19, 2)
+  status         SalaryMonthStatus @default(PENDING)
+  version        Int               @default(0)
+  paymentEntryId String?           @unique @db.Uuid
+  payment        FinancialEntry?   @relation("ActiveSalaryPayment", fields: [paymentEntryId], references: [id], onDelete: Restrict)
+  payments       FinancialEntry[]  @relation("SalaryPayments")
+  salary         Salary            @relation(fields: [salaryId], references: [id], onDelete: Restrict)
+  createdAt      DateTime          @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime          @updatedAt @db.Timestamptz(3)
+
+  @@unique([salaryId, month])
+  @@index([status, month])
+  @@map("salary_months")
+}
+
+model SalaryEvent {
+  id          String   @id @default(uuid()) @db.Uuid
+  salaryId    String   @db.Uuid
+  action      String
+  detail      Json
+  createdAt   DateTime @default(now()) @db.Timestamptz(3)
+  createdById String?  @db.Uuid
+  createdBy   User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  salary      Salary   @relation(fields: [salaryId], references: [id], onDelete: Restrict)
+
+  @@index([salaryId, createdAt])
+  @@map("salary_events")
 }

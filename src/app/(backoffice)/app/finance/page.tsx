@@ -1,3 +1,4 @@
+import { getSalarySummary } from "@/modules/salaries/application/salary-service";
 import type { Metadata } from "next";
 import { PlusIcon } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
@@ -19,6 +20,7 @@ const typeLabels = {
   PURCHASE: "Compra",
   MANUAL_INCOME: "Ingreso manual",
   MANUAL_EXPENSE: "Egreso manual",
+  SALARY_PAYMENT: "Pago de sueldo",
   REVERSAL: "Reversión",
 } as const;
 
@@ -43,6 +45,7 @@ export default async function FinancePage({
     page: Number(params.page) || 1,
   });
   const filtered = Boolean(params.direction || params.type);
+  const salaries = await getSalarySummary();
 
   return (
     <Page className={styles.page} size="wide">
@@ -52,6 +55,12 @@ export default async function FinancePage({
         description="Dinero efectivamente cobrado o pagado, separado del importe acordado y del trabajo operativo."
         actions={
           <>
+            <Link
+              href="/app/finance/salaries"
+              className={buttonClassName("secondary")}
+            >
+              Sueldos
+            </Link>
             <Link
               href="/app/finance/categories"
               className={buttonClassName("secondary")}
@@ -94,6 +103,15 @@ export default async function FinancePage({
           <strong>USD {result.netUsd.toFixed(2)}</strong>
         </article>
       </section>
+
+      <p className={styles.meta}>
+        <Link href="/app/finance/salaries?pending=1" className="text-link">
+          Sueldos pendientes: ARS {salaries.pendingArs.toFixed(2)}
+        </Link>
+        {" · "}
+        {salaries.pendingCount} sueldo(s), incluidos {salaries.previousCount} de
+        meses anteriores.
+      </p>
 
       <DataToolbar>
         <form className={styles.filters} role="search">
@@ -170,6 +188,14 @@ export default async function FinancePage({
                     className="text-link"
                   >
                     Ver saldo
+                  </Link>
+                ) : null}
+                {entry.salaryMonth ? (
+                  <Link
+                    href={`/app/finance/salaries/${entry.salaryMonth.salaryId}?month=${entry.salaryMonth.month}`}
+                    className="text-link"
+                  >
+                    Ver sueldo
                   </Link>
                 ) : null}
                 {entry.type !== "REVERSAL" && !entry.reversedBy ? (

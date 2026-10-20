@@ -1,3 +1,4 @@
+import { getSalarySummary } from "@/modules/salaries/application/salary-service";
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/infrastructure/db/client";
 import { caseBalance, netCash } from "@/modules/finance/domain/balance";
@@ -112,56 +113,58 @@ export async function getAdminDashboard(now = new Date()) {
   const month = getBusinessMonthKey(now);
   const range = businessMonthRange(month);
   const todayDate = new Date(`${getBusinessDateKey(now)}T00:00:00.000Z`);
-  const [entries, jobsThisMonth, cases, expiredQuotes] = await Promise.all([
-    prisma.financialEntry.findMany({
-      where: { occurredAt: { gte: range.start, lt: range.end } },
-      select: {
-        direction: true,
-        type: true,
-        amountUsd: true,
-        reversalOf: { select: { type: true } },
-      },
-    }),
-    prisma.job.count({
-      where: {
-        voidedAt: null,
-        performedAt: { gte: range.start, lt: range.end },
-      },
-    }),
-    prisma.serviceCase.findMany({
-      where: { jobs: { some: { voidedAt: null } } },
-      select: {
-        id: true,
-        agreedAmountUsd: true,
-        directCostUsd: true,
-        client: { select: { displayName: true } },
-        vehicle: { select: { brand: true, model: true } },
-        jobs: {
-          where: {
-            voidedAt: null,
-            performedAt: { gte: range.start, lt: range.end },
+  const [entries, jobsThisMonth, cases, expiredQuotes, salaries] =
+    await Promise.all([
+      prisma.financialEntry.findMany({
+        where: { occurredAt: { gte: range.start, lt: range.end } },
+        select: {
+          direction: true,
+          type: true,
+          amountUsd: true,
+          reversalOf: { select: { type: true } },
+        },
+      }),
+      prisma.job.count({
+        where: {
+          voidedAt: null,
+          performedAt: { gte: range.start, lt: range.end },
+        },
+      }),
+      prisma.serviceCase.findMany({
+        where: { jobs: { some: { voidedAt: null } } },
+        select: {
+          id: true,
+          agreedAmountUsd: true,
+          directCostUsd: true,
+          client: { select: { displayName: true } },
+          vehicle: { select: { brand: true, model: true } },
+          jobs: {
+            where: {
+              voidedAt: null,
+              performedAt: { gte: range.start, lt: range.end },
+            },
+            select: { id: true },
+            orderBy: { performedAt: "desc" },
+            take: 1,
           },
-          select: { id: true },
-          orderBy: { performedAt: "desc" },
-          take: 1,
+          financialEntries: {
+            select: { direction: true, amountUsd: true },
+          },
         },
-        financialEntries: {
-          select: { direction: true, amountUsd: true },
+      }),
+      prisma.quote.findMany({
+        where: { status: "SENT", validUntil: { lt: todayDate } },
+        select: {
+          id: true,
+          number: true,
+          validUntil: true,
+          client: { select: { displayName: true } },
         },
-      },
-    }),
-    prisma.quote.findMany({
-      where: { status: "SENT", validUntil: { lt: todayDate } },
-      select: {
-        id: true,
-        number: true,
-        validUntil: true,
-        client: { select: { displayName: true } },
-      },
-      orderBy: { validUntil: "asc" },
-      take: 5,
-    }),
-  ]);
+        orderBy: { validUntil: "asc" },
+        take: 5,
+      }),
+      getSalarySummary(now),
+    ]);
   const cashNet = netCash(entries);
   const collected = customerCash(entries);
   const outflows = entries.reduce(
@@ -208,6 +211,7 @@ export async function getAdminDashboard(now = new Date()) {
     collectedUsd: collected,
     outflowUsd: outflows,
     cashNetUsd: cashNet,
+    salaries,
     jobsThisMonth,
     knownMarginUsd,
     marginCaseCount: casesWithKnownMargin.length,

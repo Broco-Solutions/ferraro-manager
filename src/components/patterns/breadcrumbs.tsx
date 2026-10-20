@@ -16,6 +16,7 @@ const labels: Record<string, string> = {
   "design-system": "Sistema de diseño",
   edit: "Editar",
   finance: "Finanzas",
+  salaries: "Sueldos",
   inventory: "Inventario",
   jobs: "Trabajos",
   new: "Nuevo",
