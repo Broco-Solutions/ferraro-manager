@@ -11,6 +11,7 @@ export interface NavigationItem {
     | "quotes"
     | "purchases"
     | "finance"
+    | "salaries"
     | "services"
     | "admin";
   label: string;
@@ -89,6 +90,14 @@ const navigation: readonly NavigationItem[] = [
     label: "Finanzas",
     shortLabel: "Finanzas",
     href: "/app/finance",
+    roles: ["ADMIN"],
+  },
+  {
+    group: "Administración",
+    icon: "salaries",
+    label: "Sueldos",
+    shortLabel: "Sueldos",
+    href: "/app/finance/salaries",
     roles: ["ADMIN"],
   },
   {

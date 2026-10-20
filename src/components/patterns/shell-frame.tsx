@@ -8,6 +8,7 @@ import {
   ClipboardTextIcon,
   HouseIcon,
   ListIcon,
+  MoneyIcon,
   PackageIcon,
   MagnifyingGlassIcon,
   ReceiptIcon,
@@ -64,6 +65,7 @@ const iconMap: Record<NavigationItem["icon"], ShellIcon> = {
   quotes: ClipboardTextIcon,
   purchases: ShoppingCartIcon,
   finance: ChartLineUpIcon,
+  salaries: MoneyIcon,
   services: ReceiptIcon,
   admin: UserCircleGearIcon,
 };
@@ -88,11 +90,26 @@ function getSidebarServerSnapshot() {
   return false;
 }
 
-function isCurrentPath(pathname: string, href?: string) {
+function isCurrentPath(
+  pathname: string,
+  href: string | undefined,
+  items: NavigationItem[],
+) {
   if (!href) return false;
-  return href === "/app"
-    ? pathname === href
-    : pathname === href || pathname.startsWith(`${href}/`);
+  const matches =
+    href === "/app"
+      ? pathname === href
+      : pathname === href || pathname.startsWith(`${href}/`);
+  // Nested modules highlight their own entry rather than both links.
+  return (
+    matches &&
+    !items.some(
+      (item) =>
+        item.href &&
+        item.href.length > href.length &&
+        (pathname === item.href || pathname.startsWith(`${item.href}/`)),
+    )
+  );
 }
 
 function NavGroups({
@@ -122,7 +139,9 @@ function NavGroups({
                 <AriaLink
                   aria-label={item.label}
                   aria-current={
-                    isCurrentPath(pathname, item.href) ? "page" : undefined
+                    isCurrentPath(pathname, item.href, items)
+                      ? "page"
+                      : undefined
                   }
                   className={styles.navLink}
                   href={item.href}
@@ -141,7 +160,7 @@ function NavGroups({
             <Link
               aria-label={item.label}
               aria-current={
-                isCurrentPath(pathname, item.href) ? "page" : undefined
+                isCurrentPath(pathname, item.href, items) ? "page" : undefined
               }
               className={styles.navLink}
               href={item.href}
@@ -340,7 +359,7 @@ export function ShellFrame({
             return (
               <Link
                 aria-current={
-                  isCurrentPath(pathname, item.href) ? "page" : undefined
+                  isCurrentPath(pathname, item.href, items) ? "page" : undefined
                 }
                 className={styles.bottomLink}
                 href={item.href ?? "/app"}

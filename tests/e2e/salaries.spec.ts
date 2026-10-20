@@ -68,7 +68,16 @@ test("ADMIN creates a recurring salary, adjusts, pays and reverses it from Finan
 }) => {
   await login(page, "admin");
   await page.goto("/app/finance");
-  await page.getByRole("link", { name: "Sueldos", exact: true }).click();
+  const sidebar = page.getByRole("complementary", {
+    name: "Navegación lateral",
+  });
+  await sidebar.getByRole("link", { name: "Sueldos", exact: true }).click();
+  await expect(
+    sidebar.getByRole("link", { name: "Sueldos", exact: true }),
+  ).toHaveAttribute("aria-current", "page");
+  await expect(
+    sidebar.getByRole("link", { name: "Finanzas", exact: true }),
+  ).not.toHaveAttribute("aria-current", "page");
   await page.getByRole("link", { name: "Agregar sueldo" }).first().click();
   await page.getByLabel("Nombre de la persona").fill(person);
   await page.getByLabel("Mes de inicio").fill(previous);
