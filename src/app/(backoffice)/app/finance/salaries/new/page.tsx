@@ -1,9 +1,11 @@
 import { randomUUID } from "node:crypto";
 import type { Metadata } from "next";
+import { ArrowLeftIcon } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { Page, PageHeader } from "@/components/patterns/page";
 import { requireRole } from "@/modules/identity/application/authorization";
-import { SalaryForm } from "@/modules/salaries/ui/salary-form";
+import { SalaryCreateForm } from "@/modules/salaries/ui/salary-create-form";
+import styles from "@/modules/salaries/ui/salary-create-form.module.css";
 import { getBusinessMonthKey } from "@/shared/date-time/business-time";
 
 export const metadata: Metadata = { title: "Agregar sueldo" };
@@ -12,21 +14,15 @@ export default async function NewSalaryPage() {
   const month = getBusinessMonthKey(new Date());
   return (
     <Page size="narrow">
+      <Link href="/app/finance/salaries" className={styles.backLink}>
+        <ArrowLeftIcon aria-hidden size={16} />
+        Sueldos
+      </Link>
       <PageHeader
         title="Agregar sueldo"
-        description="La persona no necesita tener una cuenta en el sistema."
-        actions={
-          <Link href="/app/finance/salaries" className="text-link">
-            Volver a sueldos
-          </Link>
-        }
+        description="Definí el importe mensual y desde cuándo se repite."
       />
-      <SalaryForm
-        operation="create"
-        month={month}
-        currentMonth={month}
-        idempotencyKey={randomUUID()}
-      />
+      <SalaryCreateForm currentMonth={month} idempotencyKey={randomUUID()} />
     </Page>
   );
 }

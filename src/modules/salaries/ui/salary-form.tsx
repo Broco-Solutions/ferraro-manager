@@ -7,7 +7,7 @@ import {
   type SalaryFormState,
 } from "@/modules/salaries/application/actions";
 
-type Operation = "create" | "adjust" | "pay" | "stop" | "cancel" | "reverse";
+type Operation = "adjust" | "pay" | "stop" | "cancel" | "reverse";
 interface Props {
   operation: Operation;
   salaryId?: string;
@@ -22,7 +22,6 @@ interface Props {
 }
 const initialState: SalaryFormState = { status: "idle" };
 const labels: Record<Operation, string> = {
-  create: "Agregar sueldo",
   adjust: "Guardar ajuste",
   pay: "Confirmar pago completo",
   stop: "Dejar de repetir",
@@ -56,38 +55,21 @@ export function SalaryForm(props: Props) {
         />
       ) : null}
       <div className="form-grid two-columns">
-        {operation === "create" ? (
+        {operation === "stop" ? (
           <label>
-            <span>Nombre de la persona *</span>
-            <input
-              name="name"
-              autoComplete="name"
-              minLength={2}
-              maxLength={120}
-              required
-            />
-          </label>
-        ) : null}
-        {operation === "create" || operation === "stop" ? (
-          <label>
-            <span>
-              {operation === "create"
-                ? "Mes de inicio *"
-                : "Último mes a incluir *"}
-            </span>
+            <span>Último mes a incluir *</span>
             <input
               type="month"
               name="month"
               defaultValue={props.month}
-              min={operation === "stop" ? props.currentMonth : "2000-01"}
-              max={operation === "create" ? props.currentMonth : undefined}
+              min={props.currentMonth}
               required
             />
           </label>
         ) : (
           <input type="hidden" name="month" value={props.month} />
         )}
-        {operation === "create" || operation === "adjust" ? (
+        {operation === "adjust" ? (
           <label>
             <span>Importe mensual (ARS) *</span>
             <input
@@ -162,13 +144,6 @@ export function SalaryForm(props: Props) {
           </label>
         ) : null}
       </div>
-      {operation === "create" ? (
-        <p>
-          Este sueldo se repetirá cada mes hasta que lo desactives. Si elegís un
-          mes anterior, se cargarán también los meses siguientes como
-          pendientes.
-        </p>
-      ) : null}
       {operation === "adjust" ? (
         <p>
           {props.future
