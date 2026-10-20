@@ -962,7 +962,7 @@ model SalaryRate {
   id             String   @id @default(uuid()) @db.Uuid
   salaryId       String   @db.Uuid
   effectiveMonth String   @db.VarChar(7)
-  amountArs      Decimal  @db.Decimal(19, 2)
+  amountUsd      Decimal  @map("amountArs") @db.Decimal(19, 2)
   salary         Salary   @relation(fields: [salaryId], references: [id], onDelete: Restrict)
   createdAt      DateTime @default(now()) @db.Timestamptz(3)
   updatedAt      DateTime @updatedAt @db.Timestamptz(3)
@@ -975,7 +975,7 @@ model SalaryMonth {
   id             String            @id @default(uuid()) @db.Uuid
   salaryId       String            @db.Uuid
   month          String            @db.VarChar(7)
-  amountArs      Decimal           @db.Decimal(19, 2)
+  amountUsd      Decimal           @map("amountArs") @db.Decimal(19, 2)
   status         SalaryMonthStatus @default(PENDING)
   version        Int               @default(0)
   paymentEntryId String?           @unique @db.Uuid

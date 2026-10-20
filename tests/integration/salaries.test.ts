@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto";
+import { readFile } from "node:fs/promises";
+import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { prisma } from "@/infrastructure/db/client";
 import { getAdminDashboard } from "@/modules/dashboard/application/dashboard-service";
@@ -21,7 +23,7 @@ import {
 const now = new Date("2026-10-20T15:00:00Z");
 const salaryIds: string[] = [];
 let actor = { id: "" };
-async function create(month = "2026-10", amount = "1000000") {
+async function create(month = "2026-10", amount = "1000") {
   const result = await createSalary(
     {
       name: `Persona ${randomUUID().slice(0, 8)}`,
@@ -45,7 +47,6 @@ async function paymentInput(id: string, month = "2026-10") {
     version: (await detail(id)).version,
     occurredLocal: "2026-10-19T12:00",
     paymentMethod: "TRANSFER",
-    exchangeRateArsPerUsd: "1000",
     idempotencyKey: randomUUID(),
   };
 }
@@ -97,7 +98,7 @@ describe("recurring salaries and cash ledger", () => {
     const input = {
       name: "Persona sin usuario",
       month: "2026-08",
-      amount: "950000,50",
+      amount: "950,50",
       idempotencyKey: randomUUID(),
     };
     const results = await Promise.all([
@@ -114,8 +115,7 @@ describe("recurring salaries and cash ledger", () => {
     ]);
     expect(
       initial.months.every(
-        (item) =>
-          item.status === "PENDING" && item.amountArs.equals("950000.50"),
+        (item) => item.status === "PENDING" && item.amountUsd.equals("950.50"),
       ),
     ).toBe(true);
     await Promise.all([
@@ -138,7 +138,7 @@ describe("recurring salaries and cash ledger", () => {
       {
         salaryId: id,
         month: "2026-09",
-        amount: "1100000",
+        amount: "1100",
         scope: "MONTH",
         version: salary.version,
       },
@@ -149,18 +149,18 @@ describe("recurring salaries and cash ledger", () => {
     expect(
       salary.months
         .find((item) => item.month === "2026-09")!
-        .amountArs.toString(),
-    ).toBe("1100000");
+        .amountUsd.toString(),
+    ).toBe("1100");
     expect(
       salary.months
         .find((item) => item.month === "2026-10")!
-        .amountArs.toString(),
-    ).toBe("1000000");
+        .amountUsd.toString(),
+    ).toBe("1000");
     await adjustSalary(
       {
         salaryId: id,
         month: "2026-10",
-        amount: "1200000",
+        amount: "1200",
         scope: "RECURRING",
         version: salary.version,
       },
@@ -172,7 +172,7 @@ describe("recurring salaries and cash ledger", () => {
       {
         salaryId: id,
         month: "2026-11",
-        amount: "1300000",
+        amount: "1300",
         scope: "RECURRING",
         version: salary.version,
       },
@@ -184,18 +184,18 @@ describe("recurring salaries and cash ledger", () => {
     expect(
       salary.months
         .find((item) => item.month === "2026-08")!
-        .amountArs.toString(),
-    ).toBe("1000000");
+        .amountUsd.toString(),
+    ).toBe("1000");
     expect(
       salary.months
         .find((item) => item.month === "2026-10")!
-        .amountArs.toString(),
-    ).toBe("1200000");
+        .amountUsd.toString(),
+    ).toBe("1200");
     expect(
       salary.months
         .find((item) => item.month === "2026-11")!
-        .amountArs.toString(),
-    ).toBe("1300000");
+        .amountUsd.toString(),
+    ).toBe("1300");
     await expect(
       adjustSalary(
         {
@@ -225,13 +225,15 @@ describe("recurring salaries and cash ledger", () => {
       where: { id: paid[0].id },
     });
     expect(entry.amountUsd.toString()).toBe("1000");
-    expect(entry.sourceAmount.toString()).toBe("1000000");
+    expect(entry.sourceAmount.toString()).toBe("1000");
+    expect(entry.sourceCurrency).toBe("USD");
+    expect(entry.exchangeRateArsPerUsd).toBeNull();
     await expect(
       adjustSalary(
         {
           salaryId: id,
           month: "2026-10",
-          amount: "2000000",
+          amount: "2000",
           scope: "MONTH",
           version: input.version,
         },
@@ -298,7 +300,7 @@ describe("recurring salaries and cash ledger", () => {
     ).toBe(1);
   });
 
-  it("keeps cash in the payment month and pending obligations in ARS", async () => {
+  it("keeps cash in the payment month and pending obligations in USD", async () => {
     const november = new Date("2026-11-10T15:00:00Z");
     const id = await create();
     const before = await getAdminDashboard(november);
@@ -315,8 +317,8 @@ describe("recurring salaries and cash ledger", () => {
       before.knownMarginUsd.toString(),
     );
     expect(
-      after.salaries.pendingArs.minus(before.salaries.pendingArs).toString(),
-    ).toBe("-1000000");
+      after.salaries.pendingUsd.minus(before.salaries.pendingUsd).toString(),
+    ).toBe("-1000");
     const ledger = await listFinancialEntries({
       month: "2026-11",
       type: "SALARY_PAYMENT",
@@ -332,7 +334,7 @@ describe("recurring salaries and cash ledger", () => {
     expect(list.items.find((item) => item.salaryId === id)?.status).toBe(
       "PAID",
     );
-    expect((await getSalarySummary(november)).pendingArs.gte(0)).toBe(true);
+    expect((await getSalarySummary(november)).pendingUsd.gte(0)).toBe(true);
   });
 
   it("ends recurrence without removing debts, and excludes annulled monthly records", async () => {
@@ -377,6 +379,51 @@ describe("recurring salaries and cash ledger", () => {
     ).toEqual(["2026-10"]);
   });
 
+  it("rejects ARS payroll entries at the database boundary", async () => {
+    const id = await create();
+    const salary = await detail(id);
+    await expect(
+      prisma.financialEntry.create({
+        data: {
+          direction: "OUTFLOW",
+          type: "SALARY_PAYMENT",
+          salaryMonthId: salary.months[0]!.id,
+          sourceCurrency: "ARS",
+          sourceAmount: "1000000",
+          amountUsd: "1000",
+          exchangeRateArsPerUsd: "1000",
+          occurredAt: now,
+          createdById: actor.id,
+        },
+      }),
+    ).rejects.toThrow();
+    expect((await detail(id)).months[0]!.status).toBe("PENDING");
+  });
+
+  it("refuses to relabel existing salary records during the currency migration", async () => {
+    const id = await create();
+    const client = new pg.Client({
+      connectionString: process.env.DATABASE_URL,
+    });
+    await client.connect();
+    try {
+      const migration = await readFile(
+        new URL(
+          "../../prisma/migrations/20261021000000_salary_usd/migration.sql",
+          import.meta.url,
+        ),
+        "utf8",
+      );
+      await expect(client.query(migration)).rejects.toThrow(
+        "SALARY_CURRENCY_REVIEW_REQUIRED",
+      );
+    } finally {
+      await client.query("ROLLBACK");
+      await client.end();
+    }
+    expect((await detail(id)).months[0]!.amountUsd.toString()).toBe("1000");
+  });
+
   it("uses the business timezone and rejects future or invalid payments", async () => {
     const boundary = new Date("2026-11-01T02:00:00Z"); // still October in Buenos Aires
     const id = await create();
@@ -391,7 +438,7 @@ describe("recurring salaries and cash ledger", () => {
       paySalary({ ...input, occurredLocal: "2026-10-21T12:00" }, actor, now),
     ).rejects.toThrow("SALARY_FUTURE_PAYMENT");
     await expect(
-      paySalary({ ...input, exchangeRateArsPerUsd: "0" }, actor, now),
+      paySalary({ ...input, paymentMethod: "INVALID" }, actor, now),
     ).rejects.toThrow();
     await expect(
       createSalary(

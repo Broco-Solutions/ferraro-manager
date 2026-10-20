@@ -9,7 +9,7 @@ import { getSalaryDetail } from "@/modules/salaries/application/salary-service";
 import { nextSalaryMonth } from "@/modules/salaries/domain/salary-schema";
 import { SalaryForm } from "@/modules/salaries/ui/salary-form";
 import {
-  ars,
+  usd,
   formatSalaryMonth,
   salaryStatusLabels,
 } from "@/modules/salaries/ui/format";
@@ -71,7 +71,7 @@ export default async function SalaryDetailPage({
     <Page className={styles.page} size="default">
       <PageHeader
         title={salary.name}
-        description={`Sueldo mensual en pesos · desde ${formatSalaryMonth(salary.startMonth)}`}
+        description={`Sueldo mensual en USD · desde ${formatSalaryMonth(salary.startMonth)}`}
         actions={
           <Link
             href={`/app/finance/salaries?month=${selected?.month ?? current}`}
@@ -91,7 +91,7 @@ export default async function SalaryDetailPage({
           ? `Se repite hasta ${formatSalaryMonth(salary.endMonth)}, inclusive.`
           : "Se repite automáticamente todos los meses."}
         {scheduled
-          ? ` Desde ${formatSalaryMonth(scheduled.effectiveMonth)}: ${ars.format(scheduled.amountArs.toNumber())}.`
+          ? ` Desde ${formatSalaryMonth(scheduled.effectiveMonth)}: ${usd.format(scheduled.amountUsd.toNumber())}.`
           : ""}
       </p>
       <form className={styles.toolbar}>
@@ -113,7 +113,7 @@ export default async function SalaryDetailPage({
           <h2>{formatSalaryMonth(selected.month)}</h2>
           <div className={styles.actions}>
             <strong className={styles.amount}>
-              {ars.format(selected.amountArs.toNumber())}
+              {usd.format(selected.amountUsd.toNumber())}
             </strong>
             <span
               className={`${styles.badge} ${selected.status === "PAID" ? styles.paid : styles.pending}`}
@@ -133,8 +133,7 @@ export default async function SalaryDetailPage({
                   } as const
                 )[selected.payment.paymentMethod ?? "OTHER"]
               }{" "}
-              · USD {selected.payment.amountUsd.toFixed(2)} · Cotización ARS/USD{" "}
-              {selected.payment.exchangeRateArsPerUsd?.toString()}.{" "}
+              · USD {selected.payment.amountUsd.toFixed(2)}.{" "}
               <Link
                 href={`/app/finance?month=${getBusinessMonthKey(selected.payment.occurredAt)}&type=SALARY_PAYMENT`}
                 className="text-link"
@@ -185,8 +184,8 @@ export default async function SalaryDetailPage({
             month={month}
             amount={
               future
-                ? rate?.amountArs.toFixed(2)
-                : selected?.amountArs.toFixed(2)
+                ? rate?.amountUsd.toFixed(2)
+                : selected?.amountUsd.toFixed(2)
             }
             future={future}
           />
@@ -199,7 +198,7 @@ export default async function SalaryDetailPage({
             key={`pay-${month}-${salary.version}`}
             {...formProps}
             operation="pay"
-            amount={selected?.amountArs.toFixed(2)}
+            amount={selected?.amountUsd.toFixed(2)}
             occurredLocal={local}
             idempotencyKey={randomUUID()}
           />
@@ -253,11 +252,11 @@ export default async function SalaryDetailPage({
                   {eventLabels[item.action] ?? item.action}
                   {eventMonth ? ` · ${formatSalaryMonth(eventMonth)}` : ""}
                 </strong>
-                {typeof detail.amountArs === "string" ? (
+                {typeof detail.amountUsd === "string" ? (
                   <span>
-                    {ars.format(Number(detail.amountArs))}
-                    {typeof detail.previousAmountArs === "string"
-                      ? ` (antes: ${ars.format(Number(detail.previousAmountArs))})`
+                    {usd.format(Number(detail.amountUsd))}
+                    {typeof detail.previousAmountUsd === "string"
+                      ? ` (antes: ${usd.format(Number(detail.previousAmountUsd))})`
                       : ""}
                   </span>
                 ) : null}

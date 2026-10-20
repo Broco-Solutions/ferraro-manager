@@ -77,8 +77,6 @@ export async function saveSalaryAction(
         "El último mes debe ser el actual o uno posterior. Las deudas anteriores se conservan.",
       SALARY_FUTURE_PAYMENT:
         "La fecha de un pago realizado no puede estar en el futuro.",
-      SALARY_PAYMENT_TOO_SMALL:
-        "El importe convertido debe ser de al menos USD 0,01. Revisá la cotización.",
       IDEMPOTENCY_CONFLICT:
         "Los datos cambiaron después del primer envío. Recargá el formulario para intentarlo de nuevo.",
     };

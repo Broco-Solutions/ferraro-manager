@@ -71,7 +71,7 @@ export function SalaryForm(props: Props) {
         )}
         {operation === "adjust" ? (
           <label>
-            <span>Importe mensual (ARS) *</span>
+            <span>Importe mensual (USD) *</span>
             <input
               name="amount"
               inputMode="decimal"
@@ -117,18 +117,6 @@ export function SalaryForm(props: Props) {
                 <option value="OTHER">Otro</option>
               </select>
             </label>
-            <label>
-              <span>Cotización ARS/USD *</span>
-              <input
-                name="exchangeRateArsPerUsd"
-                inputMode="decimal"
-                required
-                aria-describedby={`${id}-rate-help`}
-              />
-              <small id={`${id}-rate-help`}>
-                Pesos argentinos por 1 USD en la fecha del pago.
-              </small>
-            </label>
           </>
         ) : null}
         {operation === "cancel" || operation === "reverse" ? (
@@ -153,7 +141,7 @@ export function SalaryForm(props: Props) {
       ) : null}
       {operation === "pay" ? (
         <p>
-          Se registrará el pago completo de ARS {props.amount} y un único egreso
+          Se registrará el pago completo de USD {props.amount} y un único egreso
           en Finanzas.
         </p>
       ) : null}

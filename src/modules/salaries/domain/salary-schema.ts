@@ -57,19 +57,6 @@ export const paySalarySchema = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, "Indicá fecha y hora del pago."),
   paymentMethod: z.enum(["TRANSFER", "CASH", "OTHER"]),
-  exchangeRateArsPerUsd: z
-    .string()
-    .trim()
-    .transform((value) => value.replace(",", "."))
-    .pipe(
-      z
-        .string()
-        .regex(/^\d{1,12}(?:\.\d{1,6})?$/, "Ingresá una cotización válida."),
-    )
-    .refine(
-      (value) => Number(value) > 0,
-      "La cotización debe ser mayor a cero.",
-    ),
   idempotencyKey: z.string().uuid(),
 });
 

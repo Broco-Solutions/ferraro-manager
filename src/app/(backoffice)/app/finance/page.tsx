@@ -106,7 +106,7 @@ export default async function FinancePage({
 
       <p className={styles.meta}>
         <Link href="/app/finance/salaries?pending=1" className="text-link">
-          Sueldos pendientes: ARS {salaries.pendingArs.toFixed(2)}
+          Sueldos pendientes: USD {salaries.pendingUsd.toFixed(2)}
         </Link>
         {" · "}
         {salaries.pendingCount} sueldo(s), incluidos {salaries.previousCount} de

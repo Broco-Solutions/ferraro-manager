@@ -254,13 +254,9 @@ export default async function AppHomePage() {
             />
             <Kpi
               attention={admin.salaries.pendingCount > 0}
-              detail={`${admin.salaries.pendingCount} sueldo(s); ${admin.salaries.previousCount} de meses anteriores · ARS`}
+              detail={`${admin.salaries.pendingCount} sueldo(s); ${admin.salaries.previousCount} de meses anteriores · USD`}
               label="Sueldos pendientes"
-              value={new Intl.NumberFormat("es-AR", {
-                style: "currency",
-                currency: "ARS",
-                currencyDisplay: "code",
-              }).format(admin.salaries.pendingArs.toNumber())}
+              value={money.format(admin.salaries.pendingUsd.toNumber())}
             />
             {admin.marginCaseCount > 0 ? (
               <Kpi

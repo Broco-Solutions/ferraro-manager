@@ -5,7 +5,7 @@ import { buttonClassName } from "@/components/ui/button";
 import { requireRole } from "@/modules/identity/application/authorization";
 import { listSalaries } from "@/modules/salaries/application/salary-service";
 import {
-  ars,
+  usd,
   formatSalaryMonth,
   salaryStatusLabels,
 } from "@/modules/salaries/ui/format";
@@ -70,22 +70,22 @@ export default async function SalariesPage({
       >
         <div>
           <dt>Total del mes</dt>
-          <dd>{ars.format(result.totalArs.toNumber())}</dd>
+          <dd>{usd.format(result.totalUsd.toNumber())}</dd>
         </div>
         <div>
           <dt>Pendiente de pagar</dt>
-          <dd>{ars.format(result.pendingArs.toNumber())}</dd>
+          <dd>{usd.format(result.pendingUsd.toNumber())}</dd>
         </div>
         <div>
           <dt>Pagado</dt>
-          <dd>{ars.format(result.paidArs.toNumber())}</dd>
+          <dd>{usd.format(result.paidUsd.toNumber())}</dd>
         </div>
       </dl>
       {result.previousCount > 0 ? (
         <aside className={styles.notice}>
           <strong>
             Quedan {result.previousCount} sueldo(s) pendiente(s) de meses
-            anteriores: {ars.format(result.previousArs.toNumber())}.
+            anteriores: {usd.format(result.previousUsd.toNumber())}.
           </strong>{" "}
           <Link
             href={`/app/finance/salaries?month=${result.month}&pending=1`}
@@ -128,12 +128,12 @@ export default async function SalariesPage({
                     rate.effectiveMonth <= item.salary.endMonth) ? (
                     <small className={styles.muted}>
                       Desde {formatSalaryMonth(rate.effectiveMonth)}:{" "}
-                      {ars.format(rate.amountArs.toNumber())}
+                      {usd.format(rate.amountUsd.toNumber())}
                     </small>
                   ) : null}
                 </div>
                 <strong className={styles.amount}>
-                  {ars.format(item.amountArs.toNumber())}
+                  {usd.format(item.amountUsd.toNumber())}
                 </strong>
                 <span
                   className={`${styles.badge} ${item.status === "PAID" ? styles.paid : styles.pending}`}

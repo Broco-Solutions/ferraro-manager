@@ -81,7 +81,7 @@ test("ADMIN creates a recurring salary, adjusts, pays and reverses it from Finan
   await page.getByRole("link", { name: "Agregar sueldo" }).first().click();
   await page.getByLabel("Nombre de la persona").fill(person);
   await page.getByLabel("Mes de inicio").fill(previous);
-  await page.getByLabel("Importe mensual").fill("1250000,50");
+  await page.getByLabel("Importe mensual").fill("1250,50");
   await page.getByRole("button", { name: "Agregar sueldo" }).click();
   await expect(page.getByRole("heading", { name: person })).toBeVisible();
   const detailUrl = page.url().split("?")[0];
@@ -90,11 +90,11 @@ test("ADMIN creates a recurring salary, adjusts, pays and reverses it from Finan
   await page
     .getByRole("link", { name: "Ajustar importe", exact: true })
     .click();
-  await page.getByLabel("Importe mensual").fill("1300000");
+  await page.getByLabel("Importe mensual").fill("1300");
   await page.getByRole("button", { name: "Guardar ajuste" }).click();
   await expect(page.getByRole("status")).toContainText("guardaron");
   await page.getByRole("link", { name: "Registrar pago", exact: true }).click();
-  await page.getByLabel("Cotización ARS/USD").fill("1000");
+  await expect(page.getByLabel("Cotización ARS/USD")).toHaveCount(0);
   await page.getByRole("button", { name: "Confirmar pago completo" }).click();
   await expect(page.getByText("Pagado", { exact: true })).toBeVisible();
   await expect(page.getByText(/USD 1300.00/)).toBeVisible();

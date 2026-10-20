@@ -307,3 +307,7 @@ Los archivos privados se encolan en `pending_storage_deletions` dentro de la mis
 Los sueldos se administran exclusivamente por ADMIN en Finanzas → Sueldos, con personas independientes de los usuarios. La recurrencia mantiene el importe en ARS y crea una obligación independiente por mes. Las excepciones mensuales y los cambios permanentes conservan el historial; los meses pagados no se reescriben. La baja de recurrencia no elimina deudas.
 
 El pago completo crea atómicamente un egreso `SALARY_PAYMENT`, normalizado a USD con cotización manual de la fecha efectiva, y marca la obligación pagada. Revertir desde cualquier entrada financiera vuelve a abrir la obligación en la misma transacción. Los pendientes se informan en ARS y no afectan caja hasta pagarse. El margen conocido sigue siendo una métrica por caso, sin imputación automática de sueldos. La generación bajo demanda recupera meses omitidos sin cron. Ver [operación y contratos](SALARIES.md).
+
+## Sueldos denominados en USD (2026-10-21)
+
+Por indicación del cliente, la moneda de todo el módulo de sueldos pasa a USD: los empleados cobran en dólares. Esta decisión reemplaza el contrato ARS del 2026-10-20 para sueldos. Los pagos no solicitan cotización y su importe de origen coincide con el USD del egreso; los pendientes se agregan directamente en USD. Se verificó producción sin registros de sueldos antes de la migración, que además bloquea una reinterpretación accidental si se detectan registros existentes. Las demás operaciones financieras siguen admitiendo USD/ARS.

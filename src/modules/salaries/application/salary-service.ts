@@ -117,7 +117,7 @@ async function generateLocked(
     data: missing.map((month) => {
       const rate = rates.find((item) => item.effectiveMonth <= month);
       if (!rate) throw new Error("SALARY_RATE_MISSING");
-      return { salaryId: salary.id, month, amountArs: rate.amountArs };
+      return { salaryId: salary.id, month, amountUsd: rate.amountUsd };
     }),
     skipDuplicates: true,
   });
@@ -160,7 +160,7 @@ export async function createSalary(
         startMonth: data.month,
         createdById: actor.id,
         rates: {
-          create: { effectiveMonth: data.month, amountArs: data.amount },
+          create: { effectiveMonth: data.month, amountUsd: data.amount },
         },
       },
     });
@@ -168,7 +168,7 @@ export async function createSalary(
     await event(tx, salary.id, actor, "CREATED", {
       name: data.name,
       month: data.month,
-      amountArs: data.amount,
+      amountUsd: data.amount,
     });
     await remember(
       tx,
@@ -212,7 +212,7 @@ export async function adjustSalary(
         data: {
           salaryId: salary.id,
           effectiveMonth: data.month,
-          amountArs: data.amount,
+          amountUsd: data.amount,
         },
       });
       await tx.salaryMonth.updateMany({
@@ -221,13 +221,13 @@ export async function adjustSalary(
           month: { gte: data.month },
           status: "PENDING",
         },
-        data: { amountArs: data.amount, version: { increment: 1 } },
+        data: { amountUsd: data.amount, version: { increment: 1 } },
       });
     } else {
       if (!month) throw new Error("SALARY_MONTH_NOT_FOUND");
       await tx.salaryMonth.update({
         where: { id: month.id },
-        data: { amountArs: data.amount, version: { increment: 1 } },
+        data: { amountUsd: data.amount, version: { increment: 1 } },
       });
     }
     await tx.salary.update({
@@ -237,8 +237,8 @@ export async function adjustSalary(
     await event(tx, salary.id, actor, "ADJUSTED", {
       month: data.month,
       scope: data.scope,
-      previousAmountArs: month?.amountArs.toFixed(2) ?? null,
-      amountArs: data.amount,
+      previousAmountUsd: month?.amountUsd.toFixed(2) ?? null,
+      amountUsd: data.amount,
     });
   });
 }
@@ -290,7 +290,7 @@ export async function cancelSalaryMonth(
     await event(tx, salary.id, actor, "CANCELLED", {
       month: data.month,
       reason: data.reason,
-      amountArs: month.amountArs.toFixed(2),
+      amountUsd: month.amountUsd.toFixed(2),
     });
   });
 }
@@ -322,11 +322,9 @@ export async function paySalary(
     });
     if (month.status !== "PENDING") throw new Error("SALARY_NOT_PENDING");
     const money = normalizeMoneyInput({
-      currency: "ARS",
-      amount: month.amountArs.toFixed(2),
-      exchangeRateArsPerUsd: data.exchangeRateArsPerUsd,
+      currency: "USD",
+      amount: month.amountUsd.toFixed(2),
     });
-    if (!money.amountUsd.gt(0)) throw new Error("SALARY_PAYMENT_TOO_SMALL");
     const entry = await tx.financialEntry.create({
       data: {
         direction: "OUTFLOW",
@@ -354,9 +352,7 @@ export async function paySalary(
     await event(tx, salary.id, actor, "PAID", {
       month: month.month,
       entryId: entry.id,
-      amountArs: month.amountArs.toFixed(2),
       amountUsd: money.amountUsd.toFixed(2),
-      exchangeRateArsPerUsd: data.exchangeRateArsPerUsd,
     });
     await remember(
       tx,
@@ -408,19 +404,19 @@ export async function getSalarySummary(now = new Date()) {
   const [pending, previous] = await Promise.all([
     prisma.salaryMonth.aggregate({
       where: { status: "PENDING", month: { lte: month } },
-      _sum: { amountArs: true },
+      _sum: { amountUsd: true },
       _count: true,
     }),
     prisma.salaryMonth.aggregate({
       where: { status: "PENDING", month: { lt: month } },
-      _sum: { amountArs: true },
+      _sum: { amountUsd: true },
       _count: true,
     }),
   ]);
   return {
-    pendingArs: pending._sum.amountArs ?? new Prisma.Decimal(0),
+    pendingUsd: pending._sum.amountUsd ?? new Prisma.Decimal(0),
     pendingCount: pending._count,
-    previousArs: previous._sum.amountArs ?? new Prisma.Decimal(0),
+    previousUsd: previous._sum.amountUsd ?? new Prisma.Decimal(0),
     previousCount: previous._count,
   };
 }
@@ -454,30 +450,30 @@ export async function listSalaries(
     }),
     prisma.salaryMonth.aggregate({
       where: { status: "PENDING", month: { lt: month } },
-      _sum: { amountArs: true },
+      _sum: { amountUsd: true },
       _count: true,
     }),
     prisma.salaryMonth.groupBy({
       by: ["status"],
       where: { month },
-      _sum: { amountArs: true },
+      _sum: { amountUsd: true },
     }),
   ]);
-  const pendingArs =
-    totals.find((item) => item.status === "PENDING")?._sum.amountArs ??
+  const pendingUsd =
+    totals.find((item) => item.status === "PENDING")?._sum.amountUsd ??
     new Prisma.Decimal(0);
-  const paidArs =
-    totals.find((item) => item.status === "PAID")?._sum.amountArs ??
+  const paidUsd =
+    totals.find((item) => item.status === "PAID")?._sum.amountUsd ??
     new Prisma.Decimal(0);
   return {
     items,
     month,
     minMonth: first?.startMonth ?? month,
     currentMonth: currentMonth(now),
-    pendingArs,
-    paidArs,
-    totalArs: pendingArs.plus(paidArs),
-    previousArs: previous._sum.amountArs ?? new Prisma.Decimal(0),
+    pendingUsd,
+    paidUsd,
+    totalUsd: pendingUsd.plus(paidUsd),
+    previousUsd: previous._sum.amountUsd ?? new Prisma.Decimal(0),
     previousCount: previous._count,
   };
 }

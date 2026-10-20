@@ -68,14 +68,14 @@ export function SalaryCreateForm({
             />
           </Field>
           <Field
-            label="Importe mensual (ARS)"
+            label="Importe mensual (USD)"
             description="Sin separadores de miles. Podés usar coma o punto decimal."
             required
           >
             <Input
               name="amount"
               inputMode="decimal"
-              placeholder="Ej. 850000"
+              placeholder="Ej. 850"
               value={amount}
               onChange={(event) => setAmount(event.target.value)}
               required

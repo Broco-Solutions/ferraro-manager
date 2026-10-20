@@ -4,6 +4,7 @@ import {
   salaryAmountSchema,
   salaryMonthSchema,
   salaryMonthsBetween,
+  paySalarySchema,
 } from "@/modules/salaries/domain/salary-schema";
 
 describe("salary inputs and monthly recurrence", () => {
@@ -23,6 +24,17 @@ describe("salary inputs and monthly recurrence", () => {
     ]) {
       expect(salaryAmountSchema.safeParse(invalid).success).toBe(false);
     }
+  });
+  it("records a USD payment without an exchange rate", () => {
+    const parsed = paySalarySchema.parse({
+      salaryId: "f4dcd223-c714-499f-8466-68c5f742b01b",
+      month: "2026-10",
+      version: 0,
+      occurredLocal: "2026-10-20T12:00",
+      paymentMethod: "TRANSFER",
+      idempotencyKey: "d894fe52-1dfe-4d65-9a53-cecfa013566a",
+    });
+    expect(parsed).not.toHaveProperty("exchangeRateArsPerUsd");
   });
   it("crosses years and backfills each month exactly once", () => {
     expect(nextSalaryMonth("2026-12")).toBe("2027-01");

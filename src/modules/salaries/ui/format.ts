@@ -1,6 +1,6 @@
-export const ars = new Intl.NumberFormat("es-AR", {
+export const usd = new Intl.NumberFormat("es-AR", {
   style: "currency",
-  currency: "ARS",
+  currency: "USD",
   currencyDisplay: "code",
 });
 export function formatSalaryMonth(month: string) {
